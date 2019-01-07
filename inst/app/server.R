@@ -545,7 +545,7 @@ shinyServer(function(input, output, session) {
     tissue_subset <- plot_data %>% filter(Sub_Tissue %in% bench)
     pvals <- plot_data %>%
       group_by(Sub_Tissue, ID) %>%
-      do(tidy(t.test(.$value, tissue_subset$value))) %>%
+      do(broom::tidy(t.test(.$value, tissue_subset$value))) %>%
       # multiple test correction
       mutate(`t test p` = signif(min(1,p.value * length(unique(plot_data$Sub_Tissue)))),3) %>%
       dplyr::select(ID, Sub_Tissue, `t test p`)
