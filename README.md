@@ -1,6 +1,6 @@
 # Human eyeIntegration > v1.00 Shiny App
 
-# Web app: 
+# Web app (currently at 0.72)
 [eyeIntegration.nei.nih.gov]()
 
 # Install locally and run in three steps:
