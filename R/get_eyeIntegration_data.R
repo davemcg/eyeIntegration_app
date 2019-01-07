@@ -11,7 +11,7 @@
 #' \dontrun{get_eyeIntegration_datasets()} 
 #' @export
 get_eyeIntegration_datasets <-
-  function (destdir = paste0(getwd(), '/inst/app'), 
+  function (destdir = system.file('app', package = "eyeIntegrationApp"), 
             destfile = "eyeIntegration_data.tar.gz",
             method,
             delete_tar = TRUE)
