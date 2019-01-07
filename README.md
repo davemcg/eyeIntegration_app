@@ -1,4 +1,5 @@
 # Human eyeIntegration > v1.00 Shiny App
+This is `pre-release` code and data. The datasets will undergo at least one more release.
 
 # Web app (currently at 0.72)
 [eyeIntegration.nei.nih.gov]()
