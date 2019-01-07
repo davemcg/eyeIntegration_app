@@ -1081,8 +1081,8 @@ shinyServer(function(input, output, session) {
   })
   output$rpe_GO_table_gene <- renderDataTable(server = TRUE, {
     req(input$rpe_gene)
-    new_mod_color = gene_pool_2017 %>% tbl('rpe_gene_name_colors') %>% filter(id == input$rpe_gene) %>% pull(Module_Color) %>% as.tibble()
-    DT::datatable(gene_pool_2017 %>% tbl('rpe_network_GO') %>% filter(Color == new_mod_color), 
+    new_mod_color = gene_pool_2017 %>% tbl('rpe_gene_name_colors') %>% filter(id == input$rpe_gene) %>% pull(Module_Color)
+    DT::datatable(gene_pool_2017 %>% tbl('rpe_network_GO') %>% filter(Color == new_mod_color) %>% as.tibble(), 
                   extensions = 'Buttons', options = list(
                     dom = 'frtBip', buttons = c('pageLength','copy', 'csv')))
   })
