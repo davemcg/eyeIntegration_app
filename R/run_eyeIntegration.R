@@ -6,4 +6,4 @@
 #' @examples
 #' \dontrun{run_eyeIntegration()} 
 #' @export
-run_eyeIntegration <- function() { shiny::runApp('./inst/app/') }
+run_eyeIntegration <- function() { shiny::runApp(system.file('app', package = "eyeIntegrationApp")) }
