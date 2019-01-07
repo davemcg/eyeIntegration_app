@@ -10,3 +10,8 @@ devtools::install_github('davemcg/eyeIntegration_app')
 eyeIntegrationApp::get_eyeIntegration_datasets()
 eyeIntegrationApp::run_eyeIntegration()
 ```
+
+# Where's the 40 GB of data going?
+```
+system.file('app', package = 'eyeIntegrationApp')
+```
