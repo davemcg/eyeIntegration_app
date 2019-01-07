@@ -6,6 +6,6 @@
 # Install locally and run in three steps:
 ```
 devtools::install_github('davemcg/eyeIntegration_app')
-get_eyeIntegration_datasets()
-run_eyeIntegration()
+eyeIntegrationApp::get_eyeIntegration_datasets()
+eyeIntegrationApp::run_eyeIntegration()
 ```
