@@ -4,8 +4,9 @@
 \alias{get_eyeIntegration_datasets}
 \title{Download eyeIntegration data}
 \usage{
-get_eyeIntegration_datasets(destdir = paste0(getwd(), "/inst/app"),
-  destfile = "eyeIntegration_data.tar.gz", method, delete_tar = TRUE)
+get_eyeIntegration_datasets(destdir = system.file("app", package =
+  "eyeIntegrationApp"), destfile = "eyeIntegration_data.tar.gz", method,
+  delete_tar = TRUE)
 }
 \arguments{
 \item{destdir}{The destination for the eyeIntegration tar.gz file.}
