@@ -335,8 +335,8 @@ shinyUI(fluidPage(
                                      ),
                                      fluidRow(DT::dataTableOutput('rpe_full_edge_table')
                                      )))),
-               navbarMenu('Data Table',
-                          tabPanel('Pan-Tissue Bulk RNA-seq Data',
+               navbarMenu('Data',
+                          tabPanel('Pan-Tissue Bulk RNA-seq Table',
                                    fluidPage(
                                      fluidRow(
                                        column(2, 
@@ -362,7 +362,7 @@ shinyUI(fluidPage(
                                                              multiple = TRUE)),
                                        fluidRow(DT::dataTableOutput('table')
                                        )))),
-                          tabPanel('Mouse Retina Single Cell RNA-seq Data',
+                          tabPanel('Mouse Retina Single Cell RNA-seq Table',
                                    fluidPage(
                                      fluidRow(
                                        column(2,
@@ -384,14 +384,43 @@ shinyUI(fluidPage(
                                      fluidRow(conditionalPanel(condition = "input.single_cell_stat_type__datatable == 'Percentage of Cell Types (across only cells expressing the gene, split by cell type)'",
                                                                div(DT::dataTableOutput('SCtable_3'), style='font-size:75%')))
                                      
-                                   ))),
-               
+                                   )),
+                          tabPanel('Data Download',
+                                   fluidPage(
+                                     fluidRow(h3('Bulk Tissue Gene (or transcript(tx)) Expression Matrices')),
+                                     fluidRow('Rows are genes, columns are samples, values are in 
+                                              length scaled Transcripts Per Million (TPM) as calculated by ', 
+                                              tags$a(href='https://github.com/mikelove/tximport/blob/master/R/tximport.R', 
+                                                     'tximport'), '.'),
+                                     withMathJax(),
+                                     fluidRow(column(2, '$$X = \\frac{count\\ of\\ reads\\ mapped\\ to\\ gene * 
+                                              10^{3}}{gene\\ length\\ in\\ bp}$$')),
+                                     fluidRow(column(2, '$$TPM = X \\ast \\frac{1}{\\sum X} \\ast 10^{6} $$')),
+                                     fluidRow(tags$a(href='https://hpc.nih.gov/~mcgaugheyd/eyeIntegration/2017_metadata.tsv.gz',
+                                                     '2017_metadata.tsv.gz')),
+                                     fluidRow(tags$a(href='https://hpc.nih.gov/~mcgaugheyd/eyeIntegration/2017_gene_TPM.tsv.gz',
+                                                     '2017_gene_TPM.tsv.gz')),
+                                     fluidRow(tags$a(href='https://hpc.nih.gov/~mcgaugheyd/eyeIntegration/2017_tx_TPM.tsv.gz',
+                                                     '2017_tx_TPM.tsv.gz')),
+                                     fluidRow(tags$a(href='https://hpc.nih.gov/~mcgaugheyd/eyeIntegration/2019_metadata.tsv.gz',
+                                                     '2019_metadata.tsv.gz')),
+                                     fluidRow(tags$a(href='https://hpc.nih.gov/~mcgaugheyd/eyeIntegration/2019_gene_TPM.tsv.gz',
+                                                     '2019_gene_TPM.tsv.gz')),
+                                     fluidRow(tags$a(href='https://hpc.nih.gov/~mcgaugheyd/eyeIntegration/2019_tx_TPM.tsv.gz',
+                                                     '2019_tx_TPM.tsv.gz')),
+                                     fluidRow(h3('Everything')),
+                                     fluidRow('All of the data and code for this entire web application can be 
+                                              retrieved by following the simple directions ', 
+                                              tags$a(href='https://github.com/davemcg/eyeIntegration_app','here'), '.'),
+                                     fluidRow(h3('Missing anything?')),
+                                     fluidRow('If there\'s some data you want for easy download, ',
+                                              tags$a(href = "mailto:mcgaugheyd@mail.nih.gov?Subject=eyeIntegration%20Comment", 
+                                                     "let me know"))),  br(), br())),
                navbarMenu('Information',
                           tabPanel('Overview',
                                    fluidPage(
                                      fluidRow(column(width = 8, offset = 1, h2('eyeIntegration v1.00'))),
-                                     fluidRow(column(width =8, offset = 1, img(src='view.png'))),
-                                     #fluidRow(column(width = 8, offset = 1, uiOutput('overview_movie'))),
+                                     fluidRow(column(width = 8, offset = 1, img(src='view.png'))),
                                      fluidRow(column(width = 8, offset = 1, h2('Mission'))),
                                      fluidRow(column(width = 8, offset = 1,
                                                      "The human eye has several specialized tissues which direct, capture, and pre-process information to provide vision.
