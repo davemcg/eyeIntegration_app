@@ -553,6 +553,6 @@ shinyUI(fluidPage(
                                          tabPanel('What is the Single Cell Data table showing?',
                                                   'This data table set shows the data used to make the Mouse Single Cell Retina Expression plots in Gene Expression.'))
                           )),
-                          tabPanel('Privacy Policy', fluidPage(tags$a(href="https://www.nei.nih.gov/tools/policies",
-                                                                      "NEI Policies")), br(), br()))))))
+                          tabPanel(tags$a(href="https://www.nei.nih.gov/tools/policies",
+                                          "NEI Policies")))))))
 
