@@ -328,7 +328,7 @@ shinyServer(function(input, output, session) {
              ID = gsub(' \\(', '\n(', ID)) %>% 
       ggplot(data=.,aes(x=Sub_Tissue,y=log2(value+1),colour=Tissue)) +
       geom_boxplot(alpha=0.5, outlier.shape = NA) + 
-      geom_point_interactive(size=3, position = 'jitter', alpha=0.6, aes(tooltip=Info, shape = Type)) + 
+      geom_point_interactive(size=2, position = 'jitter', alpha=0.25, stroke = 3, aes(tooltip=Info, shape = Type, fill = Tissue)) + 
       xlab('') + 
       facet_wrap(~ID, ncol=col_num) +
       theme_Publication(base_size = 15) + theme(axis.text.x = element_text(angle = 90, hjust=1, vjust = 0.2)) +
