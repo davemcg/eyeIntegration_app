@@ -399,16 +399,18 @@ shinyServer(function(input, output, session) {
     tissue <- input$plot_tissue_gene
     if (length(db) < 1 || length(gene) < 2 || length(tissue) < 2){
       showModal(modalDialog(title = "Heatmap Warning",
-                            "Have you specified at least one gene and two tissues?", 
+                            "Have you specified at least two genes and two tissues?", 
                             easyClose = T,
                             footer = NULL))
     }
+    label_size = 0.2
     if (db == 'Gene 2017') {
       pool <- 'gene_pool_2017'
       table <- 'mean_rank_decile_gene'
     } else if (db == 'Transcript 2017'){
       pool <- 'gene_pool_2017'
-      table <- 'mean_rank_decile_tx' 
+      table <- 'mean_rank_decile_tx'
+      label_size = 0.8
     }
     else if (db == 'Gene 2019') {
       tissue <- trimws(tissue)
@@ -417,7 +419,8 @@ shinyServer(function(input, output, session) {
     } else {
       tissue <- trimws(tissue)
       pool <- 'gene_pool_2019'
-      table <- 'mean_rank_decile_tx' 
+      table <- 'mean_rank_decile_tx'
+      label_size = 0.8
     }
     id_matrix <- get(pool) %>% 
       tbl(table) %>% 
@@ -439,14 +442,16 @@ shinyServer(function(input, output, session) {
                          X.text.size = 4,
                          grid.hline.col = "white",
                          grid.vline.col = "white",
-                         left.label.size = 0.8,
+                         left.label.size = label_size,
                          left.label.col = 'white',
                          left.label.text.alignment = 'right',
                          bottom.label.col = 'white',
                          bottom.label.text.alignment = 'right',
-                         bottom.label.size = 2.4,
-                         bottom.label.text.angle = 90,
-                         legend = F)
+                         bottom.label.size = 0.4,
+                         bottom.label.text.angle = 90, 
+                         legend.vspace = 0.000000000000000000001,
+                         padding = 0,
+                         legend = T)
   })
   output$bulk_tissue_heatmap <- renderPlot({
     bulk_tissue_heatmap_func()
