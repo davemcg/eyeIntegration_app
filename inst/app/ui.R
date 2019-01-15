@@ -29,8 +29,6 @@ shinyUI(fluidPage(
                                    fluidPage(
                                      fluidRow(
                                        column(2,
-                                              actionButton('pan_button_gene','(Re)Draw Plot!', 
-                                                           style='background-color: #3399ff; color: #ffffff'), br(), br(),
                                               radioButtons('plot_type_gene',strong('Visualization:'),
                                                            choices = c('Box Plot','Fold Change', 'Heatmap'),
                                                            selected = 'Box Plot'),
@@ -43,7 +41,9 @@ shinyUI(fluidPage(
                                                              choices=NULL,multiple=TRUE),
                                               conditionalPanel(condition = "input.plot_type_gene != 'Heatmap'",
                                                                numericInput('num_gene', strong('Number of columns:'),
-                                                                            value = 2, min = 1, max = 8)), br(), br(),
+                                                                            value = 2, min = 1, max = 8)), br(), 
+                                              actionButton('pan_button_gene','(Re)Draw Plot!', 
+                                                           style='background-color: #3399ff; color: #ffffff'), br(), br(), 
                                               actionButton('build_pan_url','Build URL Shortcut', 
                                                            style='background-color: #808080; color: #ffffff'), br(), br(), br(), br(), br()
                                        ),
