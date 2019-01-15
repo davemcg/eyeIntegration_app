@@ -107,7 +107,7 @@ shinyServer(function(input, output, session) {
                            server = TRUE)
     }
   })
-  # differential expression
+  # Observe: differential expression -----
   # update database (2017 and 2019) based on user input
   observe({
     db = input$diff_database # c("Gene 2017", "Gene 2019", "Transcript 2019")
