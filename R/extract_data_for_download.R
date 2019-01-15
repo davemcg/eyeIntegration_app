@@ -13,7 +13,7 @@
 #' @importFrom magrittr "%>%"
 
 extract_data_for_download <- function(app_location, 
-         save_dir = '~/Desktop',
+         save_dir = '~/Desktop/',
          version_append){
   gene_pool_2017 <- pool::dbPool(drv = RSQLite::SQLite(), dbname = paste0(app_location, "/www/2017/*sqlite") %>% Sys.glob(), idleTimeout = 3600000)
   gene_pool_2019 <- pool::dbPool(drv = RSQLite::SQLite(), dbname = paste0(app_location, "/www/2019/*sqlite") %>% Sys.glob(), idleTimeout = 3600000)
