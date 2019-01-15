@@ -29,5 +29,8 @@ Imports:
     ggrepel,
     colourpicker,
     shinythemes,
-    utils
+    utils,
+    magrittr
+Suggests:
+    readr
 RoxygenNote: 6.1.1

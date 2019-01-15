@@ -2,3 +2,4 @@
 
 export(get_eyeIntegration_datasets)
 export(run_eyeIntegration)
+importFrom(magrittr,"%>%")
