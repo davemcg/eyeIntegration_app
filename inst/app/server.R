@@ -287,7 +287,7 @@ shinyServer(function(input, output, session) {
     gene <- input$ID
     tissue <- input$plot_tissue_gene
     col_num <- input$num_gene
-    if (length(db) < 1 | length(gene) < 1 | length(tissue) < 1){
+    if (length(db) < 1 || length(gene) < 1 || length(tissue) < 1){
       showModal(modalDialog(title = "Box Plot Warning",
                             "Have you specified at least one gene or tissue?", 
                             easyClose = T,
@@ -353,7 +353,7 @@ shinyServer(function(input, output, session) {
     col_num <- input$num_gene
     bench <- input$Bench_gene
     # })
-    if (length(db) < 1 | length(gene) < 1 | length(tissue) < 1){
+    if (length(db) < 1 || length(gene) < 1 || length(tissue) < 1){
       showModal(modalDialog(title = "Fold Change Box Plot Warning",
                             "Have you specified at least one gene or tissue?", 
                             easyClose = T,
@@ -397,7 +397,7 @@ shinyServer(function(input, output, session) {
     db = input$Database
     gene <- input$ID
     tissue <- input$plot_tissue_gene
-    if (length(db) < 1 | length(gene) < 1 | length(tissue) < 2){
+    if (length(db) < 1 || length(gene) < 2 || length(tissue) < 2){
       showModal(modalDialog(title = "Heatmap Warning",
                             "Have you specified at least one gene and two tissues?", 
                             easyClose = T,
