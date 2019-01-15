@@ -280,7 +280,7 @@ shinyServer(function(input, output, session) {
     
   })
   
-  # pan - tissue boxplot -------
+  # Pan - Tissue Boxplot -------
   boxPlot_gene_func <- eventReactive(input$pan_button_gene, {
     cat(file=stderr(), 'boxPlot Gene call\n')
     db <- input$Database
@@ -334,7 +334,8 @@ shinyServer(function(input, output, session) {
       theme_Publication(base_size = 15) + theme(axis.text.x = element_text(angle = 90, hjust=1, vjust = 0.2)) +
       ggtitle('Box Plot of Pan-Human Gene Expression') +
       ylab("log2(TPM +1)") +
-      scale_shape_manual(values=c(0:2,5,6,15:50))
+      scale_shape_manual(values=c(0:2,5,6,15:50)) +
+      theme(plot.margin=grid::unit(c(0,0,0,0.1), "cm"))
     girafe(ggobj = p,width_svg = 12, 
            height_svg= max(10, (6 * (length(gene)/min(col_num,length(gene)))))) %>% 
       girafe_options(., opts_toolbar(position = NULL) )
