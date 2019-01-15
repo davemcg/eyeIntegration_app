@@ -411,7 +411,7 @@ shinyServer(function(input, output, session) {
     } else if (db == 'Transcript 2017'){
       pool <- 'gene_pool_2017'
       table <- 'mean_rank_decile_tx'
-      label_size = 0.8
+      label_size = 0.7
     }
     else if (db == 'Gene 2019') {
       tissue <- trimws(tissue)
@@ -421,7 +421,7 @@ shinyServer(function(input, output, session) {
       tissue <- trimws(tissue)
       pool <- 'gene_pool_2019'
       table <- 'mean_rank_decile_tx'
-      label_size = 0.8
+      label_size = 0.7
     }
     id_matrix <- get(pool) %>% 
       tbl(table) %>% 
@@ -448,7 +448,7 @@ shinyServer(function(input, output, session) {
                          left.label.text.alignment = 'right',
                          bottom.label.col = 'white',
                          bottom.label.text.alignment = 'right',
-                         bottom.label.size = 0.4,
+                         bottom.label.size = 0.5,
                          bottom.label.text.angle = 90, 
                          legend.vspace = 0.000000000000000000001,
                          padding = 0,
@@ -509,7 +509,7 @@ shinyServer(function(input, output, session) {
       dplyr::select(-meanlsTPM) %>% 
       DT::datatable(extensions = 'Buttons', rownames = F, options = list(
         pageLength = 20, dom = 'frtBip', buttons = c('pageLength','copy', 'csv'))) %>% 
-      DT::formatRound(c('log2(TPM + 1)'), digits=2)
+      DT::formatRound(c('log2(TPM+1)'), digits=2)
   })
   
   output$rankStats_gene <- DT::renderDataTable(server = TRUE, {
