@@ -502,11 +502,14 @@ shinyServer(function(input, output, session) {
       filter(ID %in% gene, Sub_Tissue %in% tissue) %>%
       mutate(ID, Tissue = `Sub_Tissue`) %>%
       ungroup() %>%
-      dplyr::select(ID, Tissue, Rank, Decile) %>%
+      dplyr::select(ID, Tissue, meanlsTPM, Rank, Decile) %>%
       arrange(ID, Tissue) %>%
       as.tibble() %>% 
+      mutate(`log2(TPM + 1)` = log2(meanlsTPM + 1)) %>% 
+      dplyr::select(-meanlsTPM) %>% 
       DT::datatable(extensions = 'Buttons', rownames = F, options = list(
-        pageLength = 20, dom = 'frtBip', buttons = c('pageLength','copy', 'csv')))
+        pageLength = 20, dom = 'frtBip', buttons = c('pageLength','copy', 'csv'))) %>% 
+      DT::formatRound(c('log2(TPM + 1)'), digits=2)
   })
   
   output$rankStats_gene <- DT::renderDataTable(server = TRUE, {
