@@ -505,7 +505,7 @@ shinyServer(function(input, output, session) {
       dplyr::select(ID, Tissue, meanlsTPM, Rank, Decile) %>%
       arrange(ID, Tissue) %>%
       as.tibble() %>% 
-      mutate(`log2(TPM + 1)` = log2(meanlsTPM + 1)) %>% 
+      mutate(`log2(TPM+1)` = log2(meanlsTPM + 1)) %>% 
       dplyr::select(-meanlsTPM) %>% 
       DT::datatable(extensions = 'Buttons', rownames = F, options = list(
         pageLength = 20, dom = 'frtBip', buttons = c('pageLength','copy', 'csv'))) %>% 
