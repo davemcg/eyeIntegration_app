@@ -184,7 +184,7 @@ shinyServer(function(input, output, session) {
                          server = TRUE)
     updateSelectizeInput(session, 'age_tsne',
                          choices = tsne_age,
-                         selected = c(tsne_age[3]),
+                         #selected = c(tsne_age[3]),
                          server = TRUE)
   })
   
