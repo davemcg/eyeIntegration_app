@@ -503,7 +503,7 @@ shinyUI(fluidPage(
                                                   img(src='workflow.svg')),
                                          tabPanel("How was the 2019 data generated and processed?"),
                                          tabPanel("2019 Data workflow",
-                                                  img(src='2019_workflow.svg'))),
+                                                  img(src='2019_workflow.svg', width = 900))),
                             navlistPanel("Pan-Tissue Expression FAQs", 
                                          tabPanel("How do I use the Pan-Tissue Expression section?",
                                                   "First you pick the dataset (2017 or 2019) [2]. Then you can tweak the 'Genes' [3] and 'Tissues' [4] by clicking in them and starting to type (allowed values will auto-fill). You can also delete values by clicking on them and hitting the 'delete' key on your keyboard. You can tweak the display of the box plots a bit by changing the 'Number of columns' field [5]. A higher number will squeeze more plots in each column. When you are done tweaking those parameters, click the big blue '(Re)Draw Plot!' button [6] and wait a few seconds.", br(), br(), 'If you mouse over a data point [8], you will get metadata about that particular sample.', br(), br(), img(src='pantissue_screenshot.png', width = 900), br(), br()),
