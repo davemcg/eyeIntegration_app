@@ -9,7 +9,7 @@
 #' \dontrun{tar_maker(www_location = paste0(system.file('app', 
 #' package = 'eyeIntegrationApp')), tar_name = 'eyeIntegration_v100_01.tar.gz') }
 
-tar_maker <- function(www_location, tar_name = '~/Desktop/eyeIntegration_v100_02.tar.gz'){
+data_compressor <- function(www_location, tar_name = '~/Desktop/eyeIntegration_v100_02.tar.gz'){
   setwd(www_location)
-  system(paste('tar -cvf - www/ | pigz >', tar_name))
+  system(paste('tar -cvf - www/ --exclude=\'.[^/]*\' | pigz >', tar_name))
 }
