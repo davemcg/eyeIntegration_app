@@ -571,7 +571,7 @@ shinyServer(function(input, output, session) {
   
   # modal for custom url ---------
   observeEvent(input$build_pan_url, {
-    url = paste0("http://cyclops.nei.nih.gov/shiny/eyeIntegration/?Dataset=",
+    url = paste0("https://eyeIntegration.nei.nih.gov/?Dataset=",
                  gsub(' ' , '_', paste(input$Database, collapse = ',')),
                  "&ID=", gsub(' ', '_', paste(input$ID, collapse = ',')),
                  "&Tissue=", gsub(' ', '_', paste(input$plot_tissue_gene, collapse = ',')),
