@@ -468,7 +468,7 @@ shinyUI(fluidPage(
                                    )),
                           tabPanel('News',
                                    fluidPage(
-                                     fluidRow(column(width = 8, offset = 1, h2('2019-01-08 | v1.00'))),
+                                     fluidRow(column(width = 8, offset = 1, h2('2019-01-16 | v1.00'))),
                                      fluidRow(column(width = 8, offset = 1, 'Version 1.0! We introduce a huge set of updates, including a new 2019 dataset with 224 new eye samples, four new eye tissue categories, non-protein coding quantification, heatmap visualization, custom user shortcuts, quick gene information links, and easy data downloads. We will soon have a bioRxiv preprint describing the new automated pipeline that underlies the 2019 dataset. For users wanting to compare previous work done on eyeIntegration, the 2017 dataset is available as a versioned option.')),
                                      fluidRow(column(width = 8, offset = 1, h2('2018-10-12 | v0.73'))),
                                      fluidRow(column(width = 8, offset = 1, 'Now using heatmaps for SC RNA-seq data.')),
@@ -550,7 +550,7 @@ shinyUI(fluidPage(
                                                   'The data table shows, for each gene and tissue set the user selects, the most important metadata for each sample.'),
                                          tabPanel('What is the Single Cell Data table showing?',
                                                   'This data table set shows the data used to make the Mouse Single Cell Retina Expression plots in Gene Expression.')))),
-                           tabPanel(a("NEI Policies", href = "https://www.nei.nih.gov/tools/policies"))
+                           tabPanel(a("NEI Policies", href = "https://www.nei.nih.gov/tools/policies", target = "_blank"))
                           )))))
   
   
