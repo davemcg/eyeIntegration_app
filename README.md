@@ -12,7 +12,14 @@ eyeIntegrationApp::get_eyeIntegration_datasets()
 eyeIntegrationApp::run_eyeIntegration()
 ```
 
-# Where's the 40 GB of data going?
+# Install locally (custom location!) and run in three steps:
+```
+devtools::install_github('davemcg/eyeIntegration_app')
+eyeIntegrationApp::get_eyeIntegration_datasets(destdir='/your/path/to/app')
+eyeIntegrationApp::run_eyeIntegration(app_path='/your/path/to/app')
+```
+
+# Where's the 40 GB of data going, by default?
 ```
 system.file('app', package = 'eyeIntegrationApp')
 ```
