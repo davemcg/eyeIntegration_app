@@ -552,6 +552,6 @@ shinyUI(fluidPage(
                                                   'This data table set shows the data used to make the Mouse Single Cell Retina Expression plots in Gene Expression.')),
                             navlistPanel(tags$a(href="https://www.nei.nih.gov/tools/policies",
                                                 "NEI Policies"))
-                          )))))
+                          )))))))
   
   
