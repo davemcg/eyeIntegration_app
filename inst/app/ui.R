@@ -360,7 +360,7 @@ shinyUI(fluidPage(
                                                              strong('Columns: '),
                                                              choices = NULL,
                                                              multiple = TRUE)),
-                                       fluidRow(DT::dataTableOutput('table')
+                                       column(10, fluidRow(div(DT::dataTableOutput('table'), style='font-size:75%'))
                                        )))),
                           tabPanel('Mouse Retina Single Cell RNA-seq Table',
                                    fluidPage(
@@ -372,19 +372,20 @@ shinyUI(fluidPage(
                                               selectizeInput('sc_datatable_tissue',
                                                              strong('Cell Type:'),
                                                              choices = NULL))),
-                                     fluidRow(radioButtons('single_cell_stat_type__datatable',strong('Summary Statistic Representation:'),
-                                                           choices = c('Mean Gene Expression (across all cells, split by cell type)',
-                                                                       'Percentage Cells Expressing Gene (across all cells, split by cell type)', 
-                                                                       'Percentage of Cell Types (across only cells expressing the gene, split by cell type)'),
-                                                           selected = 'Mean Gene Expression (across all cells, split by cell type)')),
-                                     fluidRow(conditionalPanel(condition = "input.single_cell_stat_type__datatable == 'Mean Gene Expression (across all cells, split by cell type)'",
-                                                               div(DT::dataTableOutput('SCtable_1'), style='font-size:75%'))),
-                                     fluidRow(conditionalPanel(condition = "input.single_cell_stat_type__datatable == 'Percentage Cells Expressing Gene (across all cells, split by cell type)'",
-                                                               div(DT::dataTableOutput('SCtable_2'), style='font-size:75%'))),
-                                     fluidRow(conditionalPanel(condition = "input.single_cell_stat_type__datatable == 'Percentage of Cell Types (across only cells expressing the gene, split by cell type)'",
-                                                               div(DT::dataTableOutput('SCtable_3'), style='font-size:75%')))
-                                     
-                                   )),
+                                     column(10,
+                                            fluidRow(radioButtons('single_cell_stat_type__datatable',strong('Summary Statistic Representation:'),
+                                                                  choices = c('Mean Gene Expression (across all cells, split by cell type)',
+                                                                              'Percentage Cells Expressing Gene (across all cells, split by cell type)', 
+                                                                              'Percentage of Cell Types (across only cells expressing the gene, split by cell type)'),
+                                                                  selected = 'Mean Gene Expression (across all cells, split by cell type)')),
+                                            fluidRow(conditionalPanel(condition = "input.single_cell_stat_type__datatable == 'Mean Gene Expression (across all cells, split by cell type)'",
+                                                                      div(DT::dataTableOutput('SCtable_1'), style='font-size:75%'))),
+                                            fluidRow(conditionalPanel(condition = "input.single_cell_stat_type__datatable == 'Percentage Cells Expressing Gene (across all cells, split by cell type)'",
+                                                                      div(DT::dataTableOutput('SCtable_2'), style='font-size:75%'))),
+                                            fluidRow(conditionalPanel(condition = "input.single_cell_stat_type__datatable == 'Percentage of Cell Types (across only cells expressing the gene, split by cell type)'",
+                                                                      div(DT::dataTableOutput('SCtable_3'), style='font-size:75%')))
+                                            
+                                     ))),
                           tabPanel('Data Download',
                                    fluidPage(
                                      fluidRow(h3('Bulk Tissue Gene (or transcript(tx)) Expression Matrices')),
@@ -550,7 +551,7 @@ shinyUI(fluidPage(
                                                   'The data table shows, for each gene and tissue set the user selects, the most important metadata for each sample.'),
                                          tabPanel('What is the Single Cell Data table showing?',
                                                   'This data table set shows the data used to make the Mouse Single Cell Retina Expression plots in Gene Expression.')))),
-                           tabPanel(a("NEI Policies", href = "https://www.nei.nih.gov/tools/policies", target = "_blank"))
-                          )))))
-  
-  
+                          tabPanel(a("NEI Policies", href = "https://www.nei.nih.gov/tools/policies", target = "_blank"))
+               )))))
+
+
