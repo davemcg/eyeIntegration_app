@@ -11,5 +11,5 @@
 
 data_compressor <- function(www_location, tar_name = '~/Desktop/eyeIntegration_v100_02.tar.gz'){
   setwd(www_location)
-  system(paste('tar --exclude=\'.[^/]*\' -cvf - www/ | pigz >', tar_name))
+  system(paste('tar --exclude=".*" -cvf - www/ | pigz >', tar_name))
 }
