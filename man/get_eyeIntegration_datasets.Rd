@@ -4,11 +4,14 @@
 \alias{get_eyeIntegration_datasets}
 \title{Download eyeIntegration data}
 \usage{
-get_eyeIntegration_datasets(destdir = system.file("app", package =
-  "eyeIntegrationApp"), destfile = "eyeIntegration_data.tar.gz", method,
-  delete_tar = TRUE, verbose = TRUE)
+get_eyeIntegration_datasets(file = "eyeIntegration_v100_01.tar.gz",
+  destdir = system.file("app", package = "eyeIntegrationApp"),
+  destfile = "eyeIntegration_data.tar.gz", method, delete_tar = TRUE,
+  verbose = TRUE)
 }
 \arguments{
+\item{file}{The file name on biowulf2}
+
 \item{destdir}{The destination for the eyeIntegration tar.gz file.}
 
 \item{destfile}{The file name for the eyeIntegration tar.gz file}

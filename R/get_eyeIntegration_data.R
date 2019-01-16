@@ -2,6 +2,7 @@
 #' 
 #' Downloads the data underlying eyeIntegration.
 #' 
+#' @param file The file name on biowulf2
 #' @param destdir The destination for the eyeIntegration tar.gz file. 
 #' @param destfile The file name for the eyeIntegration tar.gz file
 #' @param method Download method
@@ -12,7 +13,8 @@
 #' \dontrun{get_eyeIntegration_datasets()} 
 #' @export
 get_eyeIntegration_datasets <-
-  function (destdir = system.file('app', package = "eyeIntegrationApp"), 
+  function (file = "eyeIntegration_v100_01.tar.gz",
+            destdir = system.file('app', package = "eyeIntegrationApp"), 
             destfile = "eyeIntegration_data.tar.gz",
             method,
             delete_tar = TRUE,
@@ -28,7 +30,7 @@ get_eyeIntegration_datasets <-
     localfile <- file.path(destdir, destfile)   
     options(warn=-1)
     
-    url = 'https://hpc.nih.gov/~mcgaugheyd/eyeIntegration/eyeIntegration_v100_02.tar.gz'
+    url = paste0('https://hpc.nih.gov/~mcgaugheyd/eyeIntegration/', file)
     message("Huge download starting!\n")
     utils::download.file(url, destfile = localfile, mode = "wb", method=method)
     message("Decompressing data...\n")
