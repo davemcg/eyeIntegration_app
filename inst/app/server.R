@@ -1156,7 +1156,7 @@ shinyServer(function(input, output, session) {
       
       table %>% DT::datatable(extensions = 'Buttons', 
                               rownames = F,
-                              options = list(
+                              options = list(lengthMenu = c(5, 10, 20, 100, 1000, 5000),
                                 pageLength = 20, dom = 'frtBip', buttons = c('pageLength','copy', 'csv'))) %>% 
         DT::formatRound(c('Mean Expression Count of Gene in Tissue'), digits=2)
     })
@@ -1173,7 +1173,7 @@ shinyServer(function(input, output, session) {
       }
       table %>% DT::datatable(extensions = 'Buttons', 
                               rownames = F,
-                              options = list(
+                              options = list(lengthMenu = c(5, 10, 20, 100, 1000, 5000),
                                 pageLength = 20, dom = 'frtBip', buttons = c('pageLength','copy', 'csv'))) %>% 
         DT::formatRound(c('Percentage of Cells Expressing Gene'), digits=2)
     })
@@ -1191,7 +1191,7 @@ shinyServer(function(input, output, session) {
       
       table %>% DT::datatable(extensions = 'Buttons', 
                               rownames = F,
-                              options = list(
+                              options = list(lengthMenu = c(5, 10, 20, 100, 1000, 5000),
                                 pageLength = 20, dom = 'frtBip', buttons = c('pageLength','copy', 'csv'))) %>% 
         DT::formatRound(c('Percentage Cell Types'), digits=2)
     })
