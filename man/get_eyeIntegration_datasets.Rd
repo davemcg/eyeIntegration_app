@@ -6,7 +6,7 @@
 \usage{
 get_eyeIntegration_datasets(destdir = system.file("app", package =
   "eyeIntegrationApp"), destfile = "eyeIntegration_data.tar.gz", method,
-  delete_tar = TRUE)
+  delete_tar = TRUE, verbose = TRUE)
 }
 \arguments{
 \item{destdir}{The destination for the eyeIntegration tar.gz file.}
@@ -16,6 +16,8 @@ get_eyeIntegration_datasets(destdir = system.file("app", package =
 \item{method}{Download method}
 
 \item{delete_tar}{Delete the tar file after data extraction?}
+
+\item{verbose}{Turn on verbosity for untar()}
 }
 \description{
 Downloads the data underlying eyeIntegration.

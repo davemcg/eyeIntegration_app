@@ -4,7 +4,12 @@
 \alias{run_eyeIntegration}
 \title{Run eyeIntegration App}
 \usage{
-run_eyeIntegration()
+run_eyeIntegration(app_path = system.file("app", package =
+  "eyeIntegrationApp"))
+}
+\arguments{
+\item{app_path}{The path to the folder holding the server.R, ui.R, and www/ 
+folder.}
 }
 \description{
 Wrapper that starts the eyeIntegration Shiny App. You must run 

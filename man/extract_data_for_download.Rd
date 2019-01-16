@@ -4,7 +4,7 @@
 \alias{extract_data_for_download}
 \title{Table Maker}
 \usage{
-extract_data_for_download(app_location, save_dir = "~/Desktop",
+extract_data_for_download(app_location, save_dir = "~/Desktop/",
   version_append)
 }
 \arguments{
