@@ -34,4 +34,4 @@ Imports:
 Suggests:
     readr
 RoxygenNote: 6.1.1
-Remotes: git::https://github.com/rlbarter/superheat.git
+Remotes: rlbarter/superheat
