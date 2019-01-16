@@ -1146,7 +1146,7 @@ shinyServer(function(input, output, session) {
     DT::renderDataTable(server = TRUE, {
       SC_dataset <- (input$SC_datatable_dataset %>% strsplit(' '))[[1]][1] %>% tolower()
       table_name <- paste(SC_dataset, 'gene_cell_type_stats', sep='__')
-      if (SC_dataset == 'Macosko et al.'){
+      if (SC_dataset == 'macosko'){
         table <- dbGetQuery(SC_pool, paste0('select Gene, "Cell Count",  "Total Count", "Mean", "Rank_mean", "Decile_mean" from ', table_name, ' WHERE "Cell Type"="', input$sc_datatable_tissue,'"')) %>% 
           dplyr::select(Gene:`Total Count`, 'Mean Expression Count of Gene in Tissue' = Mean, 'Rank' = Rank_mean, 'Decile' = Decile_mean)
       } else {
@@ -1164,7 +1164,7 @@ shinyServer(function(input, output, session) {
     DT::renderDataTable(server = TRUE, {
       SC_dataset <- (input$SC_datatable_dataset %>% strsplit(' '))[[1]][1] %>% tolower()
       table_name <- paste(SC_dataset, 'gene_cell_type_stats', sep='__')
-      if (SC_dataset == 'Macosko et al.'){
+      if (SC_dataset == 'macosko'){
         table <- dbGetQuery(SC_pool, paste0('select Gene, "Cell Count",  "Total Count", "Percentage Cells", "Rank_cells", "Decile_cells" from ', table_name, ' WHERE "Cell Type"="', input$sc_datatable_tissue,'"')) %>% 
           dplyr::select(Gene:`Total Count`, 'Percentage of Cells Expressing Gene' = `Percentage Cells`, 'Rank' = Rank_cells, 'Decile' = Decile_cells )
       } else {
@@ -1181,7 +1181,7 @@ shinyServer(function(input, output, session) {
     DT::renderDataTable(server = TRUE, {
       SC_dataset <- (input$SC_datatable_dataset %>% strsplit(' '))[[1]][1] %>% tolower()
       table_name <- paste(SC_dataset, 'gene_cell_type_stats', sep='__')
-      if (SC_dataset == 'Macosko et al.'){
+      if (SC_dataset == 'macosko'){
         table <- dbGetQuery(SC_pool, paste0('select Gene, "Cell Count",  "Total Count", "Percentage Cell Types", "Rank_cell_types", "Decile_cell_types" from ', table_name, ' WHERE "Cell Type"="', input$sc_datatable_tissue,'"')) %>% 
           dplyr::select(Gene:`Total Count`, `Percentage Cell Types`, 'Rank' = Rank_cell_types, 'Decile' = Decile_cell_types )
       } else {
