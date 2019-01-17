@@ -10,13 +10,13 @@ SRP016140 | Identification of Novel Molecular Markers through Transcriptomic Ana
 SRP034875 | Comprehensive Analysis of Gene Expression in Human Retina and Supporting Tissues | Retina, RPE | http://dx.doi.org/10.1093/hmg/ddu114
 SRP035641 | RNA-seq analysis in Cornea epithelial cells (CECs), skin epithelial cells (SECs), LSCs after knocking down PAX6 (3-D shPAX6 LSCs) and SESCs transduced with PAX6(3-D PAX6+ SESCs) upon 3-D differentiation | Cornea | http://dx.doi.org/10.1038/nature13465
 SRP045639 | Aneuploidy-induced cellular stresses limit autophagic degradation. | RPE | http://dx.doi.org/10.1101/gad.269118.115
-SRP053034 | Homo sapiens Transcriptome or Gene expression | RPE | http://dx.doi.org/10.1038/nature14512
+SRP053034 | The core spliceosome as target and effector of non-canonical ATM signalling | RPE | http://dx.doi.org/10.1038/nature14512
 SRP055101 | Transcriptomic analysis of cultured corneal endothelial cells as a validation for their use in cell-replacement therapy | Cornea | http://dx.doi.org/10.3727/096368915X688948
 SRP056957 | Transcriptome dynamics of developing photoreceptors in 3-D retina cultures recapitulates temporal sequence of human cone and rod differentiation revealing cell surface markers and gene networks | ESC, Retina | http://dx.doi.org/10.1002/stem.2122
-SRP057295 | Reversal of persistent wound-induced retinal pigmented epithelial-to-mesenchymal transition by the TGFb pathway inhibitor, A-83-01. | RPE | http://dx.doi.org/10.1186/s13073-015-0183-x
+SRP057295 | Restoration of mesenchymal retinal pigmented epithelial cells by TGFβ pathway inhibitors: implications for age-related macular degeneration | RPE | http://dx.doi.org/10.1186/s13073-015-0183-x
 SRP061670 | Homo sapiens Raw sequence reads | RPE | -
 SRP062870 | Deletion of DXZ4 on the human inactive X chromosome eliminates superdomains and impairs gene silencing | RPE | http://dx.doi.org/10.1073/pnas.1609643113
-SRP064956 | Mammalian cell-lines Transcriptome or Gene expression | RPE | http://dx.doi.org/10.1038/ncb3201
+SRP064956 | An siRNA-based functional genomics screen for the identification of regulators of ciliogenesis and ciliopathy genes | RPE | http://dx.doi.org/10.1038/ncb3201
 SRP079002 | Enriched retinal ganglion cells derived from human embryonic stem cells (RNA-seq) | ESC | http://dx.doi.org/10.1038/srep30552
 SRP080002 | Transcriptome analysis reveals rod/cone photoreceptor specific signatures across mammalian retinas | Retina | http://dx.doi.org/10.1093/hmg/ddw268
 SRP080886 | Transcriptomic analysis across nasal, temporal, and macular regions of human neural retina and RPE/choroid by RNA-Seq | Retina, RPE | http://dx.doi.org/10.1016/j.exer.2014.11.001
