@@ -2,7 +2,7 @@ Study Accession | Title | Tissue | DOI
 --- | --- | --- | ----
 E_MTAB_4377 | An atlas of gene expression and gene co-regulation in the human retina | Retina | http://dx.doi.org/10.1093/nar/gkw486
 SRP002881 | SplicePL: de novo splice junction detection from paired-end RNA-seq reads | Retina | -
-SRP011895 | Comparison of stem-cell derived retinal pigment epithelia (RPE) with human fetal retina pigment epithelium | RPE | http://dx.doi.org/10.5966/sctm.2012-0134
+SRP011895 | Engineering a Blood‐Retinal Barrier With Human Embryonic Stem Cell‐Derived Retinal Pigment Epithelium: Transcriptome and Functional Analysis | RPE | http://dx.doi.org/10.5966/sctm.2012-0134
 SRP012585 | Identification of miRNA signatures during the differentiation of hESCs into retinal pigment epithelial cells | ESC, RPE | http://dx.doi.org/10.1371/journal.pone.0037224
 SRP012682 | Genotype-Tissue Expression (GTEx) Common Fund Project | Adipose Tissue, Adrenal Gland, Blood, Blood Vessel, Brain, Breast, Colon, Esophagus, Heart, Kidney, Liver, Lung, Muscle, Nerve, Pancreas, Pituitary, Salivary Gland, Skin, Small Intestine, Spleen, Stomach, Thyroid | http://dx.doi.org/10.1038/nature24277
 SRP015336 | Unprecedented alternative splicing and 3 Mb of novel transcribed sequence leads to significant transcript diversity in the transcriptome of the human retina | Retina | http://dx.doi.org/10.1186/1471-2164-14-486
