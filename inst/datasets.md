@@ -19,7 +19,7 @@ SRP062870 | Deletion of DXZ4 on the human inactive X chromosome eliminates super
 SRP064956 | Mammalian cell-lines Transcriptome or Gene expression | RPE | http://dx.doi.org/10.1038/ncb3201
 SRP079002 | Enriched retinal ganglion cells derived from human embryonic stem cells (RNA-seq) | ESC | http://dx.doi.org/10.1038/srep30552
 SRP080002 | Transcriptome analysis reveals rod/cone photoreceptor specific signatures across mammalian retinas | Retina | http://dx.doi.org/10.1093/hmg/ddw268
-SRP080886 | Region-specific Transcriptome Analysis of the Human Retina and RPE/Choroid | Retina, RPE | http://dx.doi.org/10.1016/j.exer.2014.11.001
+SRP080886 | Transcriptomic analysis across nasal, temporal, and macular regions of human neural retina and RPE/choroid by RNA-Seq | Retina, RPE | http://dx.doi.org/10.1016/j.exer.2014.11.001
 SRP091605 | Transcriptomes during lens differentiation of human embryonic stem cells | ESC, Lens | -
 SRP050054 | Highly Parallel Genome-wide Expression Profiling of Individual Cells Using Nanoliter Droplets | Single Cell Mouse Retina |  http://dx.doi.org/10.1016/j.cell.2015.05.002
 SRP012585 | Identification of miRNA signatures during the differentiation of hESCs into retinal pigment epithelial cells | RPE | https://doi.org/10.1371/journal.pone.0037224
