@@ -18,7 +18,7 @@ SRP061670 | Homo sapiens Raw sequence reads | RPE | -
 SRP062870 | Deletion of DXZ4 on the human inactive X chromosome eliminates superdomains and impairs gene silencing | RPE | http://dx.doi.org/10.1073/pnas.1609643113
 SRP064956 | Mammalian cell-lines Transcriptome or Gene expression | RPE | http://dx.doi.org/10.1038/ncb3201
 SRP079002 | Enriched retinal ganglion cells derived from human embryonic stem cells (RNA-seq) | ESC | http://dx.doi.org/10.1038/srep30552
-SRP080002 | RNA-Seq of retinal tissue from a Human Eye | Retina | http://dx.doi.org/10.1093/hmg/ddw268
+SRP080002 | Transcriptome analysis reveals rod/cone photoreceptor specific signatures across mammalian retinas | Retina | http://dx.doi.org/10.1093/hmg/ddw268
 SRP080886 | Region-specific Transcriptome Analysis of the Human Retina and RPE/Choroid | Retina, RPE | http://dx.doi.org/10.1016/j.exer.2014.11.001
 SRP091605 | Transcriptomes during lens differentiation of human embryonic stem cells | ESC, Lens | -
 SRP050054 | Highly Parallel Genome-wide Expression Profiling of Individual Cells Using Nanoliter Droplets | Single Cell Mouse Retina |  http://dx.doi.org/10.1016/j.cell.2015.05.002
