@@ -1,0 +1,91 @@
+---
+title: "Fetal and Organoid Human Retina"
+author: David McGaughey
+date: 2019-01-16
+output:  
+  html_notebook:
+    theme: flatly
+    toc: true
+    toc_float: true
+---
+
+# Load libraries, connect to 2019 SQLite DB
+```{r}
+library(pool)
+library(tidyverse)
+library(RSQLite)
+library(ggrepel)
+
+# edit this to match the path of the 2019 Eye on a Disk dataset (EOAD - "E Ode"?)
+# you can get this database here:
+# https://github.com/davemcg/eyeIntegration_app
+pool <- dbPool(drv = SQLite(), dbname = "/Volumes/data/projects/nei/mcgaughey/auto_eyeIntegration/results/eyeIntegration_human_expression_2019_v100.sqlite")
+```
+
+# Tables in 2019 dataset
+```{r}
+pool %>% dbListTables() %>% as_tibble()
+```
+# Load in t-SNE coordinates (and attached metadata)
+For perplexity 50
+```{r}
+tsne_50 <- pool %>% tbl('tSNE_bulk_RNA') %>% 
+  filter(perplexity == 50) %>% as_tibble()
+tsne_50 %>% colnames() %>% enframe()
+```
+
+# Plot Eldred Organoid Retina against all other samples
+```{r}
+tsne_50 %>% mutate(Organoid = case_when(grepl("Organoid", Sub_Tissue) ~ "Organoid",
+                                        TRUE ~ "Not Organoid")) %>% 
+  ggplot(aes(x=X1, y=X2, colour = Organoid)) +
+  geom_point() + theme_minimal()
+```
+
+# Now just Retina
+```{r}
+tsne_50 %>% 
+  mutate(Organoid = case_when(grepl("Organoid", Sub_Tissue) ~ "Organoid",
+                              TRUE ~ "Not Organoid")) %>% 
+  filter(Tissue == 'Retina') %>% 
+  ggplot(aes(x=X1, y=X2, colour = Organoid, shape = Sub_Tissue)) +
+  geom_point() + theme_minimal()
+```
+
+# Now show the ages of the Organoids
+We see the little outlier group are age 10 and 20 day organoids. Everything older
+looks very "retina" like (clusters closely to the fetal and stem cell based retina).
+```{r}
+tsne_50 %>% 
+  mutate(Organoid = case_when(grepl("Organoid", Sub_Tissue) ~ "Organoid",
+                              TRUE ~ "Not Organoid")) %>% 
+  filter(Tissue == 'Retina') %>% 
+  mutate(sample_attribute = case_when(grepl("Organoid", Sub_Tissue) ~ sample_attribute,
+                                      TRUE ~ "")) %>% 
+  rowwise() %>% 
+  mutate(Age = as.numeric(str_split(sample_attribute, '_')[[1]][2])) %>% 
+  ggplot(aes(x=X1, y=X2, colour = as.factor(Age), shape = Sub_Tissue)) +
+  geom_jitter() + theme_minimal() 
+```
+
+# What are the Day 10 and 20 organoid grouped with?
+They are near (undifferentiated) human stem cells and some
+lens stem cells (which I would guess are not well differentiated?).
+
+So it appears that in the Eldred/Johnston differentiation process, the
+"retina-ness" shift is happening between 20-35 days.
+
+Another shift happens between 69 and 111 days (look at above plot).
+```{r}
+tsne_50 %>% 
+  mutate(Organoid = case_when(grepl("Organoid", Sub_Tissue) ~ "Organoid",
+                              TRUE ~ "Not Organoid")) %>% 
+  filter(X1 > 29 & X1 < 33) %>% 
+  mutate(sample_attribute = case_when(grepl("Organoid", Sub_Tissue) ~ sample_attribute,
+                                      TRUE ~ "")) %>% 
+  rowwise() %>% 
+  mutate(Age = as.numeric(str_split(sample_attribute, '_')[[1]][2])) %>% 
+  ggplot(aes(x=X1, y=X2, colour = as.factor(Age), shape = Sub_Tissue)) +
+  geom_point() + theme_minimal() 
+```
+
