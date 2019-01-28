@@ -54,7 +54,7 @@ onStop(function() {
 core_tight_2017$sample_accession<-gsub('E-MTAB-','E.MTAB.',core_tight_2017$sample_accession)
 core_tight_2017$Sub_Tissue <- gsub('_',' - ',core_tight_2017$Sub_Tissue)
 core_tight_2019$sample_accession<-gsub('E-MTAB-','E.MTAB.',core_tight_2019$sample_accession)
-core_tight_2019$Sub_Tissue <- gsub('_',' - ',core_tight_2019)
+core_tight_2019$Sub_Tissue <- gsub('_',' - ',core_tight_2019$Sub_Tissue)
 
 # site begins! ---------
 shinyServer(function(input, output, session) {
