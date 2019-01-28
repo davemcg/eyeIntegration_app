@@ -30,8 +30,8 @@ gene_names_2017 <- gene_pool_2017 %>% tbl('gene_IDs') %>% pull(ID)
 gene_names_2019 <- gene_pool_2019 %>% tbl('gene_IDs') %>% pull(ID)
 geneTX_names_2017 <- gene_pool_2017 %>% tbl('tx_IDs') %>% pull(ID)
 geneTX_names_2019 <- gene_pool_2019 %>% tbl('tx_IDs') %>% pull(ID)
-core_tight_2017 <- gene_pool_2017 %>% tbl('metadata') %>% as.tibble()
-core_tight_2019 <- gene_pool_2019 %>% tbl('metadata') %>% as.tibble()
+core_tight_2017 <- gene_pool_2017 %>% tbl('metadata') %>% as_tibble()
+core_tight_2019 <- gene_pool_2019 %>% tbl('metadata') %>% as_tibble()
 
 load('./www/2017/retina_module_network_lists.Rdata') # NOPE THESE ARE PRECOMPUTED htmlwidgets 
 load('./www/2017/rpe_module_network_lists.Rdata') # NOPE THESE ARE PRECOMPUTED htmlwidgets 
@@ -54,7 +54,7 @@ onStop(function() {
 core_tight_2017$sample_accession<-gsub('E-MTAB-','E.MTAB.',core_tight_2017$sample_accession)
 core_tight_2017$Sub_Tissue <- gsub('_',' - ',core_tight_2017$Sub_Tissue)
 core_tight_2019$sample_accession<-gsub('E-MTAB-','E.MTAB.',core_tight_2019$sample_accession)
-core_tight_2019$Sub_Tissue <- gsub('_',' - ',core_tight_2019$Sub_Tissue)
+core_tight_2019$Sub_Tissue <- gsub('_',' - ',core_tight_2019)
 
 # site begins! ---------
 shinyServer(function(input, output, session) {
@@ -89,7 +89,7 @@ shinyServer(function(input, output, session) {
     if (is.null(query[['Tissue']])){
       # tissue choices
       if (grepl('2017', db)){tissues <- unique(sort(core_tight_2017$Sub_Tissue))
-      } else {tissues <- unique(sort(core_tight_2019$Sub_Tissue))}
+      } else {tissues <- unique(sort(core_tight_2019 %>% filter(Kept == 'Kept') %>% pull(Sub_Tissue)))}
       updateSelectizeInput(session, 'plot_tissue_gene',
                            choices= tissues,
                            options = list(placeholder = 'Type to search'),
@@ -100,7 +100,7 @@ shinyServer(function(input, output, session) {
       select_tissue <- strsplit(select_tissue, split = ',')[[1]]
       #select_tissue <- c(select_tissue, input$plot_tissue_gene)
       if (grepl('2017', db)){tissues <- unique(sort(core_tight_2017$Sub_Tissue))
-      } else {tissues <- unique(sort(core_tight_2019$Sub_Tissue))}
+      } else {tissues <- unique(sort(core_tight_2019 %>% filter(Kept == 'Kept') %>% pull(Sub_Tissue)))}
       updateSelectizeInput(session, 'plot_tissue_gene',
                            choices= tissues,
                            selected = select_tissue,
