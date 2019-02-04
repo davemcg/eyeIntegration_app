@@ -1,0 +1,21 @@
+library(tidyverse)
+library(pool)
+library(RSQLite)
+library(colorspace)
+app_location <- '/Volumes/Arges/eyeIntegration_app'
+gene_pool_2019 <- dbPool(drv = SQLite(), dbname = paste0(app_location, "/www/2019/EiaD_human_expression_2019_02.sqlite"))
+gene_pool_2017 <- dbPool(drv = SQLite(), dbname = paste0(app_location, "/www/2017/eyeIntegration_human_2017_01.sqlite"))
+core_tight_2017 <- gene_pool_2017 %>% tbl('metadata') %>% as_tibble()
+core_tight_2019 <- gene_pool_2019 %>% tbl('metadata') %>% as_tibble()
+core_both <- bind_rows(core_tight_2019 %>% mutate(Version = '2019 EiaD') %>% filter(Kept == 'Kept'), core_tight_2017 %>% mutate(Version = '2017') %>% mutate(Sub_Tissue = gsub('_',' - ', Sub_Tissue))) %>% unique()
+
+
+core_both %>% filter(grepl('Retina|Cornea|Lens|RPE', Tissue)) %>% unique() %>% 
+  #mutate(Sub_Tissue = case_when(sample_accession == 'SRS1955479' ~ 'Retina - Adult Tissue', TRUE ~ Sub_Tissue)) %>%
+  group_by(Tissue, Sub_Tissue, Version) %>% summarise(Count=n()) %>% 
+  mutate(Dataset = Version) %>% 
+  ggplot(aes(x=Sub_Tissue, y=Count, fill=Tissue, alpha = Dataset)) + geom_bar(stat = 'identity', position = 'dodge') + theme_minimal() + theme(axis.text.x=element_text(angle=90, hjust=1, vjust=0.3)) + scale_colour_manual(values = c('grey','black')) + xlab('') + scale_alpha_manual(values = c(0.5,1)) +
+  theme(text = element_text(family = 'Lucida Console', size = 10)) +
+  scale_fill_discrete_sequential(palette = 'viridis')  
+
+ggsave(filename = paste0(app_location, '/www/sample_count_2017_2019.svg'),dpi = 'retina', height = 4, width=5)
