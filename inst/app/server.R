@@ -22,7 +22,7 @@ library(ggrepel)
 
 # pools for sqlite DBs ------------
 gene_pool_2017 <- dbPool(drv = SQLite(), dbname = "./www/2017/eyeIntegration_human_2017_01.sqlite", idleTimeout = 3600000)
-gene_pool_2019 <- dbPool(drv = SQLite(), dbname = "./www/2019/eyeIntegration_human_expression_2019_01.sqlite", idleTimeout = 3600000)
+gene_pool_2019 <- dbPool(drv = SQLite(), dbname = "./www/2019/EiaD_human_expression_2019_02.sqlite", idleTimeout = 3600000)
 SC_pool <- dbPool(drv = SQLite(), dbname = "./www/single_cell_retina_info_04.sqlite", idleTimeout = 3600000)
 
 source('./www/theme_Publication.R')
