@@ -19,24 +19,27 @@ library(RSQLite)
 library(DBI)
 library(pool)
 library(ggrepel)
+library(ComplexHeatmap)
+library(circlize)
+library(viridis)
 
 # pools for sqlite DBs ------------
-gene_pool_2017 <- dbPool(drv = SQLite(), dbname = "./www/2017/eyeIntegration_human_2017_01.sqlite", idleTimeout = 3600000)
-gene_pool_2019 <- dbPool(drv = SQLite(), dbname = "./www/2019/EiaD_human_expression_2019_02.sqlite", idleTimeout = 3600000)
-SC_pool <- dbPool(drv = SQLite(), dbname = "./www/single_cell_retina_info_04.sqlite", idleTimeout = 3600000)
+gene_pool_2017 <- dbPool(drv = SQLite(), dbname = "/Volumes/McGaughey_S/eyeIntegration_app/www/2017/eyeIntegration_human_2017_01.sqlite", idleTimeout = 3600000)
+gene_pool_2019 <- dbPool(drv = SQLite(), dbname = "/Volumes/McGaughey_S/eyeIntegration_app/www/2019/EiaD_human_expression_2019_03.sqlite", idleTimeout = 3600000)
+SC_pool <- dbPool(drv = SQLite(), dbname = "/Volumes/McGaughey_S/eyeIntegration_app/www/single_cell_retina_info_04.sqlite", idleTimeout = 3600000)
 
-source('./www/theme_Publication.R')
+source('/Volumes/McGaughey_S/eyeIntegration_app/www/theme_Publication.R')
 gene_names_2017 <- gene_pool_2017 %>% tbl('gene_IDs') %>% pull(ID)
 gene_names_2019 <- gene_pool_2019 %>% tbl('gene_IDs') %>% pull(ID)
 geneTX_names_2017 <- gene_pool_2017 %>% tbl('tx_IDs') %>% pull(ID)
 geneTX_names_2019 <- gene_pool_2019 %>% tbl('tx_IDs') %>% pull(ID)
-core_tight_2017 <- gene_pool_2017 %>% tbl('metadata') %>% as_tibble()
-core_tight_2019 <- gene_pool_2019 %>% tbl('metadata') %>% as_tibble()
+core_tight_2017 <- gene_pool_2017 %>% tbl('metadata') %>% as.tibble()
+core_tight_2019 <- gene_pool_2019 %>% tbl('metadata') %>% as.tibble()
 
-load('./www/2017/retina_module_network_lists.Rdata') # NOPE THESE ARE PRECOMPUTED htmlwidgets 
-load('./www/2017/rpe_module_network_lists.Rdata') # NOPE THESE ARE PRECOMPUTED htmlwidgets 
+load('/Volumes/McGaughey_S/eyeIntegration_app/www/2017/retina_module_network_lists.Rdata') # NOPE THESE ARE PRECOMPUTED htmlwidgets 
+load('/Volumes/McGaughey_S/eyeIntegration_app/www/2017/rpe_module_network_lists.Rdata') # NOPE THESE ARE PRECOMPUTED htmlwidgets 
 #load('./www/go_heatmap.Rdata')
-load('./www/basic_stats.Rdata')
+load('/Volumes/McGaughey_S/eyeIntegration_app/www/basic_stats.Rdata')
 cat(file=stderr(), 'Data loaded in ')
 cat(file=stderr(), Sys.time() - time)
 cat(file=stderr(), ' seconds.\n')
@@ -89,7 +92,7 @@ shinyServer(function(input, output, session) {
     if (is.null(query[['Tissue']])){
       # tissue choices
       if (grepl('2017', db)){tissues <- unique(sort(core_tight_2017$Sub_Tissue))
-      } else {tissues <- unique(sort(core_tight_2019 %>% filter(Kept == 'Kept') %>% pull(Sub_Tissue)))}
+      } else {tissues <- unique(sort(core_tight_2019$Sub_Tissue))}
       updateSelectizeInput(session, 'plot_tissue_gene',
                            choices= tissues,
                            options = list(placeholder = 'Type to search'),
@@ -100,7 +103,7 @@ shinyServer(function(input, output, session) {
       select_tissue <- strsplit(select_tissue, split = ',')[[1]]
       #select_tissue <- c(select_tissue, input$plot_tissue_gene)
       if (grepl('2017', db)){tissues <- unique(sort(core_tight_2017$Sub_Tissue))
-      } else {tissues <- unique(sort(core_tight_2019 %>% filter(Kept == 'Kept') %>% pull(Sub_Tissue)))}
+      } else {tissues <- unique(sort(core_tight_2019$Sub_Tissue))}
       updateSelectizeInput(session, 'plot_tissue_gene',
                            choices= tissues,
                            selected = select_tissue,
@@ -184,7 +187,7 @@ shinyServer(function(input, output, session) {
                          server = TRUE)
     updateSelectizeInput(session, 'age_tsne',
                          choices = tsne_age,
-                         #selected = c(tsne_age[3]),
+                         selected = c(tsne_age[3]),
                          server = TRUE)
   })
   
@@ -252,6 +255,10 @@ shinyServer(function(input, output, session) {
       }
     } 
   })
+  updateSelectizeInput(session, 'temporal_retina_heatmap_ID',
+                       choices = gene_names_2019,
+                       selected= c('OTX2','NRL'),
+                       server = TRUE)
   
   updateSelectizeInput(session, 'retina_gene',
                        choices = gene_pool_2017 %>% tbl('retina_gene_name_colors') %>%  pull(id),
@@ -411,7 +418,7 @@ shinyServer(function(input, output, session) {
     } else if (db == 'Transcript 2017'){
       pool <- 'gene_pool_2017'
       table <- 'mean_rank_decile_tx'
-      label_size = 0.7
+      label_size = 0.8
     }
     else if (db == 'Gene 2019') {
       tissue <- trimws(tissue)
@@ -421,7 +428,7 @@ shinyServer(function(input, output, session) {
       tissue <- trimws(tissue)
       pool <- 'gene_pool_2019'
       table <- 'mean_rank_decile_tx'
-      label_size = 0.7
+      label_size = 0.8
     }
     id_matrix <- get(pool) %>% 
       tbl(table) %>% 
@@ -448,9 +455,9 @@ shinyServer(function(input, output, session) {
                          left.label.text.alignment = 'right',
                          bottom.label.col = 'white',
                          bottom.label.text.alignment = 'right',
-                         bottom.label.size = 0.5,
+                         bottom.label.size = 0.4,
                          bottom.label.text.angle = 90, 
-                         legend.vspace = 0.000000000000000000001,
+                        # legend.vspace = 0.000000000000000000001,
                          padding = 0,
                          legend = T)
   })
@@ -505,11 +512,11 @@ shinyServer(function(input, output, session) {
       dplyr::select(ID, Tissue, meanlsTPM, Rank, Decile) %>%
       arrange(ID, Tissue) %>%
       as.tibble() %>% 
-      mutate(`log2(TPM+1)` = log2(meanlsTPM + 1)) %>% 
+      mutate(`log2(TPM + 1)` = log2(meanlsTPM + 1)) %>% 
       dplyr::select(-meanlsTPM) %>% 
       DT::datatable(extensions = 'Buttons', rownames = F, options = list(
         pageLength = 20, dom = 'frtBip', buttons = c('pageLength','copy', 'csv'))) %>% 
-      DT::formatRound(c('log2(TPM+1)'), digits=2)
+      DT::formatRound(c('log2(TPM + 1)'), digits=2)
   })
   
   output$rankStats_gene <- DT::renderDataTable(server = TRUE, {
@@ -569,9 +576,144 @@ shinyServer(function(input, output, session) {
     stat_join 
   })
   
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  # temporal retina heatmap -------
+  temporal_retina_heatmap_func <- eventReactive(input$pan_button_temporal_heatmap, {
+    cat(file=stderr(), 'Temporal heatmap call\n')
+    pool = 'gene_pool_2019'
+    table <- input$temporal_retina_heatmap_table
+    if (table == 'Gene 2019') {
+      table <- 'lsTPM_gene'
+    } else {
+      table <- 'lsTPM_tx'
+    }
+    gene <- input$temporal_retina_heatmap_ID
+    if (length(gene) < 2){
+      showModal(modalDialog(title = "Heatmap Warning",
+                            "Have you specified at least two genes?", 
+                            easyClose = T,
+                            footer = NULL))
+    }
+    breaks = c(0,5,10,15)
+    query = paste0('select * from ', table, ' where ID in ("',paste(gene, collapse='","'),'")')
+    p <- dbGetQuery(gene_pool_2019, query) %>% left_join(.,core_tight_2019) %>% 
+      left_join(., gene_pool_2019 %>% tbl('gene_IDs') %>% as_tibble()) %>% 
+      as_tibble()
+    
+    ESC <- p %>% 
+      filter(Tissue == 'ESC') %>% 
+      mutate(Days = 0, Type = 'ESC') %>% 
+      group_by(ID, Days) %>% 
+      summarise(value = mean(value)) %>% 
+      mutate(Days = as.integer(Days))
+    organoid_swaroop_GFP <- p %>% 
+      filter(Sub_Tissue == 'Retina - 3D Organoid Stem Cell', !grepl('GFP negative', sample_attribute), study_accession != 'SRP159246') %>% 
+      group_by(ID, Age_Days) %>% 
+      summarise(value = mean(value)) %>% 
+      mutate(Days = as.integer(Age_Days), Type = 'GFP+ 3D Organoid') %>% 
+      select(-Age_Days)
+    organoid_swaroop_GFPneg <-  p %>% 
+      filter(Sub_Tissue == 'Retina - 3D Organoid Stem Cell', grepl('GFP negative', sample_attribute), study_accession != 'SRP159246') %>% 
+      group_by(ID, Age_Days) %>% 
+      summarise(value = mean(value)) %>% 
+      mutate(Days = as.integer(Age_Days), Type = 'Kaewkhaw GFP- 3D Retina')%>% 
+      select(-Age_Days)
+    organoid_johnston <-  p %>% 
+      filter(study_accession == 'SRP159246') %>% 
+      group_by(ID, Age_Days) %>% 
+      summarise(value = mean(value)) %>% 
+      mutate(Days = as.integer(Age_Days), Type = 'Kaewkhaw GFP+ 3D Retina') %>% 
+      select(-Age_Days)
+    fetal_tissue <- p %>% 
+      filter(Sub_Tissue == 'Retina - Fetal Tissue') %>% 
+      group_by(ID, Age_Days) %>% 
+      summarise(value = mean(value)) %>% 
+      mutate(Days = as.integer(Age_Days), Type = 'Fetal Tissue') %>% 
+      select(-Age_Days)
+    adult_tissue <- p %>% 
+      filter(Sub_Tissue == 'Retina - Adult Tissue') %>% 
+      group_by(ID) %>% 
+      summarise(value = mean(value), Type = 'Adult Tissue') %>% 
+      mutate(Days = 1000) 
+    
+    tissue <- bind_rows(fetal_tissue, adult_tissue)
+    x <- tissue
+    y <- x %>% select(-Type) %>% spread(ID, value) %>% t()
+    colnames(y) <- y['Days',]
+    colnames(y)[ncol(y)] <- 'Adult'
+    y <- y[-1,]
+    
+    one <- Heatmap(log2(y+1), cluster_columns = F,   column_title = 'Retina Tissue',
+                   col = colorRamp2(breaks = breaks, colors = viridis(length(breaks))),
+                   show_row_names = FALSE,
+                   name = 'log2(TPM+1)',
+                   clustering_distance_rows = "pearson", 
+                   clustering_distance_columns = "euclidean")
+    
+    x <- rbind(organoid_swaroop_GFP, ESC)
+    y <- x %>% select(-Type) %>% spread(ID, value) %>% t()
+    colnames(y) <- y['Days',]
+    colnames(y)[1] <- 'ESC'
+    y <- y[-1,]
+    
+    two <- Heatmap(log2(y), cluster_columns = F, column_title = 'Kaewkhaw\nGFP+ 3D\nRetina',
+                   col = colorRamp2(breaks = breaks, colors = viridis(length(breaks))),
+                   clustering_distance_rows = "pearson", 
+                   clustering_distance_columns = "euclidean", 
+                   show_row_names = FALSE,
+                   show_heatmap_legend = F)
+    
+    x <- rbind(organoid_swaroop_GFPneg, ESC)
+    y <- x %>% select(-Type) %>% spread(ID, value) %>% t()
+    colnames(y) <- y['Days',]
+    colnames(y)[1] <- 'ESC'
+    y <- y[-1,]
+    
+    three <- Heatmap(log2(y), cluster_columns = F, column_title = 'Kaewkhaw\nGFP- 3D\nRetina',
+                     col = colorRamp2(breaks = breaks, colors = viridis(length(breaks))),
+                     clustering_distance_rows = "pearson", 
+                     clustering_distance_columns = "euclidean", 
+                     show_row_names = FALSE,
+                     show_heatmap_legend = F)
+    
+    x <- rbind(organoid_johnston, ESC)
+    y <- x %>% select(-Type) %>% spread(ID, value) %>% t()
+    colnames(y) <- y['Days',]
+    colnames(y)[1] <- 'ESC'
+    y <- y[-1,]
+    
+    four <- Heatmap(log2(y), cluster_columns = F, column_title = 'Eldred 3D Retina', 
+                    col = colorRamp2(breaks = breaks, colors = viridis(length(breaks))),
+                    clustering_distance_rows = "pearson", 
+                    clustering_distance_columns = "euclidean", 
+                    show_heatmap_legend = F)
+    one + two + three + four
+  })
+  output$temporal_retina_heatmap <- renderPlot({
+    temporal_retina_heatmap_func()
+  },  height=function(){(30*length(input$temporal_retina_heatmap_ID))})
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
   # modal for custom url ---------
   observeEvent(input$build_pan_url, {
-    url = paste0("https://eyeIntegration.nei.nih.gov/?Dataset=",
+    url = paste0("http://cyclops.nei.nih.gov/shiny/eyeIntegration/?Dataset=",
                  gsub(' ' , '_', paste(input$Database, collapse = ',')),
                  "&ID=", gsub(' ', '_', paste(input$ID, collapse = ',')),
                  "&Tissue=", gsub(' ', '_', paste(input$plot_tissue_gene, collapse = ',')),
@@ -1146,7 +1288,7 @@ shinyServer(function(input, output, session) {
     DT::renderDataTable(server = TRUE, {
       SC_dataset <- (input$SC_datatable_dataset %>% strsplit(' '))[[1]][1] %>% tolower()
       table_name <- paste(SC_dataset, 'gene_cell_type_stats', sep='__')
-      if (SC_dataset == 'macosko'){
+      if (SC_dataset == 'Macosko'){
         table <- dbGetQuery(SC_pool, paste0('select Gene, "Cell Count",  "Total Count", "Mean", "Rank_mean", "Decile_mean" from ', table_name, ' WHERE "Cell Type"="', input$sc_datatable_tissue,'"')) %>% 
           dplyr::select(Gene:`Total Count`, 'Mean Expression Count of Gene in Tissue' = Mean, 'Rank' = Rank_mean, 'Decile' = Decile_mean)
       } else {
@@ -1156,7 +1298,7 @@ shinyServer(function(input, output, session) {
       
       table %>% DT::datatable(extensions = 'Buttons', 
                               rownames = F,
-                              options = list(lengthMenu = c(5, 10, 20, 100, 1000, 5000),
+                              options = list(
                                 pageLength = 20, dom = 'frtBip', buttons = c('pageLength','copy', 'csv'))) %>% 
         DT::formatRound(c('Mean Expression Count of Gene in Tissue'), digits=2)
     })
@@ -1164,7 +1306,7 @@ shinyServer(function(input, output, session) {
     DT::renderDataTable(server = TRUE, {
       SC_dataset <- (input$SC_datatable_dataset %>% strsplit(' '))[[1]][1] %>% tolower()
       table_name <- paste(SC_dataset, 'gene_cell_type_stats', sep='__')
-      if (SC_dataset == 'macosko'){
+      if (SC_dataset == 'Macosko'){
         table <- dbGetQuery(SC_pool, paste0('select Gene, "Cell Count",  "Total Count", "Percentage Cells", "Rank_cells", "Decile_cells" from ', table_name, ' WHERE "Cell Type"="', input$sc_datatable_tissue,'"')) %>% 
           dplyr::select(Gene:`Total Count`, 'Percentage of Cells Expressing Gene' = `Percentage Cells`, 'Rank' = Rank_cells, 'Decile' = Decile_cells )
       } else {
@@ -1173,7 +1315,7 @@ shinyServer(function(input, output, session) {
       }
       table %>% DT::datatable(extensions = 'Buttons', 
                               rownames = F,
-                              options = list(lengthMenu = c(5, 10, 20, 100, 1000, 5000),
+                              options = list(
                                 pageLength = 20, dom = 'frtBip', buttons = c('pageLength','copy', 'csv'))) %>% 
         DT::formatRound(c('Percentage of Cells Expressing Gene'), digits=2)
     })
@@ -1181,7 +1323,7 @@ shinyServer(function(input, output, session) {
     DT::renderDataTable(server = TRUE, {
       SC_dataset <- (input$SC_datatable_dataset %>% strsplit(' '))[[1]][1] %>% tolower()
       table_name <- paste(SC_dataset, 'gene_cell_type_stats', sep='__')
-      if (SC_dataset == 'macosko'){
+      if (SC_dataset == 'Macosko'){
         table <- dbGetQuery(SC_pool, paste0('select Gene, "Cell Count",  "Total Count", "Percentage Cell Types", "Rank_cell_types", "Decile_cell_types" from ', table_name, ' WHERE "Cell Type"="', input$sc_datatable_tissue,'"')) %>% 
           dplyr::select(Gene:`Total Count`, `Percentage Cell Types`, 'Rank' = Rank_cell_types, 'Decile' = Decile_cell_types )
       } else {
@@ -1191,7 +1333,7 @@ shinyServer(function(input, output, session) {
       
       table %>% DT::datatable(extensions = 'Buttons', 
                               rownames = F,
-                              options = list(lengthMenu = c(5, 10, 20, 100, 1000, 5000),
+                              options = list(
                                 pageLength = 20, dom = 'frtBip', buttons = c('pageLength','copy', 'csv'))) %>% 
         DT::formatRound(c('Percentage Cell Types'), digits=2)
     })

@@ -9,8 +9,8 @@ library(colourpicker)
 library(ggiraph)
 library(shinythemes)
 
-load('./www/2017/retina_colors.Rdata')
-load('./www/2017/rpe_colors.Rdata')
+load('/Volumes/McGaughey_S/eyeIntegration_app/www/2017/retina_colors.Rdata')
+load('/Volumes/McGaughey_S/eyeIntegration_app/www/2017/rpe_colors.Rdata')
 
 # Define UI for application that draws a histogram
 shinyUI(fluidPage(
@@ -102,6 +102,25 @@ shinyUI(fluidPage(
                                                       fluidRow(uiOutput('comparison_down2')), br(),
                                                       fluidRow(DT::dataTableOutput('go.table.down'))
                                      ))),
+                          tabPanel('Retina Development Time Series',
+                                   fluidPage(
+                                     fluidRow(br()),
+                                     fluidRow(strong('Heatmap of developing retina. Rows are genes, columns are age (in days) of retina or organoid.')),
+                                     fluidRow(br()),
+                                     fluidRow(selectizeInput('temporal_retina_heatmap_table', strong('Table:'),
+                                                             choices = c('Gene 2019','Transcript 2019'))),
+                                     fluidRow(selectizeInput('temporal_retina_heatmap_ID', strong('ID:'),
+                                                             choices = NULL, multiple = T)),
+                                     fluidRow(radioButtons('temporal_retina_heatmap_viz', strong('Type:'),
+                                                           choices = c('Split by type','Merged'))),
+                                     actionButton('pan_button_temporal_heatmap','(Re)Draw Heatmap!', 
+                                                  style='background-color: #3399ff; color: #ffffff'), br(), br(), 
+                                     fluidRow(br()),
+                                     fluidRow(
+                                       column(12, 'Heatmap',
+                                              plotOutput('temporal_retina_heatmap', height = '700px')))
+                                   )
+                          ),
                           tabPanel('Mouse Single Cell Retina Expression',
                                    fluidPage(
                                      fluidRow(br()),
