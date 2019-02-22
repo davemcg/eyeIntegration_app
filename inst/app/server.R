@@ -24,11 +24,11 @@ library(circlize)
 library(viridis)
 
 # pools for sqlite DBs ------------
-gene_pool_2017 <- dbPool(drv = SQLite(), dbname = "/Volumes/McGaughey_S/eyeIntegration_app/www/2017/eyeIntegration_human_2017_01.sqlite", idleTimeout = 3600000)
-gene_pool_2019 <- dbPool(drv = SQLite(), dbname = "/Volumes/McGaughey_S/eyeIntegration_app/www/2019/EiaD_human_expression_2019_03.sqlite", idleTimeout = 3600000)
-SC_pool <- dbPool(drv = SQLite(), dbname = "/Volumes/McGaughey_S/eyeIntegration_app/www/single_cell_retina_info_04.sqlite", idleTimeout = 3600000)
+gene_pool_2017 <- dbPool(drv = SQLite(), dbname = "./www/2017/eyeIntegration_human_2017_01.sqlite", idleTimeout = 3600000)
+gene_pool_2019 <- dbPool(drv = SQLite(), dbname = "./www/2019/EiaD_human_expression_2019_03.sqlite", idleTimeout = 3600000)
+SC_pool <- dbPool(drv = SQLite(), dbname = "./www/single_cell_retina_info_04.sqlite", idleTimeout = 3600000)
 
-source('/Volumes/McGaughey_S/eyeIntegration_app/www/theme_Publication.R')
+source('./www/theme_Publication.R')
 gene_names_2017 <- gene_pool_2017 %>% tbl('gene_IDs') %>% pull(ID)
 gene_names_2019 <- gene_pool_2019 %>% tbl('gene_IDs') %>% pull(ID)
 geneTX_names_2017 <- gene_pool_2017 %>% tbl('tx_IDs') %>% pull(ID)
@@ -36,10 +36,10 @@ geneTX_names_2019 <- gene_pool_2019 %>% tbl('tx_IDs') %>% pull(ID)
 core_tight_2017 <- gene_pool_2017 %>% tbl('metadata') %>% as.tibble()
 core_tight_2019 <- gene_pool_2019 %>% tbl('metadata') %>% as.tibble()
 
-load('/Volumes/McGaughey_S/eyeIntegration_app/www/2017/retina_module_network_lists.Rdata') # NOPE THESE ARE PRECOMPUTED htmlwidgets 
-load('/Volumes/McGaughey_S/eyeIntegration_app/www/2017/rpe_module_network_lists.Rdata') # NOPE THESE ARE PRECOMPUTED htmlwidgets 
+load('./www/2017/retina_module_network_lists.Rdata') # NOPE THESE ARE PRECOMPUTED htmlwidgets 
+load('./www/2017/rpe_module_network_lists.Rdata') # NOPE THESE ARE PRECOMPUTED htmlwidgets 
 #load('./www/go_heatmap.Rdata')
-load('/Volumes/McGaughey_S/eyeIntegration_app/www/basic_stats.Rdata')
+load('./www/basic_stats.Rdata')
 cat(file=stderr(), 'Data loaded in ')
 cat(file=stderr(), Sys.time() - time)
 cat(file=stderr(), ' seconds.\n')
@@ -457,7 +457,7 @@ shinyServer(function(input, output, session) {
                          bottom.label.text.alignment = 'right',
                          bottom.label.size = 0.4,
                          bottom.label.text.angle = 90, 
-                        # legend.vspace = 0.000000000000000000001,
+                         # legend.vspace = 0.000000000000000000001,
                          padding = 0,
                          legend = T)
   })
@@ -603,7 +603,25 @@ shinyServer(function(input, output, session) {
                             easyClose = T,
                             footer = NULL))
     }
-    breaks = c(0,5,10,15)
+    make_heatmap <- function(title, 
+                             matrix, 
+                             breaks = c(0,5,10,15),
+                             cluster_row = T, 
+                             show_row_names = F,
+                             show_heatmap_legend = F){
+      Heatmap(log2(matrix+1), 
+              cluster_columns = F,  
+              column_title = title,
+              cluster_rows = cluster_row,
+              col = colorRamp2(breaks = breaks, colors = viridis(length(breaks))),
+              rect_gp = gpar(col= "white"),
+              show_row_names = show_row_names,
+              name = 'log2(TPM+1)',
+              show_heatmap_legend = show_heatmap_legend,
+              clustering_distance_rows = "pearson", 
+              clustering_distance_columns = "euclidean")
+    }
+    
     query = paste0('select * from ', table, ' where ID in ("',paste(gene, collapse='","'),'")')
     p <- dbGetQuery(gene_pool_2019, query) %>% left_join(.,core_tight_2019) %>% 
       left_join(., gene_pool_2019 %>% tbl('gene_IDs') %>% as_tibble()) %>% 
@@ -644,63 +662,84 @@ shinyServer(function(input, output, session) {
       group_by(ID) %>% 
       summarise(value = mean(value), Type = 'Adult Tissue') %>% 
       mutate(Days = 1000) 
-    
-    tissue <- bind_rows(fetal_tissue, adult_tissue)
-    x <- tissue
-    y <- x %>% select(-Type) %>% spread(ID, value) %>% t()
-    colnames(y) <- y['Days',]
-    colnames(y)[ncol(y)] <- 'Adult'
-    y <- y[-1,]
-    
-    one <- Heatmap(log2(y+1), cluster_columns = F,   column_title = 'Retina Tissue',
-                   col = colorRamp2(breaks = breaks, colors = viridis(length(breaks))),
-                   show_row_names = FALSE,
-                   name = 'log2(TPM+1)',
-                   clustering_distance_rows = "pearson", 
-                   clustering_distance_columns = "euclidean")
-    
-    x <- rbind(organoid_swaroop_GFP, ESC)
-    y <- x %>% select(-Type) %>% spread(ID, value) %>% t()
-    colnames(y) <- y['Days',]
-    colnames(y)[1] <- 'ESC'
-    y <- y[-1,]
-    
-    two <- Heatmap(log2(y), cluster_columns = F, column_title = 'Kaewkhaw\nGFP+ 3D\nRetina',
-                   col = colorRamp2(breaks = breaks, colors = viridis(length(breaks))),
-                   clustering_distance_rows = "pearson", 
-                   clustering_distance_columns = "euclidean", 
-                   show_row_names = FALSE,
-                   show_heatmap_legend = F)
-    
-    x <- rbind(organoid_swaroop_GFPneg, ESC)
-    y <- x %>% select(-Type) %>% spread(ID, value) %>% t()
-    colnames(y) <- y['Days',]
-    colnames(y)[1] <- 'ESC'
-    y <- y[-1,]
-    
-    three <- Heatmap(log2(y), cluster_columns = F, column_title = 'Kaewkhaw\nGFP- 3D\nRetina',
-                     col = colorRamp2(breaks = breaks, colors = viridis(length(breaks))),
-                     clustering_distance_rows = "pearson", 
-                     clustering_distance_columns = "euclidean", 
-                     show_row_names = FALSE,
-                     show_heatmap_legend = F)
-    
-    x <- rbind(organoid_johnston, ESC)
-    y <- x %>% select(-Type) %>% spread(ID, value) %>% t()
-    colnames(y) <- y['Days',]
-    colnames(y)[1] <- 'ESC'
-    y <- y[-1,]
-    
-    four <- Heatmap(log2(y), cluster_columns = F, column_title = 'Eldred 3D Retina', 
-                    col = colorRamp2(breaks = breaks, colors = viridis(length(breaks))),
-                    clustering_distance_rows = "pearson", 
-                    clustering_distance_columns = "euclidean", 
-                    show_heatmap_legend = F)
-    one + two + three + four
+    if (input$temporal_retina_heatmap_viz == 'Split by type'){
+      
+      
+      
+      
+      
+      # tissue
+      tissue <- bind_rows(fetal_tissue, adult_tissue)
+      matrix <- tissue %>% select(-Type) %>% spread(ID, value) %>% t()
+      colnames(matrix) <- matrix['Days',]
+      colnames(matrix)[ncol(matrix)] <- 'Adult'
+      matrix <- matrix[-1,]
+      one <- make_heatmap('Retina Tissue', matrix, show_heatmap_legend = T)
+      
+      # swaroop GFP+
+      x <- rbind(organoid_swaroop_GFP, ESC)
+      y <- x %>% select(-Type) %>% spread(ID, value) %>% t()
+      colnames(y) <- y['Days',]
+      colnames(y)[1] <- 'ESC'
+      y <- y[-1,]
+      two <- make_heatmap(title = 'Kaewkhaw\nGFP+ 3D\nRetina', y)
+      
+      # swaroop GFP-
+      x <- rbind(organoid_swaroop_GFPneg, ESC)
+      y <- x %>% select(-Type) %>% spread(ID, value) %>% t()
+      colnames(y) <- y['Days',]
+      colnames(y)[1] <- 'ESC'
+      y <- y[-1,]
+      three <- make_heatmap('Kaewkhaw\nGFP- 3D\nRetina', y)
+      
+      # johnston
+      x <- rbind(organoid_johnston, ESC)
+      y <- x %>% select(-Type) %>% spread(ID, value) %>% t()
+      colnames(y) <- y['Days',]
+      colnames(y)[1] <- 'ESC'
+      y <- y[-1,]
+      four <- make_heatmap('Eldred 3D Retina', y, show_row_names = T)
+      
+      one + two + three + four
+    } else {
+      breaks = c(0,5,10,15)
+      tissue <- bind_rows(fetal_tissue %>% mutate(Type = 'Tissue'), 
+                          adult_tissue %>% mutate(Type = 'Tissue'),
+                          ESC %>% mutate(Type = 'ESC'),
+                          organoid_johnston %>% mutate(Type = 'Eldred'),
+                          organoid_swaroop_GFP %>% mutate(Type = 'Kaewkhaw GFP+'),
+                          organoid_swaroop_GFPneg %>% mutate(Type = 'Kaewkhaw GFP-')) %>% 
+        mutate(Range = case_when(Days == 0 ~ 0,
+                                 Days <= 10 ~ 10,
+                                 Days <= 20 ~ 20,
+                                 Days < 40 ~ 35,
+                                 Days < 65 ~ 55,
+                                 Days < 85 ~ 75,
+                                 Days < 105 ~ 100,
+                                 Days < 125 ~ 120,
+                                 Days < 145 ~ 140,
+                                 Days < 185 ~ 180,
+                                 Days < 255 ~ 250,
+                                 TRUE ~ 1000)) %>% 
+        group_by(ID, Range) %>% summarise(value = mean(value))
+      matrix <- tissue %>% spread(ID, value) %>% select(-Range) %>% t()
+      days <- (tissue %>% spread(ID, value) %>% t())[1,]
+      days[1] <- 'ESC'
+      days[length(days)] <- 'Adult'
+      colnames(matrix) <- days
+      Heatmap(log2(matrix+1), cluster_columns = F, 
+              col = colorRamp2(breaks = breaks, colors = viridis(length(breaks))),
+              clustering_distance_rows = "euclidean", 
+              name = 'log(TPM + 1)',
+              show_heatmap_legend = T)
+    }
+  })
+  temporal_retina_heatmap_height <- eventReactive(input$pan_button_temporal_heatmap, {
+    max(25*length(input$temporal_retina_heatmap_ID), 150)
   })
   output$temporal_retina_heatmap <- renderPlot({
     temporal_retina_heatmap_func()
-  },  height=function(){(30*length(input$temporal_retina_heatmap_ID))})
+  },  height=temporal_retina_heatmap_height)
   
   
   

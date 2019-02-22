@@ -9,8 +9,8 @@ library(colourpicker)
 library(ggiraph)
 library(shinythemes)
 
-load('/Volumes/McGaughey_S/eyeIntegration_app/www/2017/retina_colors.Rdata')
-load('/Volumes/McGaughey_S/eyeIntegration_app/www/2017/rpe_colors.Rdata')
+load('./www/2017/retina_colors.Rdata')
+load('./www/2017/rpe_colors.Rdata')
 
 # Define UI for application that draws a histogram
 shinyUI(fluidPage(
@@ -73,6 +73,7 @@ shinyUI(fluidPage(
                                      )
                                    )
                           ),
+                          # Differential --------
                           tabPanel('Differential',
                                    fluidPage(
                                      fluidRow(selectizeInput('diff_database', strong('Dataset:'),
@@ -102,6 +103,7 @@ shinyUI(fluidPage(
                                                       fluidRow(uiOutput('comparison_down2')), br(),
                                                       fluidRow(DT::dataTableOutput('go.table.down'))
                                      ))),
+                          # Retina Development Time Series -----
                           tabPanel('Retina Development Time Series',
                                    fluidPage(
                                      fluidRow(br()),
@@ -117,7 +119,7 @@ shinyUI(fluidPage(
                                                   style='background-color: #3399ff; color: #ffffff'), br(), br(), 
                                      fluidRow(br()),
                                      fluidRow(
-                                       column(12, 'Heatmap',
+                                       column(10, strong('Gene Expression of Developing Retina across Time (days)'),
                                               plotOutput('temporal_retina_heatmap', height = '700px')))
                                    )
                           ),
