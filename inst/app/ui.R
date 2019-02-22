@@ -120,8 +120,8 @@ shinyUI(fluidPage(
                                                   style='background-color: #3399ff; color: #ffffff'), br(), br(), 
                                      fluidRow(br()),
                                      fluidRow(
-                                       column(10, strong('Gene Expression of Developing Retina across Time (days)'),
-                                              plotOutput('temporal_retina_heatmap', height = '700px')))
+                                       column(10, strong('Gene Expression Levels across Developing Fetal and Organoid Retina (days)'),
+                                              plotOutput('temporal_retina_heatmap', height = '2000px')))
                                    )
                           ),
                           # Mouse Single Cell Retina Expression --------
@@ -193,11 +193,12 @@ shinyUI(fluidPage(
                navbarMenu("Find a Friend", 
                           tabPanel("Gene - Gene Euclidean Distance",
                                    fluidPage(
+                                     fluidRow(strong("Euclidean distance of gene expression profiles across GTEx and Eye Tissues."),"In other words, the 100 genes with the most similar expression pattern across the EiaD dataset are returned. Co-expressed genes often have similar function and this is a quick way to look for genes with similar function to your favorite gene."),
                                      fluidRow(
                                        column(2,
                                               selectizeInput('FaF_ID', strong('ID:'),
                                                              choices = NULL, multiple = F)),
-                                       column(8,
+                                       column(4,
                                               div(DT::dataTableOutput('FaF_euc_dist'), style='font-size:75%'))
                                      )
                                    )

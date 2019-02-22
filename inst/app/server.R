@@ -603,12 +603,7 @@ shinyServer(function(input, output, session) {
       table <- 'lsTPM_tx'
     }
     gene <- input$temporal_retina_heatmap_ID
-    if (length(gene) < 2){
-      showModal(modalDialog(title = "Heatmap Warning",
-                            "Have you specified at least two genes?", 
-                            easyClose = T,
-                            footer = NULL))
-    }
+
     make_heatmap <- function(title, 
                              matrix, 
                              breaks = c(0,5,10,15),
@@ -631,7 +626,7 @@ shinyServer(function(input, output, session) {
     query = paste0('select * from ', table, ' where ID in ("',paste(gene, collapse='","'),'")')
     p <- dbGetQuery(gene_pool_2019, query) %>% left_join(.,core_tight_2019) %>% 
       left_join(., gene_pool_2019 %>% tbl('gene_IDs') %>% as_tibble()) %>% 
-      as_tibble()
+      as_tibble() %>% filter(Tissue %in% c('ESC','Retina'))
     
     ESC <- p %>% 
       filter(Tissue == 'ESC') %>% 
@@ -669,10 +664,6 @@ shinyServer(function(input, output, session) {
       summarise(value = mean(value), Type = 'Adult Tissue') %>% 
       mutate(Days = 1000) 
     if (input$temporal_retina_heatmap_viz == 'Split by type'){
-      
-      
-      
-      
       
       # tissue
       tissue <- bind_rows(fetal_tissue, adult_tissue)
@@ -736,12 +727,17 @@ shinyServer(function(input, output, session) {
       Heatmap(log2(matrix+1), cluster_columns = F, 
               col = colorRamp2(breaks = breaks, colors = viridis(length(breaks))),
               clustering_distance_rows = "euclidean", 
-              name = 'log(TPM + 1)',
+              rect_gp = gpar(col= "white"),
+              name = 'log2(TPM + 1)',
               show_heatmap_legend = T)
     }
   })
   temporal_retina_heatmap_height <- eventReactive(input$pan_button_temporal_heatmap, {
-    max(25*length(input$temporal_retina_heatmap_ID), 150)
+    if (input$temporal_retina_heatmap_viz == 'Split by type'){
+      max(28*length(input$temporal_retina_heatmap_ID), 150)
+    } else {
+      max(25*length(input$temporal_retina_heatmap_ID), 75)
+    }
   })
   output$temporal_retina_heatmap <- renderPlot({
     temporal_retina_heatmap_func()
@@ -1153,7 +1149,7 @@ shinyServer(function(input, output, session) {
     DT::datatable(gene_pool_2019 %>% tbl('Euc_Dist_Top_100') %>% filter(ID1 == input$FaF_ID) %>% as_tibble() %>% 
                     mutate(Distance = as.integer(Distance)),
                   rownames = F, extensions = 'Buttons', options = list(
-                    dom = 'frtBip', buttons = c('pageLength','copy', 'csv'))) 
+                    dom = 'rtBip', buttons = c('pageLength','copy', 'csv'))) 
   })
   
   # retina network -----------------------
