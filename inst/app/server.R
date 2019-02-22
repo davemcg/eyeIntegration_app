@@ -23,6 +23,7 @@ library(ComplexHeatmap)
 library(circlize)
 library(viridis)
 
+
 # pools for sqlite DBs ------------
 gene_pool_2017 <- dbPool(drv = SQLite(), dbname = "./www/2017/eyeIntegration_human_2017_01.sqlite", idleTimeout = 3600000)
 gene_pool_2019 <- dbPool(drv = SQLite(), dbname = "./www/2019/EiaD_human_expression_2019_03.sqlite", idleTimeout = 3600000)
@@ -258,6 +259,11 @@ shinyServer(function(input, output, session) {
   updateSelectizeInput(session, 'temporal_retina_heatmap_ID',
                        choices = gene_names_2019,
                        selected= c('OTX2','NRL'),
+                       server = TRUE)
+  
+  updateSelectizeInput(session, 'FaF_ID',
+                       choices = gene_names_2019,
+                       selected= 'OTX2',
                        server = TRUE)
   
   updateSelectizeInput(session, 'retina_gene',
@@ -1142,8 +1148,15 @@ shinyServer(function(input, output, session) {
       DT::datatable(extensions = 'Buttons', options = list(
         dom = 'frtBip', buttons = c('pageLength','copy', 'csv'))))
   
-  # retina network -----------------------
+  # Find a Friend ------------------
+  output$FaF_euc_dist <- renderDataTable(server = TRUE, {
+    DT::datatable(gene_pool_2019 %>% tbl('Euc_Dist_Top_100') %>% filter(ID1 == input$FaF_ID) %>% as_tibble() %>% 
+                    mutate(Distance = as.integer(Distance)),
+                  rownames = F, extensions = 'Buttons', options = list(
+                    dom = 'frtBip', buttons = c('pageLength','copy', 'csv'))) 
+  })
   
+  # retina network -----------------------
   output$retina_network_mod <- renderVisNetwork({
     networks.retina.list[[paste0(input$retina_mod_color_vis_mod, "_k", input$retina_kNN)]]
   })

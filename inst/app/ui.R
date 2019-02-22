@@ -24,6 +24,7 @@ shinyUI(fluidPage(
                footer=list(img(src='NEI_logo_mine.svg', height='75px')), 
                theme = shinytheme('cosmo'),
                selected = 'Overview',
+               # Expression ---------------
                navbarMenu('Expression',
                           tabPanel('Pan-Tissue Plots',
                                    fluidPage(
@@ -123,6 +124,7 @@ shinyUI(fluidPage(
                                               plotOutput('temporal_retina_heatmap', height = '700px')))
                                    )
                           ),
+                          # Mouse Single Cell Retina Expression --------
                           tabPanel('Mouse Single Cell Retina Expression',
                                    fluidPage(
                                      fluidRow(br()),
@@ -154,6 +156,7 @@ shinyUI(fluidPage(
                                    )
                           )
                ),
+               # 2D Clustering ---------
                navbarMenu('2D Clustering',
                           tabPanel('Bulk RNA-Seq by Tissue',
                                    fluidPage(
@@ -187,7 +190,18 @@ shinyUI(fluidPage(
                                        column(9,
                                               girafeOutput('single_cell_tsne_plot', height = '800px'))
                                      )))),
-               
+               navbarMenu("Find a Friend", 
+                          tabPanel("Gene - Gene Euclidean Distance",
+                                   fluidPage(
+                                     fluidRow(
+                                       column(2,
+                                              selectizeInput('FaF_ID', strong('ID:'),
+                                                             choices = NULL, multiple = F)),
+                                       column(8,
+                                              div(DT::dataTableOutput('FaF_euc_dist'), style='font-size:75%'))
+                                     )
+                                   )
+                          )),
                navbarMenu("Eye Networks",
                           tabPanel('Retina Network',
                                    fluidPage(
