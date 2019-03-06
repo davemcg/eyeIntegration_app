@@ -1,6 +1,6 @@
 Package: eyeIntegrationApp
 Title: eyeIntegration Shiny App Code
-Version: 1.0.0
+Version: 1.0.2
 Authors@R: 
     person(given = "David",
            family = "McGaughey",
