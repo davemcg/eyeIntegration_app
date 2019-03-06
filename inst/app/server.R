@@ -451,10 +451,15 @@ shinyServer(function(input, output, session) {
     
     breaks = c(0,5,10,15)
     show_row_names = TRUE
+    if (1 %in% input$heatmap_clustering_checkbox){
     cluster_rows = TRUE
+    } else {cluster_rows = FALSE}
+    if (2 %in% input$heatmap_clustering_checkbox){
+      cluster_cols = TRUE
+    } else {cluster_cols = FALSE}
     
     Heatmap(id_matrix, 
-            cluster_columns = FALSE,  
+            cluster_columns = cluster_cols,  
             #column_title = title,
             cluster_rows = cluster_rows,
             col = colorRamp2(breaks = breaks, colors = viridis(length(breaks))),
@@ -462,6 +467,7 @@ shinyServer(function(input, output, session) {
             show_row_names = show_row_names,
             name = 'log2(TPM+1)',
             #show_heatmap_legend = show_heatmap_legend,
+            column_names_max_height =  unit(8, "cm"), 
             clustering_distance_rows = "pearson", 
             clustering_distance_columns = "euclidean")
     

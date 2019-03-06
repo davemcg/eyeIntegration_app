@@ -33,6 +33,9 @@ shinyUI(fluidPage(
                                               radioButtons('plot_type_gene',strong('Visualization:'),
                                                            choices = c('Box Plot','Fold Change', 'Heatmap'),
                                                            selected = 'Box Plot'),
+                                              conditionalPanel(condition = "input.plot_type_gene == 'Heatmap'",
+                                                               checkboxGroupInput('heatmap_clustering_checkbox', strong('Clustering:'),
+                                                                                  choices = list("Rows" = 1, "Columns" = 2))), br(), 
                                               selectizeInput('Database', strong('Dataset:'),
                                                              choices = c("Gene 2017", "Transcript 2017", "Gene 2019", "Transcript 2019"), 
                                                              multiple = FALSE, selected = "Gene 2019"),
@@ -190,19 +193,19 @@ shinyUI(fluidPage(
                                        column(9,
                                               girafeOutput('single_cell_tsne_plot', height = '800px'))
                                      )))),
-               navbarMenu("Find a Friend", 
-                          tabPanel("Gene - Gene Euclidean Distance",
-                                   fluidPage(
-                                     fluidRow(strong("Euclidean distance of gene expression profiles across GTEx and Eye Tissues."),"In other words, the 100 genes with the most similar expression pattern across the EiaD dataset are returned. Co-expressed genes often have similar function and this is a quick way to look for genes with similar function to your favorite gene."),
-                                     fluidRow(
-                                       column(2,
-                                              selectizeInput('FaF_ID', strong('ID:'),
-                                                             choices = NULL, multiple = F)),
-                                       column(4,
-                                              div(DT::dataTableOutput('FaF_euc_dist'), style='font-size:75%'))
-                                     )
-                                   )
-                          )),
+               # navbarMenu("Find a Friend", 
+               #            tabPanel("Gene - Gene Euclidean Distance",
+               #                     fluidPage(
+               #                       fluidRow(strong("Euclidean distance of gene expression profiles across GTEx and Eye Tissues."),"In other words, the 100 genes with the most similar expression pattern across the EiaD dataset are returned. Co-expressed genes often have similar function and this is a quick way to look for genes with similar function to your favorite gene."),
+               #                       fluidRow(
+               #                         column(2,
+               #                                selectizeInput('FaF_ID', strong('ID:'),
+               #                                               choices = NULL, multiple = F)),
+               #                         column(4,
+               #                                div(DT::dataTableOutput('FaF_euc_dist'), style='font-size:75%'))
+               #                       )
+               #                     )
+               #            )),
                navbarMenu("Eye Networks",
                           tabPanel('Retina Network',
                                    fluidPage(
@@ -505,6 +508,8 @@ shinyUI(fluidPage(
                                    )),
                           tabPanel('News',
                                    fluidPage(
+                                     fluidRow(column(width = 8, offset = 1, h2('2019-03-06 | v1.02'))),
+                                     fluidRow(column(width = 8, offset = 1, 'Tweaked Retina Stem Cell / Organoid samples labelling. Added temporal heatmap for retina fetal and organoid time points. Modified bulk RNA-seq heatmap to use ComplexHeatmap, which handles long column names better. Optional row and clustering for the heatmaps.')),
                                      fluidRow(column(width = 8, offset = 1, h2('2019-01-16 | v1.01'))),
                                      fluidRow(column(width = 8, offset = 1, 'Fixed some tissue mislabels in EiaD 2019, removed unused sub-tissue, added eye sub-tissue vs human body tissue differential tests and GO term enrichments. Updated the workflow and 2017 to 2019 tables on the main loading page.')),
                                      fluidRow(column(width = 8, offset = 1, h2('2019-01-16 | v1.00'))),
