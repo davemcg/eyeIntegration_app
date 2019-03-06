@@ -4,7 +4,7 @@
 [https://eyeIntegration.nei.nih.gov](https://eyeIntegration.nei.nih.gov)
 
 # Install locally and run in three steps:
-Warning! `get_eyeIntegration_datasets()` currently downloads ~12 GB of data and requires ~45 GB of space, uncompressed. 
+Warning! `get_eyeIntegration_datasets()` currently downloads ~20 GB of data and requires ~65 GB of space, uncompressed. 
 ```
 devtools::install_github('davemcg/eyeIntegration_app')
 eyeIntegrationApp::get_eyeIntegration_datasets()
