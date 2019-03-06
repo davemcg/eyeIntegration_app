@@ -463,7 +463,7 @@ shinyServer(function(input, output, session) {
                                           enframe(), 
                                         by = c('Sub_Tissue' = 'value')) %>% 
                              pull(Tissue),
-                           col = list(Tissue = setNames(pals::glasbey(n = core_tight_2019 %>% pull(Tissue) %>% unique() %>% length()) %>% colorspace::lighten(0.3), get(meta) %>% pull(Tissue) %>% unique() %>% sort())),
+                           col = list(Tissue = setNames(pals::glasbey(n = get(meta) %>% pull(Tissue) %>% unique() %>% length()) %>% colorspace::lighten(0.3), get(meta) %>% pull(Tissue) %>% unique() %>% sort())),
                            show_annotation_name = TRUE,
                            which = 'column')
     
