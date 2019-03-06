@@ -402,7 +402,7 @@ shinyServer(function(input, output, session) {
   })
   output$FC_gene <- renderPlot({
     FC_gene_func()
-  }, height=function(){(400*length(input$ID))/min(input$num_gene,length(input$ID))})
+  }, height=eventReactive(input$pan_button_gene, {(400*length(input$ID))/min(input$num_gene,length(input$ID))}))
   
   
   # Gene heatmap -------
@@ -448,29 +448,32 @@ shinyServer(function(input, output, session) {
     
     row.names(id_matrix) <- gene_IDs
     text_col <- NA
-    superheat::superheat(id_matrix, heat.na.col = 'white',
-                         scale = F, smooth.heat = F, #X.text = vals_id_matrix,
-                         heat.pal = viridisLite::viridis(10),
-                         #heat.pal.values = c(0,0.1,0.2,0.3,0.4,0.5,0.6,0.7,0.8,0.9,1),
-                         X.text.col = text_col, #NA to leave blank
-                         X.text.size = 4,
-                         grid.hline.col = "white",
-                         grid.vline.col = "white",
-                         left.label.size = label_size,
-                         left.label.col = 'white',
-                         left.label.text.alignment = 'right',
-                         bottom.label.col = 'white',
-                         bottom.label.text.alignment = 'right',
-                         bottom.label.size = 0.4,
-                         bottom.label.text.angle = 90, 
-                         # legend.vspace = 0.000000000000000000001,
-                         padding = 0,
-                         legend = T)
+    
+    breaks = c(0,5,10,15)
+    show_row_names = TRUE
+    cluster_rows = TRUE
+    
+    Heatmap(id_matrix, 
+            cluster_columns = FALSE,  
+            #column_title = title,
+            cluster_rows = cluster_rows,
+            col = colorRamp2(breaks = breaks, colors = viridis(length(breaks))),
+            rect_gp = gpar(col= "white"),
+            show_row_names = show_row_names,
+            name = 'log2(TPM+1)',
+            #show_heatmap_legend = show_heatmap_legend,
+            clustering_distance_rows = "pearson", 
+            clustering_distance_columns = "euclidean")
+    
+    
+
   })
   output$bulk_tissue_heatmap <- renderPlot({
     bulk_tissue_heatmap_func()
-  },  height=function(){(300*length(input$ID))/min(input$num_gene,length(input$ID))})
+  },  height=eventReactive(input$pan_button_gene, {max(400, (35*length(input$ID))/min(input$num_gene,length(input$ID)))}))
   
+  
+    
   # Gene info table ---------
   gene_info_maker <- eventReactive(input$pan_button_gene, {
     gene <- gsub(' (.*)','', input$ID) %>% unique()
@@ -679,7 +682,7 @@ shinyServer(function(input, output, session) {
       colnames(y) <- y['Days',]
       colnames(y)[1] <- 'ESC'
       y <- y[-1,]
-      two <- make_heatmap(title = 'Kaewkhaw\nGFP+ 3D\nRetina', y)
+      two <- make_heatmap(title = 'GFP+ 3D\nRetina\n(Kaewkhaw)', y)
       
       # swaroop GFP-
       x <- rbind(organoid_swaroop_GFPneg, ESC)
@@ -687,7 +690,7 @@ shinyServer(function(input, output, session) {
       colnames(y) <- y['Days',]
       colnames(y)[1] <- 'ESC'
       y <- y[-1,]
-      three <- make_heatmap('Kaewkhaw\nGFP- 3D\nRetina', y)
+      three <- make_heatmap('GFP- 3D\nRetina\n(Kaewkhaw)', y, show_row_names = T)
       
       # johnston
       x <- rbind(organoid_johnston, ESC)
@@ -695,9 +698,9 @@ shinyServer(function(input, output, session) {
       colnames(y) <- y['Days',]
       colnames(y)[1] <- 'ESC'
       y <- y[-1,]
-      four <- make_heatmap('Eldred 3D Retina', y, show_row_names = T)
+      four <- make_heatmap('3D Retina (Eldred)', y)
       
-      one + two + three + four
+      one + four + two + three
     } else {
       breaks = c(0,5,10,15)
       tissue <- bind_rows(fetal_tissue %>% mutate(Type = 'Tissue'), 
