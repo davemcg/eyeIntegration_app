@@ -459,7 +459,7 @@ shinyUI(fluidPage(
                navbarMenu('Information',
                           tabPanel('Overview',
                                    fluidPage(
-                                     fluidRow(column(width = 8, offset = 1, h2('eyeIntegration v1.01'))),
+                                     fluidRow(column(width = 8, offset = 1, h2('eyeIntegration v1.02'))),
                                      fluidRow(column(width = 8, offset = 1, img(src='simplified_workflow.svg', width = 300))),
                                      fluidRow(column(width = 8, offset = 1, h2('Mission'))),
                                      fluidRow(column(width = 8, offset = 1,

@@ -421,21 +421,26 @@ shinyServer(function(input, output, session) {
     if (db == 'Gene 2017') {
       pool <- 'gene_pool_2017'
       table <- 'mean_rank_decile_gene'
+      meta <- 'core_tight_2017'
     } else if (db == 'Transcript 2017'){
       pool <- 'gene_pool_2017'
       table <- 'mean_rank_decile_tx'
+      meta <- 'core_tight_2017'
       label_size = 0.8
     }
     else if (db == 'Gene 2019') {
       tissue <- trimws(tissue)
       pool <- 'gene_pool_2019'
+      meta <- 'core_tight_2019'
       table <- 'mean_rank_decile_gene' 
     } else {
       tissue <- trimws(tissue)
       pool <- 'gene_pool_2019'
+      meta <- 'core_tight_2019'
       table <- 'mean_rank_decile_tx'
       label_size = 0.8
     }
+    
     id_matrix <- get(pool) %>% 
       tbl(table) %>% 
       filter(ID %in% gene, Sub_Tissue %in% tissue) %>% 
@@ -449,6 +454,19 @@ shinyServer(function(input, output, session) {
     row.names(id_matrix) <- gene_IDs
     text_col <- NA
     
+    ha = HeatmapAnnotation(Tissue = get(meta) %>% 
+                             select(Tissue, Sub_Tissue) %>% 
+                             unique() %>% 
+                             mutate(Sub_Tissue = trimws(Sub_Tissue)) %>%
+                             right_join(colnames(id_matrix) %>% 
+                                          trimws() %>% 
+                                          enframe(), 
+                                        by = c('Sub_Tissue' = 'value')) %>% 
+                             pull(Tissue),
+                           col = list(Tissue = setNames(pals::glasbey(n = get(meta) %>% pull(Tissue) %>% unique() %>% length()) %>% colorspace::lighten(0.3), get(meta) %>% pull(Tissue) %>% unique() %>% sort())),
+                           show_annotation_name = TRUE,
+                           which = 'column')
+    
     breaks = c(0,5,10,15)
     show_row_names = TRUE
     if (1 %in% input$heatmap_clustering_checkbox){
@@ -459,6 +477,7 @@ shinyServer(function(input, output, session) {
     } else {cluster_cols = FALSE}
     
     Heatmap(id_matrix, 
+            top_annotation = ha,
             cluster_columns = cluster_cols,  
             #column_title = title,
             cluster_rows = cluster_rows,
@@ -476,7 +495,7 @@ shinyServer(function(input, output, session) {
   })
   output$bulk_tissue_heatmap <- renderPlot({
     bulk_tissue_heatmap_func()
-  },  height=eventReactive(input$pan_button_gene, {max(400, (35*length(input$ID))/min(input$num_gene,length(input$ID)))}))
+  },  height=eventReactive(input$pan_button_gene, {max(500, (40*length(input$ID))/min(input$num_gene,length(input$ID)))}))
   
   
     

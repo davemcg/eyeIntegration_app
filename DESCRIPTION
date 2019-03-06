@@ -35,7 +35,9 @@ Imports:
     ComplexHeatmap,
     circlize,
     viridis,
-    svglite
+    svglite,
+    pals,
+    colorspace
 Suggests:
     readr
 RoxygenNote: 6.1.1
