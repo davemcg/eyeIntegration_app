@@ -436,6 +436,7 @@ shinyServer(function(input, output, session) {
       table <- 'mean_rank_decile_tx'
       label_size = 0.8
     }
+    
     id_matrix <- get(pool) %>% 
       tbl(table) %>% 
       filter(ID %in% gene, Sub_Tissue %in% tissue) %>% 
@@ -449,6 +450,11 @@ shinyServer(function(input, output, session) {
     row.names(id_matrix) <- gene_IDs
     text_col <- NA
     
+    ha = HeatmapAnnotation(Tissue = core_tight_2019 %>% select(Tissue, Sub_Tissue) %>% mutate(Sub_Tissue = trimws(Sub_Tissue)) %>% unique() %>% right_join(colnames(id_matrix) %>% trimws() %>% enframe(), by = c('Sub_Tissue' = 'value')) %>% pull(Tissue),
+                           col = list(Tissue = tissue_colors),
+                           show_annotation_name = TRUE,
+                           which = 'column')
+    
     breaks = c(0,5,10,15)
     show_row_names = TRUE
     if (1 %in% input$heatmap_clustering_checkbox){
@@ -459,6 +465,7 @@ shinyServer(function(input, output, session) {
     } else {cluster_cols = FALSE}
     
     Heatmap(id_matrix, 
+            top_annotation = ha,
             cluster_columns = cluster_cols,  
             #column_title = title,
             cluster_rows = cluster_rows,
@@ -476,7 +483,7 @@ shinyServer(function(input, output, session) {
   })
   output$bulk_tissue_heatmap <- renderPlot({
     bulk_tissue_heatmap_func()
-  },  height=eventReactive(input$pan_button_gene, {max(400, (35*length(input$ID))/min(input$num_gene,length(input$ID)))}))
+  },  height=eventReactive(input$pan_button_gene, {max(500, (40*length(input$ID))/min(input$num_gene,length(input$ID)))}))
   
   
     
@@ -1396,3 +1403,33 @@ shinyServer(function(input, output, session) {
     })
   output$basic_stats <- renderTable({basic_stats}, striped = FALSE, rownames = F, align = 'rl')
 })
+
+tissue_colors <- c("Adipose Tissue" = "#0000FF",
+                 "Adrenal Gland" = "#FF0000",
+                 "Blood" = "#00FF00",
+                 "Blood Vessel" = "#000033",
+                 "Brain" = "#FF00B6",
+                 "Breast" = "#005300",
+                 "Colon" = "#FFD300",
+                 "Cornea" = "#009FFF",
+                 "ESC" = "#9A4D42",
+                 "Esophagus" = "#00FFBE",
+                 "EyeLid" = "#783FC1",
+                 "Heart" = "#1F9698",
+                 "Kidney" = "#FFACFD",
+                 "Lens" = "#B1CC71",
+                 "Liver" = "#F1085C",
+                 "Lung" = "#FE8F42",
+                 "Muscle" = "#DD00FF",
+                 "Nerve" = "#201A01",
+                 "Pancreas" = "#720055",
+                 "Pituitary" = "#766C95",
+                 "Retina" = "#02AD24",
+                 "Retinal Endothelium" = "#C8FF00",
+                 "RPE" = "#886C00",
+                 "Salivary Gland" = "#FFB79F",
+                 "Skin" = "#858567",
+                 "Small Intestine" = "#A10300",
+                 "Spleen" = "#14F9FF",
+                 "Stomach" = "#00479E",
+                 "Thyroid" = "#DC5E93")
