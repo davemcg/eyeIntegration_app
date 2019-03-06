@@ -30,7 +30,11 @@ Imports:
     colourpicker,
     shinythemes,
     utils,
-    magrittr
+    magrittr,
+    ComplexHeatmap,
+    circlize,
+    viridis,
+    svglite
 Suggests:
     readr
 RoxygenNote: 6.1.1

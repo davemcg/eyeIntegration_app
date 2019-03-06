@@ -13,8 +13,8 @@
 data_compressor <- function(www_location, tar_name = '~/Desktop/eyeIntegration_v100_02.tar.gz', include_DB = T){
   setwd(www_location)
   if (include_DB){
-    system(paste('tar --exclude=".*|" -cvf - www/ | pigz >', tar_name))
+    system(paste('tar --exclude=".*" -cvf - www/ | pigz >', tar_name))
   } else {
-    system(paste('tar --exclude=".*|" --exclude="*sqlite" -cvf - www/ | pigz >', tar_name)) 
+    system(paste('tar --exclude=".*" --exclude="*sqlite" -cvf - www/ | pigz >', tar_name)) 
   }
 }

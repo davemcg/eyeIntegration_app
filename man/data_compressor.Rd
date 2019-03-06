@@ -5,12 +5,14 @@
 \title{Data Compressor}
 \usage{
 data_compressor(www_location,
-  tar_name = "~/Desktop/eyeIntegration_v100_02.tar.gz")
+  tar_name = "~/Desktop/eyeIntegration_v100_02.tar.gz", include_DB = T)
 }
 \arguments{
 \item{www_location}{The path which contains the www/ App folder}
 
 \item{tar_name}{path/name_of_tar_file.tar.gz}
+
+\item{include_DB}{Should the SQLite databases be included?}
 }
 \description{
 When given www/ location, tar gzips it for upload to biowulf2

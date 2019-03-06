@@ -13,7 +13,7 @@
 #' \dontrun{get_eyeIntegration_datasets()} 
 #' @export
 get_eyeIntegration_datasets <-
-  function (file = "eyeIntegration_v101_01_heavyweight.tar.gz",
+  function (file = "eyeIntegration_v102_03_heavyweight.tar.gz",
             destdir = system.file('app', package = "eyeIntegrationApp"), 
             destfile = "eyeIntegration_data.tar.gz",
             method,
