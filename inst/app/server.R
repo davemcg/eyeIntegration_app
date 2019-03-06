@@ -421,18 +421,22 @@ shinyServer(function(input, output, session) {
     if (db == 'Gene 2017') {
       pool <- 'gene_pool_2017'
       table <- 'mean_rank_decile_gene'
+      meta <- 'core_tight_2017'
     } else if (db == 'Transcript 2017'){
       pool <- 'gene_pool_2017'
       table <- 'mean_rank_decile_tx'
+      meta <- 'core_tight_2017'
       label_size = 0.8
     }
     else if (db == 'Gene 2019') {
       tissue <- trimws(tissue)
       pool <- 'gene_pool_2019'
+      meta <- 'core_tight_2019'
       table <- 'mean_rank_decile_gene' 
     } else {
       tissue <- trimws(tissue)
       pool <- 'gene_pool_2019'
+      meta <- 'core_tight_2019'
       table <- 'mean_rank_decile_tx'
       label_size = 0.8
     }
@@ -450,8 +454,16 @@ shinyServer(function(input, output, session) {
     row.names(id_matrix) <- gene_IDs
     text_col <- NA
     
-    ha = HeatmapAnnotation(Tissue = core_tight_2019 %>% select(Tissue, Sub_Tissue) %>% mutate(Sub_Tissue = trimws(Sub_Tissue)) %>% unique() %>% right_join(colnames(id_matrix) %>% trimws() %>% enframe(), by = c('Sub_Tissue' = 'value')) %>% pull(Tissue),
-                           col = list(Tissue = tissue_colors),
+    ha = HeatmapAnnotation(Tissue = get(meta) %>% 
+                             select(Tissue, Sub_Tissue) %>% 
+                             unique() %>% 
+                             mutate(Sub_Tissue = trimws(Sub_Tissue)) %>%
+                             right_join(colnames(id_matrix) %>% 
+                                          trimws() %>% 
+                                          enframe(), 
+                                        by = c('Sub_Tissue' = 'value')) %>% 
+                             pull(Tissue),
+                           col = list(Tissue = setNames(pals::glasbey(n = core_tight_2019 %>% pull(Tissue) %>% unique() %>% length()) %>% colorspace::lighten(0.3), get(meta) %>% pull(Tissue) %>% unique() %>% sort())),
                            show_annotation_name = TRUE,
                            which = 'column')
     
@@ -1403,33 +1415,3 @@ shinyServer(function(input, output, session) {
     })
   output$basic_stats <- renderTable({basic_stats}, striped = FALSE, rownames = F, align = 'rl')
 })
-
-tissue_colors <- c("Adipose Tissue" = "#0000FF",
-                 "Adrenal Gland" = "#FF0000",
-                 "Blood" = "#00FF00",
-                 "Blood Vessel" = "#000033",
-                 "Brain" = "#FF00B6",
-                 "Breast" = "#005300",
-                 "Colon" = "#FFD300",
-                 "Cornea" = "#009FFF",
-                 "ESC" = "#9A4D42",
-                 "Esophagus" = "#00FFBE",
-                 "EyeLid" = "#783FC1",
-                 "Heart" = "#1F9698",
-                 "Kidney" = "#FFACFD",
-                 "Lens" = "#B1CC71",
-                 "Liver" = "#F1085C",
-                 "Lung" = "#FE8F42",
-                 "Muscle" = "#DD00FF",
-                 "Nerve" = "#201A01",
-                 "Pancreas" = "#720055",
-                 "Pituitary" = "#766C95",
-                 "Retina" = "#02AD24",
-                 "Retinal Endothelium" = "#C8FF00",
-                 "RPE" = "#886C00",
-                 "Salivary Gland" = "#FFB79F",
-                 "Skin" = "#858567",
-                 "Small Intestine" = "#A10300",
-                 "Spleen" = "#14F9FF",
-                 "Stomach" = "#00479E",
-                 "Thyroid" = "#DC5E93")
