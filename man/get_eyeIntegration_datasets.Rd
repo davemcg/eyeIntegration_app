@@ -5,7 +5,7 @@
 \title{Download eyeIntegration data}
 \usage{
 
-  get_eyeIntegration_datasets(file = "eyeIntegration_v101_01_heavyweight.tar.gz",
+  get_eyeIntegration_datasets(file = "eyeIntegration_v102_03_heavyweight.tar.gz",
   destdir = system.file("app", package = "eyeIntegrationApp"),
   destfile = "eyeIntegration_data.tar.gz", method, delete_tar = TRUE,
   verbose = TRUE)

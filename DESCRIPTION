@@ -13,6 +13,7 @@ Description: The Shiny codebase for eyeIntegration.nei.nih.gov. The package does
 License: LICENSE
 Encoding: UTF-8
 LazyData: true
+biocViews:
 Imports:
     shiny,
     shinyjs,
