@@ -32,7 +32,6 @@ Imports:
     shinythemes,
     utils,
     magrittr,
-    ComplexHeatmap,
     circlize,
     viridis,
     svglite,
@@ -42,4 +41,6 @@ Imports:
 Suggests:
     readr
 RoxygenNote: 6.1.1
-Remotes: rlbarter/superheat
+Remotes: 
+  rlbarter/superheat,
+  jokergoo/ComplexHeatmap
