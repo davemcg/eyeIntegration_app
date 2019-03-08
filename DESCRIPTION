@@ -41,6 +41,4 @@ Imports:
 Suggests:
     readr
 RoxygenNote: 6.1.1
-Remotes: 
-  rlbarter/superheat,
-  jokergoo/ComplexHeatmap
+Remotes: jokergoo/ComplexHeatmap
