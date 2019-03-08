@@ -22,6 +22,7 @@ library(ggrepel)
 library(ComplexHeatmap)
 library(circlize)
 library(viridis)
+library(shadowtext)
 
 
 # pools for sqlite DBs ------------
@@ -256,10 +257,23 @@ shinyServer(function(input, output, session) {
       }
     } 
   })
-  updateSelectizeInput(session, 'temporal_retina_heatmap_ID',
-                       choices = gene_names_2019,
-                       selected= c('OTX2','NRL'),
-                       server = TRUE)
+  
+  observe({
+    table_db <- input$temporal_retina_heatmap_table
+    if (grepl('Transcript', table_db)){
+      updateSelectizeInput(session, 'temporal_retina_heatmap_ID',
+                           choices = geneTX_names_2019,
+                           selected= c('OTX2 (ENST00000339475.9)','OTX2 (ENST00000408990.7)',
+                                       'CRX (ENST00000539067.5)','CRX (ENST00000602001.1)',
+                                       'CRX (ENST00000613299.1)', 'CRX (ENST00000221996.11)'),
+                           server = TRUE) }
+    else {
+      updateSelectizeInput(session, 'temporal_retina_heatmap_ID',
+                           choices = gene_names_2019,
+                           selected= c('OTX2','NRL'),
+                           server = TRUE) 
+    }
+  })
   
   updateSelectizeInput(session, 'FaF_ID',
                        choices = gene_names_2019,
@@ -470,7 +484,7 @@ shinyServer(function(input, output, session) {
     breaks = c(0,5,10,15)
     show_row_names = TRUE
     if (1 %in% input$heatmap_clustering_checkbox){
-    cluster_rows = TRUE
+      cluster_rows = TRUE
     } else {cluster_rows = FALSE}
     if (2 %in% input$heatmap_clustering_checkbox){
       cluster_cols = TRUE
@@ -486,19 +500,20 @@ shinyServer(function(input, output, session) {
             show_row_names = show_row_names,
             name = 'log2(TPM+1)',
             #show_heatmap_legend = show_heatmap_legend,
-            column_names_max_height =  unit(8, "cm"), 
+            column_names_max_height = unit(8, "cm"), 
+            row_names_max_width = unit(8, "cm"), 
             clustering_distance_rows = "pearson", 
             clustering_distance_columns = "euclidean")
     
     
-
+    
   })
   output$bulk_tissue_heatmap <- renderPlot({
     bulk_tissue_heatmap_func()
   },  height=eventReactive(input$pan_button_gene, {max(500, (40*length(input$ID))/min(input$num_gene,length(input$ID)))}))
   
   
-    
+  
   # Gene info table ---------
   gene_info_maker <- eventReactive(input$pan_button_gene, {
     gene <- gsub(' (.*)','', input$ID) %>% unique()
@@ -625,19 +640,22 @@ shinyServer(function(input, output, session) {
     cat(file=stderr(), 'Temporal heatmap call\n')
     pool = 'gene_pool_2019'
     table <- input$temporal_retina_heatmap_table
+    
     if (table == 'Gene 2019') {
       table <- 'lsTPM_gene'
     } else {
       table <- 'lsTPM_tx'
     }
     gene <- input$temporal_retina_heatmap_ID
-
+    if (1 %in% input$temporal_retina_heatmap_clustering){
+      cluster_row <- TRUE
+    } else {cluster_row <- FALSE}
     make_heatmap <- function(title, 
                              matrix, 
                              breaks = c(0,5,10,15),
-                             cluster_row = T, 
-                             show_row_names = F,
-                             show_heatmap_legend = F){
+                             cluster_row,
+                             show_row_names = FALSE,
+                             show_heatmap_legend = FALSE){
       Heatmap(log2(matrix+1), 
               cluster_columns = F,  
               column_title = title,
@@ -699,7 +717,7 @@ shinyServer(function(input, output, session) {
       colnames(matrix) <- matrix['Days',]
       colnames(matrix)[ncol(matrix)] <- 'Adult'
       matrix <- matrix[-1,]
-      one <- make_heatmap('Retina Tissue', matrix, show_heatmap_legend = T)
+      one <- make_heatmap('Retina Tissue', matrix, show_heatmap_legend = T, cluster_row = cluster_row)
       
       # swaroop GFP+
       x <- rbind(organoid_swaroop_GFP, ESC)
@@ -707,7 +725,7 @@ shinyServer(function(input, output, session) {
       colnames(y) <- y['Days',]
       colnames(y)[1] <- 'ESC'
       y <- y[-1,]
-      two <- make_heatmap(title = 'GFP+ 3D\nRetina\n(Kaewkhaw)', y)
+      two <- make_heatmap(title = 'GFP+ 3D\nRetina\n(Kaewkhaw)', y, cluster_row = cluster_row)
       
       # swaroop GFP-
       x <- rbind(organoid_swaroop_GFPneg, ESC)
@@ -715,7 +733,7 @@ shinyServer(function(input, output, session) {
       colnames(y) <- y['Days',]
       colnames(y)[1] <- 'ESC'
       y <- y[-1,]
-      three <- make_heatmap('GFP- 3D\nRetina\n(Kaewkhaw)', y, show_row_names = T)
+      three <- make_heatmap('GFP- 3D\nRetina\n(Kaewkhaw)', y, show_row_names = T, cluster_row = cluster_row)
       
       # johnston
       x <- rbind(organoid_johnston, ESC)
@@ -723,7 +741,7 @@ shinyServer(function(input, output, session) {
       colnames(y) <- y['Days',]
       colnames(y)[1] <- 'ESC'
       y <- y[-1,]
-      four <- make_heatmap('3D Retina (Eldred)', y)
+      four <- make_heatmap('3D Retina (Eldred)', y, cluster_row = cluster_row)
       
       one + four + two + three
     } else {
@@ -836,12 +854,14 @@ shinyServer(function(input, output, session) {
     
     metadata_name <- paste(SC_dataset, 'SC_metadata_long', sep = '__')
     table_name <- paste(SC_dataset, 'gene_cell_type_stats', sep='__')
-    if (input$single_cell_stat_type == 'Mean Gene Expression (across all cells, split by cell type)') {
+    if (input$single_cell_stat_type == 'Decile of Mean Gene Expression (across all cells, split by cell type)') {
       dec_column <- 'Decile_mean'
       rank_column <- 'Rank_mean'
+      legend_name <- 'Decile Mean\nGene Expression'
     } else if (input$single_cell_stat_type == 'Percentage Cells Expressing Gene (across all cells, split by cell type and age (if available))') {
       dec_column <- 'Percentage Cells'
       rank_column <- 'Rank_cells'
+      legend_name <- '% cells\nExpressing Gene'
     } 
     # replace missing time points and cell types
     add_missing <- function(mat, 
@@ -879,6 +899,7 @@ shinyServer(function(input, output, session) {
       mat_CH <- add_missing(mat) %>% as.matrix()
       vals_CH <- add_missing(vals, 'ND') %>% as.matrix()
     } else {
+      # macosko
       mat_CH <- add_missing(SC_pool %>% tbl(table_name) %>% filter(Gene == gene, `Total Count` > 10) %>% select(`Cell Type`, !!(dec_column)) %>% data.frame(), expected_cols = 'Decile_mean') %>% as.matrix()
       colnames(mat_CH)[1] <- 'P14'
       mat_CH <- cbind(mat_CH, NA)
@@ -889,27 +910,36 @@ shinyServer(function(input, output, session) {
     }
     row.names(mat_CH) <- gsub('r M', 'r\nM', row.names(mat_CH)) 
     row.names(vals_CH) <- gsub('r M', 'r\nM', row.names(vals_CH)) 
-    colors_CH <- mat_CH
-    colors_CH <- ifelse(colors_CH < 3, 'gray', 'black')
+    # colors_CH <- mat_CH
+    # colors_CH <- ifelse(colors_CH < 3, 'gray', 'black')
     if (input$heatmap_overlay == 'None') {
-      text_col <- NA
+      layer_fun <- NA
     } else{
-      text_col <- colors_CH
+      layer_fun <- function(j, i, x, y, width, height, fill) {
+        # since grid.text can also be vectorized
+        v = pindex(vals_CH, i, j)
+        grid.shadowtext(sprintf("%s",v), x, y, gp = 
+                          gpar(fontsize = 12,
+                               col = 'white'),
+                        bg.r = 0.07)
+      }
     }
-    superheat::superheat(mat_CH, heat.na.col = 'white',
-                         scale = F, smooth.heat = F, X.text = vals_CH,
-                         heat.pal = viridisLite::viridis(10),
-                         heat.pal.values = c(0,0.1,0.2,0.3,0.4,0.5,0.6,0.7,0.8,0.9,1),
-                         X.text.col = text_col, #NA to leave blank
-                         X.text.size = 4,
-                         grid.hline.col = "white",
-                         grid.vline.col = "white",
-                         left.label.size = 0.55,
-                         left.label.col = 'white',
-                         left.label.text.alignment = 'right',
-                         bottom.label.col = 'white',
-                         bottom.label.size = 0.05
-    )
+    
+    breaks = seq(0,max(mat_CH), by = (max(mat_CH)/5) )
+    
+    Heatmap(mat_CH, 
+            cluster_columns = FALSE,  
+            #column_title = title,
+            cluster_rows = FALSE,
+            col = colorRamp2(breaks = breaks, colors = viridis(length(breaks))),
+            rect_gp = gpar(col= "white"),
+            show_row_names = TRUE,
+            name = legend_name,
+            show_heatmap_legend = TRUE,
+            clustering_distance_rows = "pearson", 
+            clustering_distance_columns = "euclidean",
+            layer_fun = layer_fun)
+
   })
   
   # SC tSNE t-SNE (mouse retina for now) --------
