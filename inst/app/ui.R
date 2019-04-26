@@ -37,7 +37,7 @@ shinyUI(fluidPage(
                                                                checkboxGroupInput('heatmap_clustering_checkbox', strong('Clustering:'),
                                                                                   choices = list("Rows" = 1, "Columns" = 2))), br(), 
                                               selectizeInput('Database', strong('Dataset:'),
-                                                             choices = c("Gene 2017", "Transcript 2017", "Gene 2019", "Transcript 2019"), 
+                                                             choices = c("Gene 2017", "Transcript 2017", "Gene 2019", "Transcript 2019", "DNTx v00"), 
                                                              multiple = FALSE, selected = "Gene 2019"),
                                               selectizeInput('ID', strong('ID:'),
                                                              choices=NULL, multiple=TRUE),
@@ -81,7 +81,7 @@ shinyUI(fluidPage(
                           tabPanel('Differential',
                                    fluidPage(
                                      fluidRow(selectizeInput('diff_database', strong('Dataset:'),
-                                                             choices = c('Gene 2017', 'Gene 2019', 'Transcript 2019'),
+                                                             choices = c('Gene 2017', 'Gene 2019', 'Transcript 2019', 'DNTx v00'),
                                                              selected = 'Gene 2019', 
                                                              multiple = FALSE)),
                                      conditionalPanel(condition = "input.diff_database != 'Gene 2017'",
@@ -95,7 +95,7 @@ shinyUI(fluidPage(
                                                              multiple = F,
                                                              options = list(placeholder = 'Type to search'))),
                                      fluidRow(DT::dataTableOutput('diff.exp')), br(),
-                                     conditionalPanel(condition = "input.diff_database != 'Transcript 2019'",
+                                     conditionalPanel(condition = "input.diff_database == 'Gene 2017' || input.diff_database == 'Gene 2019'",
                                                       fluidRow(strong('Word Clouds of most common enriched GO terms')), br(),
                                                       fluidRow(
                                                         column(uiOutput('comparison_up1'), uiOutput('word_cloud_image_up'), width=6, align='center'),
@@ -209,6 +209,7 @@ shinyUI(fluidPage(
                #                       )
                #                     )
                #            )),
+               # Eye Networks ---------------
                navbarMenu("Eye Networks",
                           tabPanel('Retina Network',
                                    fluidPage(
@@ -385,7 +386,8 @@ shinyUI(fluidPage(
                                               selectizeInput('table_db',
                                                              strong('Dataset:'),
                                                              choices = c("Gene 2017", "Transcript 2017",
-                                                                         "Gene 2019", "Transcript 2019"),
+                                                                         "Gene 2019", "Transcript 2019",
+                                                                         "DNTx v00"),
                                                              selected = 'Gene 2019')),
                                        column(2,
                                               selectizeInput('table_tissue',
@@ -428,6 +430,7 @@ shinyUI(fluidPage(
                                                                       div(DT::dataTableOutput('SCtable_3'), style='font-size:75%')))
                                             
                                      ))),
+                          # Data Download ---------------
                           tabPanel('Data Download',
                                    fluidPage(
                                      fluidRow(h3('Bulk Tissue Gene (or transcript(tx)) Expression Matrices')),
@@ -451,6 +454,13 @@ shinyUI(fluidPage(
                                                      '2019_gene_TPM_03.tsv.gz')),
                                      fluidRow(tags$a(href='https://hpc.nih.gov/~mcgaugheyd/eyeIntegration/2019_tx_TPM_03.tsv.gz',
                                                      '2019_tx_TPM_03.tsv.gz')),
+                                     fluidRow(h3(tags$em('De novo '), 'transcriptome data')),
+                                     fluidRow(tags$a(href='https://hpc.nih.gov/~mcgaugheyd/eyeIntegration/2019_DNTx_tx_TPM_00.tsv.gz',
+                                                     '2019_DNTx_tx_TPM_00.tsv.gz')),
+                                     fluidRow(tags$a(href='https://hpc.nih.gov/~mcgaugheyd/eyeIntegration/DNTx_v00.fa.gz',
+                                                     'DNTx_v00.fa.gz')),
+                                     fluidRow(tags$a(href='https://hpc.nih.gov/~mcgaugheyd/eyeIntegration/DNTx_v00.gtf.gz',
+                                                     'DNTx_v00.gtf.gz')),
                                      fluidRow(h3('Everything')),
                                      fluidRow('All of the data and code for this entire web application can be 
                                               retrieved by following the simple directions ', 
@@ -459,10 +469,11 @@ shinyUI(fluidPage(
                                      fluidRow('If there\'s some data you want for easy download, ',
                                               tags$a(href = "mailto:mcgaugheyd@mail.nih.gov?Subject=eyeIntegration%20Comment", 
                                                      "let me know"))),  br(), br())),
+               # Information ---------------
                navbarMenu('Information',
                           tabPanel('Overview',
                                    fluidPage(
-                                     fluidRow(column(width = 8, offset = 1, h2('eyeIntegration v1.02'))),
+                                     fluidRow(column(width = 8, offset = 1, h2('eyeIntegration v1.03'))),
                                      fluidRow(column(width = 8, offset = 1, img(src='simplified_workflow.svg', width = 300))),
                                      fluidRow(column(width = 8, offset = 1, h2('Mission'))),
                                      fluidRow(column(width = 8, offset = 1,
@@ -509,8 +520,11 @@ shinyUI(fluidPage(
                                                      tags$a(href = "mailto:mcgaugheyd@mail.nih.gov?Subject=eyeIntegration%20Issue", "email"), 'or ',
                                                      tags$a(href ='https://gitlab.com/davemcg/Human_eyeIntegration_App/issues', 'GitLab Issue Tracker'))),br(), br(), br(), br()
                                    )),
+                          # News ---------------
                           tabPanel('News',
                                    fluidPage(
+                                     fluidRow(column(width = 8, offset = 1, h2('2019-04-26 | v1.03'))),
+                                     fluidRow(column(width = 8, offset = 1, 'Added prototype ocular ', tags$em('de novo') ,' transcriptomes Vinay Swamy has built as a database option the pan-tissue visualizations and the data tables. We also make the ', tags$em('de novo') ,' gene models (GTF) and sequence (fasta) available for download in the Data -> Data Download section. Again, this is version 00 prototype data and ', tags$b('will'), ' change in the future. Depending on how much the project develops, we will expand eyeIntegration to show more information on the', tags$em('de novo') ,'transcript models or move parts of this project out into a new web site.')),
                                      fluidRow(column(width = 8, offset = 1, h2('2019-03-06 | v1.02'))),
                                      fluidRow(column(width = 8, offset = 1, 'Tweaked Retina Stem Cell / Organoid samples labelling. Added temporal heatmap for retina fetal and organoid time points. Modified bulk RNA-seq heatmap to use ComplexHeatmap, which handles long column names better. Optional row and clustering for the heatmaps.')),
                                      fluidRow(column(width = 8, offset = 1, h2('2019-01-16 | v1.01'))),
