@@ -37,7 +37,8 @@ Imports:
     svglite,
     pals,
     colorspace,
-    shadowtext
+    shadowtext,
+    htmltools
 Suggests:
     readr
 RoxygenNote: 6.1.1
