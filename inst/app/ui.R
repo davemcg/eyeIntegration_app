@@ -473,7 +473,7 @@ shinyUI(fluidPage(
                navbarMenu('Information',
                           tabPanel('Overview',
                                    fluidPage(
-                                     fluidRow(column(width = 8, offset = 1, h2('eyeIntegration v1.03'))),
+                                     fluidRow(column(width = 8, offset = 1, h2('eyeIntegration v1.04'))),
                                      fluidRow(column(width = 8, offset = 1, img(src='simplified_workflow.svg', width = 300))),
                                      fluidRow(column(width = 8, offset = 1, h2('Mission'))),
                                      fluidRow(column(width = 8, offset = 1,
@@ -487,7 +487,7 @@ shinyUI(fluidPage(
                                                      and RPE (choroid) tissues to build the first human weighted gene correlation networks and use them to highlight known biological pathways and eye gene disease
                                                      enrichment.", br(), br(), 
                                                      h2("Basic Statistics"), 
-                                                     fluidRow(column(6, img(src='sample_count_2017_2019.svg', align='middle', width = 500))),
+                                                     fluidRow(column(6, img(src='sample_count_2017_2019.svg', align='middle', width = 1000))),
                                                      tableOutput('basic_stats'), 
                                                      "We make these data, analyses, and visualizations available here with a powerful interactive web application.")),
                                      fluidRow(column(width = 8, offset = 1, h2('Attribution'))),
@@ -523,6 +523,8 @@ shinyUI(fluidPage(
                           # News ---------------
                           tabPanel('News',
                                    fluidPage(
+                                     fluidRow(column(width = 8, offset = 1, h2('2019-06-09 | v1.04'))),
+                                     fluidRow(column(width = 8, offset = 1, 'Big update, which addresses (I hope) the comments from the reviewers of IOVS. More GTEx samples added per tissue. New GTEx tissues added (bladder, bone marrow, cervix uteri, fallopian tube, ovary, prostrate, testis, uterus, and vagina). Ratnapriya et al. AMD (MGS 1 == normal, 2,3,4 are increasing severity of AMD) retina dataset added. Modified lengthScaledTPM scores to adjust for tissue design and use mapping rate as covariate with limma\'s batchEffects() function. The differential expression test now uses mapping rate as covariate. On the UI side, now using fixed (consistent) color scheme for tissue in the box plots. Update summary stats on loading page with new tissues, numbers. Also showing GTEx count differences from 2017 to 2019.')),
                                      fluidRow(column(width = 8, offset = 1, h2('2019-04-26 | v1.03'))),
                                      fluidRow(column(width = 8, offset = 1, 'Added prototype ocular ', tags$em('de novo') ,' transcriptomes Vinay Swamy has built as a database option the pan-tissue visualizations and the data tables. We also make the ', tags$em('de novo') ,' gene models (GTF) and sequence (fasta) available for download in the Data -> Data Download section. Again, this is version 00 prototype data and ', tags$b('will'), ' change in the future. Depending on how much the project develops, we will expand eyeIntegration to show more information on the', tags$em('de novo') ,'transcript models or move parts of this project out into a new web site.')),
                                      fluidRow(column(width = 8, offset = 1, h2('2019-03-06 | v1.02'))),

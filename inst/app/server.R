@@ -64,6 +64,13 @@ core_tight_2017$Sub_Tissue <- gsub('_',' - ',core_tight_2017$Sub_Tissue)
 core_tight_2019$sample_accession<-gsub('E-MTAB-','E.MTAB.',core_tight_2019$sample_accession)
 core_tight_2019$Sub_Tissue <- gsub('_',' - ',core_tight_2019$Sub_Tissue)
 
+
+# fix tissue <-> color
+meta <- 'core_tight_2019'
+tissue_val <- setNames(c(pals::glasbey(n = 32), pals::kelly(n = get(meta) %>% pull(Tissue) %>% unique() %>% length() - 32)) %>% colorspace::lighten(0.3), get(meta) %>% pull(Tissue) %>% unique() %>% sort())
+tissue_col <- scale_colour_manual(values = tissue_val)
+tissue_fill <- scale_fill_manual(values = tissue_val)
+
 # site begins! ---------
 shinyServer(function(input, output, session) {
   # Observe: update fields for pan tissue plots --------
@@ -374,7 +381,8 @@ shinyServer(function(input, output, session) {
       ggtitle('Box Plot of Pan-Human Gene Expression') +
       ylab("log2(TPM +1)") +
       scale_shape_manual(values=c(0:2,5,6,15:50)) +
-      theme(plot.margin=grid::unit(c(0,0,0,0.1), "cm"))
+      theme(plot.margin=grid::unit(c(0,0,0,0.1), "cm")) +
+      tissue_col
     girafe(ggobj = p,width_svg = 12, 
            height_svg= max(10, (6 * (length(gene)/min(col_num,length(gene)))))) %>% 
       girafe_options(., opts_toolbar(position = NULL) )
@@ -419,14 +427,15 @@ shinyServer(function(input, output, session) {
       filter(Sub_Tissue %in% tissue) %>%
       group_by(ID) %>%
       mutate(Bench=ifelse(Sub_Tissue %in% bench, 1, 0), BenchValue=mean(log2(value[Bench==1]+1))) %>%
-      group_by(ID, Sub_Tissue) %>%
+      group_by(ID, Sub_Tissue, Tissue) %>%
       summarise(log2FC=mean(log2(value+1)) - mean(BenchValue))
-    p <- ggplot(data=(plot_data),aes(x=Sub_Tissue,y=log2FC,fill=Sub_Tissue)) +
+    p <- ggplot(data=(plot_data),aes(x=Sub_Tissue,y=log2FC,fill=Tissue)) +
       geom_bar(stat = 'identity') + xlab('') + facet_wrap(~ID, ncol=col_num) +
       theme_Publication() + theme(axis.text.x = element_text(angle = 90, hjust=1, vjust = 0.2)) +
       geom_hline(aes(yintercept=0,colour='Red')) +
       ggtitle('Fold Change (log2) of pan-human gene expression') +
-      ylab("log2 Fold Change of Gene Expression")
+      ylab("log2 Fold Change of Gene Expression") +
+      tissue_fill
     p
   })
   output$FC_gene <- renderPlot({
@@ -498,7 +507,7 @@ shinyServer(function(input, output, session) {
                                           enframe(), 
                                         by = c('Sub_Tissue' = 'value')) %>% 
                              pull(Tissue),
-                           col = list(Tissue = setNames(pals::glasbey(n = get(meta) %>% pull(Tissue) %>% unique() %>% length()) %>% colorspace::lighten(0.3), get(meta) %>% pull(Tissue) %>% unique() %>% sort())),
+                           col = list(Tissue = tissue_val),
                            show_annotation_name = TRUE,
                            which = 'column')
     
@@ -510,7 +519,7 @@ shinyServer(function(input, output, session) {
     if (2 %in% input$heatmap_clustering_checkbox){
       cluster_cols = TRUE
     } else {cluster_cols = FALSE}
-    
+
     Heatmap(id_matrix, 
             top_annotation = ha,
             cluster_columns = cluster_cols,  
@@ -1061,7 +1070,7 @@ shinyServer(function(input, output, session) {
         geom_point_interactive(size=20, alpha=0.2, aes(x=X1,y=X2,colour=Cluster, tooltip=htmlEscape(Label, TRUE))) +
         geom_point(data=tsne_plot %>% dplyr::select(X1,X2), size=5, alpha=0.2, colour='black', aes(x=X1,y=X2)) + 
         xlab('t-SNE 1') + ylab('t-SNE 2') +
-        theme_minimal() +
+        theme_minimal() + 
         guides(colour = guide_legend(ncol = 3, 
                                      override.aes = list(size=10, alpha = 1)))
     } else if (dataSET == '2019'){
@@ -1086,6 +1095,7 @@ shinyServer(function(input, output, session) {
         theme_minimal() + 
         xlab('t-SNE 1') + 
         ylab('t-SNE 2') +
+        tissue_col + 
         guides(colour = guide_legend(ncol = 3, 
                                      override.aes = list(size=10, alpha = 1)))
     }
@@ -1152,6 +1162,7 @@ shinyServer(function(input, output, session) {
       cloud_path <- './2019/word_cloud_png/'
     }
     src = paste0(cloud_path, input$de_comparison, '__Up.png')
+    print(src)
     tags$img(src = src)})
   
   output$word_cloud_image_down <- renderUI({
@@ -1173,6 +1184,7 @@ shinyServer(function(input, output, session) {
       names(de_comparison_contrast_names) <- gene_pool_2019 %>% tbl('limma_DE_tests') %>% pull(Name)
     }
     gsub('vs', '>', names(de_comparison_contrast_names[de_comparison_contrast_names==input$de_comparison]))
+    print(gsub('vs', '>', names(de_comparison_contrast_names[de_comparison_contrast_names==input$de_comparison])))
   })
   output$comparison_down1 <- renderText({
     req(input$de_comparison)

@@ -4,8 +4,10 @@
 \alias{extract_data_for_download}
 \title{Table Maker}
 \usage{
-extract_data_for_download(app_location, save_dir = "~/Desktop/",
-  version_append)
+extract_data_for_download(app_location,
+  EiaD_2017 = "eyeIntegration_human_2017_01.sqlite",
+  EiaD_2019 = "EiaD_human_expression_2019_09.sqlite",
+  save_dir = "~/Desktop/", version_append)
 }
 \arguments{
 \item{app_location}{The path to the working App (so script can find sqlite 
