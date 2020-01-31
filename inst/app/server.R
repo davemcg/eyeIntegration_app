@@ -105,7 +105,7 @@ shinyServer(function(input, output, session) {
     if (is.null(query[['Tissue']])){
       # tissue choices
       if (grepl('2017', db)){tissues <- unique(sort(core_tight_2017$Sub_Tissue))
-      } else {tissues <- unique(sort(core_tight_2019$Sub_Tissue))}
+      } else {tissues <- unique(sort(core_tight_2019 %>% filter(Sub_Tissue != 'Choroid Plexus - Adult Tissue') %>% pull(Sub_Tissue)))}
       updateSelectizeInput(session, 'plot_tissue_gene',
                            choices= tissues,
                            options = list(placeholder = 'Type to search'),
@@ -116,7 +116,7 @@ shinyServer(function(input, output, session) {
       select_tissue <- strsplit(select_tissue, split = ',')[[1]]
       #select_tissue <- c(select_tissue, input$plot_tissue_gene)
       if (grepl('2017', db)){tissues <- unique(sort(core_tight_2017$Sub_Tissue))
-      } else {tissues <- unique(sort(core_tight_2019$Sub_Tissue))}
+      } else {tissues <- unique(sort(core_tight_2019 %>% filter(Sub_Tissue != 'Choroid Plexus - Adult Tissue') %>% pull(Sub_Tissue)))}
       updateSelectizeInput(session, 'plot_tissue_gene',
                            choices= tissues,
                            selected = select_tissue,
@@ -511,7 +511,7 @@ shinyServer(function(input, output, session) {
                            show_annotation_name = TRUE,
                            which = 'column')
     
-    breaks = c(0,5,10,15)
+    breaks = c(0,5,10)
     show_row_names = TRUE
     if (1 %in% input$heatmap_clustering_checkbox){
       cluster_rows = TRUE

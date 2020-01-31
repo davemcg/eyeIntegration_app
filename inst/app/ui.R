@@ -433,6 +433,13 @@ shinyUI(fluidPage(
                           # Data Download ---------------
                           tabPanel('Data Download',
                                    fluidPage(
+                                     fluidRow(h3('Bulk Tissue Gene (or transcript(tx)) Raw Count Matrices')),
+                                     fluidRow('Rows are genes, columns are samples, values are  
+                                              raw counts as calculated by salmon.'),
+                                     fluidRow(tags$a(href='https://hpc.nih.gov/~mcgaugheyd/eyeIntegration/2019_12_gene_counts_04.csv.gz',
+                                                     '2019_12_gene_counts_04.csv.gz')),
+                                     fluidRow(tags$a(href='https://hpc.nih.gov/~mcgaugheyd/eyeIntegration/2019_12_transcript_counts_04.csv.gz',
+                                                     '2019_12_transcript_counts_04.csv.gz')),
                                      fluidRow(h3('Bulk Tissue Gene (or transcript(tx)) Expression Matrices')),
                                      fluidRow('Rows are genes, columns are samples, values are in 
                                               length scaled Transcripts Per Million (TPM) as calculated by ', 
@@ -508,7 +515,7 @@ shinyUI(fluidPage(
                                                      br(), br(), 
                                                      'We also strongly encourage citation of the publications 
                                                      behind the datasets used in this resource. A full list can be found ',
-                                                     tags$a(href="https://gitlab.com/davemcg/Human_eyeIntegration_App/blob/master/citations.md",
+                                                     tags$a(href="https://github.com/davemcg/eyeIntegration_app/blob/master/inst/citations.md",
                                                             "here."))),
                                      
                                      fluidRow(column(width = 8, offset = 1, h2('Source Code'))),
@@ -518,11 +525,13 @@ shinyUI(fluidPage(
                                      fluidRow(column(width = 8, offset = 1,
                                                      'First check the FAQ by clicking on ', strong('Information'), 'in the above header, then on ', strong('FAQs'), br(), br(), 'Other issues can be reported two ways: ',
                                                      tags$a(href = "mailto:mcgaugheyd@mail.nih.gov?Subject=eyeIntegration%20Issue", "email"), 'or ',
-                                                     tags$a(href ='https://gitlab.com/davemcg/Human_eyeIntegration_App/issues', 'GitLab Issue Tracker'))),br(), br(), br(), br()
+                                                     tags$a(href ='https://github.com/davemcg/eyeintegration_app/issues', 'GitLab Issue Tracker'))),br(), br(), br(), br()
                                    )),
                           # News ---------------
                           tabPanel('News',
                                    fluidPage(
+                                     fluidRow(column(width = 8, offset = 1, h2('2020-01-31 | v1.04'))),
+                                     fluidRow(column(width = 8, offset = 1, 'Add raw counts to data download, as there were a handful of requests from users. Also fix data repo link from gitlab to github.')),
                                      fluidRow(column(width = 8, offset = 1, h2('2019-06-09 | v1.04'))),
                                      fluidRow(column(width = 8, offset = 1, 'Big update, which addresses (I hope) the comments from the reviewers of IOVS. More GTEx samples added per tissue. New GTEx tissues added (bladder, bone marrow, cervix uteri, fallopian tube, ovary, prostrate, testis, uterus, and vagina). Ratnapriya et al. AMD (MGS 1 == normal, 2,3,4 are increasing severity of AMD) retina dataset added. Modified lengthScaledTPM scores to adjust for tissue design and use mapping rate as covariate with limma\'s batchEffects() function. The differential expression test now uses mapping rate as covariate. On the UI side, now using fixed (consistent) color scheme for tissue in the box plots. Update summary stats on loading page with new tissues, numbers. Also showing GTEx count differences from 2017 to 2019.')),
                                      fluidRow(column(width = 8, offset = 1, h2('2019-04-26 | v1.03'))),
