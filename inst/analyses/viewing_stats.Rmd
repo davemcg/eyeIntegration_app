@@ -1,0 +1,95 @@
+---
+title: "eyeIntegration Viewing Stats"
+output: html_notebook
+---
+
+Pull in IP addresses, filter to only keep IP addresses over 11 views (I think any 11 or below is a bot, since they are so common)
+
+`eyeIntegration.stats` is generated as follows:
+
+1. Select all `Daily_eyeinegration_frequent_IP_access_list` emails in Outlook
+2. Drag all emails to empty folder
+3. Run `cat *eml | grep "^[[:digit:]]" > eyeIntegration.stats`
+
+```{r}
+library(tidyverse)
+library(rworldmap)
+library(ipstack)
+ ipaddresses <- read_delim('~/Desktop/eml/eyeIntegration.stats', col_names = F, delim = '\\s+') %>% 
+  separate(col = X1, into = c('IP Address', 'Page Views'), sep='\\s+') %>% 
+  mutate(`Page Views` = as.numeric(`Page Views`)) %>%  
+  filter(`Page Views` > 11)
+```
+
+Total page view from May 2017 to Present
+```{r}
+sum(ipaddresses$`Page Views`)
+```
+
+Chart of page views increasing over time
+```{r}
+ipaddresses
+```
+
+Get latitude and longitude for all unique IPs (takes a few minutes to query)
+```{r}
+unique_IP <- ipaddresses$`IP Address` %>% unique()
+ip_info <- list()
+for (i in unique_IP){
+  ip_info[[i]] <- ip_lookup(i, ipstack_api_key = '7d06f26c4f0f61bd9edd20df0219f874', hostname = T)
+}
+
+```
+
+Process and clean up
+```{r}
+ips <- ''
+latitudes <- ''
+longitudes <- ''
+cities <- ''
+countries <- ''
+for (i in unique_IP){
+  if (!is.null(ip_info[[i]]$country_name)){
+  ips <- c(ips, ip_info[[i]]$ip)
+  latitudes <- c(latitudes, ip_info[[i]]$latitude)
+  longitudes <- c(longitudes, ip_info[[i]]$longitude)
+  cities <- c(cities, ip_info[[i]]$city)
+  countries <- c(countries, ip_info[[i]]$country_name)
+  }
+}
+
+geo_locate <- cbind(latitudes, longitudes, countries) %>% 
+  data.frame() %>% 
+  mutate(latitudes = as.numeric(as.character(latitudes)), longitudes = as.numeric(as.character(longitudes))) %>% 
+  filter(abs(latitudes) > 0) #remove empty coordinates
+
+save(cities, geo_locate, file = '../data/visitor_stats.Rdata')
+```
+
+Interactive Map
+```{r}
+# library(ggiraph)
+# world <- map_data("world")
+# world <- world[world$region != "Antarctica",]
+
+#world <- c(geom_polygon(aes(long,lat,group=group), size = 0.1, colour= "#090D2A", fill="white", alpha=0.8, data=worldmap))
+# code <- ggplot() + geom_map(data=world, map=world,
+#                     aes(x=long, y=lat, map_id=region),
+#                     color="#090D2A", fill="white", size=0.05, alpha=1/4) + 
+#   geom_point_interactive(aes(x = geo_locate$longitudes, y = geo_locate$latitudes, tooltip=geo_locate$cities)) + theme_void() 
+# ggiraph(code = print(code) )
+```
+
+Regular Map
+```{r, fig.width = 6, fig.height=2}
+world <- map_data("world")
+world <- world[world$region != "Antarctica",]
+ggplot(data = geo_locate, aes(x = longitudes, y = latitudes, colour = countries)) + 
+  geom_map(data=world, map=world,
+           aes(x=long, y=lat, map_id=region),
+           color="#090D2A", fill="lightgray", size=0.05, alpha=1/4) + 
+  geom_point() + 
+  theme_void() +
+  scale_color_viridis_d()
+
+```
