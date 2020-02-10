@@ -107,5 +107,7 @@ What about genes in other Cornea sub tissues?
 
 Genes that are LOWER in expression in cornea?
 
-
-`left_join`, `group_by`, and `summarise` functions
+# Session Info
+```{r}
+devtools::session_info()
+```
