@@ -1,0 +1,111 @@
+---
+title: "Find Adult Cornea Markers"
+author: David McGaughey
+date: 2020-02-10
+output:  
+  html_notebook:
+    theme: flatly
+    toc: true
+    toc_float: true
+---
+
+# Load libraries, import count data and metadata
+
+The `gene_tpm` import will take some time, as this file is 614mb
+```{r}
+library(tidyverse)
+#https://eyeintegration.nei.nih.gov -> Data -> Data Download for links
+metadata <- read_tsv('https://hpc.nih.gov/~mcgaugheyd/eyeIntegration/2019_metadata_04.tsv.gz')
+gene_tpm <- read_tsv('https://hpc.nih.gov/~mcgaugheyd/eyeIntegration/2019_gene_TPM_04.tsv.gz')
+```
+
+# Let's see what we have
+```{r}
+metadata %>% sample_n(10)
+
+gene_tpm[1:10,c(1,100:110)]
+```
+
+# We can aggregate data to the sub_tissue level in a few steps.
+
+## First make the data *long* with `pivot_longer`
+This makes it easier for the computer to work with the data
+```{r}
+gene_tpm_long <- gene_tpm %>% 
+  pivot_longer(cols=2:ncol(gene_tpm), names_to = 'sample_accession', values_to = 'TPM')
+
+gene_tpm_long %>% sample_n(10)
+```
+
+## Now `left_join` to label each sample with the tissue and sub_tissue fields
+```{r}
+gene_tpm_long <- left_join(gene_tpm_long, 
+                           metadata %>% select(sample_accession, Tissue, Sub_Tissue), 
+                           by = 'sample_accession')
+
+gene_tpm_long %>% sample_n(10)
+```
+
+## Now we can aggregate expression to the `Sub_tissue` level 
+We will take the mean gene (`ID`) expression of each individual sample, by the `Sub_Tissue` assignment
+```{r}
+gene_tpm_long_by_sub_tissue <- gene_tpm_long %>% 
+  group_by(ID, Sub_Tissue) %>% summarise(TPM = mean(TPM)) 
+
+gene_tpm_long_by_sub_tissue %>% 
+  sample_n(10)
+```
+
+# Learning stuff now!
+## 3 most expressed genes in the Cornea Sub Tissues
+```{r}
+gene_tpm_long_by_sub_tissue %>% 
+  filter(grepl('Cornea', Sub_Tissue)) %>% 
+  group_by(Sub_Tissue) %>% 
+  top_n(3, wt = TPM) %>% 
+  mutate(TPM = log2(TPM + 1)) %>% 
+  arrange(Sub_Tissue)
+```
+
+## Genes double in expression with Cornea - Adult Tissue against most other `Sub_Tissue`
+
+### First, how many `Sub_Tissues` do we have?
+
+`r gene_tpm_long_by_sub_tissue$Sub_Tissue %>% unique() %>% length()`
+```{r}
+gene_tpm_long_by_sub_tissue$Sub_Tissue %>% unique() %>% length()
+```
+`Count` is the number of (sub) tissues that the gene expression is 1 log2(TPM + 1) (double, or two fold) higher in `Cornea - Adult`. The max we can have is 74. 
+
+`Mean Delta log2(TPM+1)` is the average (mean) delta fold change between Cornea - Adult and the other tissues. Each log2(TPM+1) is a doubling in expressed.
+
+The `Mean Cornea - Adult log2(TPM + 1)` is the average `Cornea - Adult` expression.
+This column is useful to remove genes with overall low expression. 
+
+We see that we have over 400 genes that are:
+  
+  1. More than double in expression than most (70 or more) of the other `Sub_Tissues`
+  2. Expressed in `Cornea - Adult` above log(TPM + 1) > 10 (which we use as a rough "highly expressed" cut-off)
+
+```{r}
+left_join(gene_tpm_long_by_sub_tissue %>% 
+            filter(Sub_Tissue == 'Cornea - Adult Tissue') %>% rename(cTPM = TPM),
+          gene_tpm_long_by_sub_tissue %>% 
+            filter(!Sub_Tissue == 'Cornea - Adult Tissue'),
+          by = c('ID')) %>% 
+  mutate(Delta = log2(cTPM + 1) - log2(TPM + 1)) %>% 
+  filter(Delta > 1) %>% 
+  group_by(ID) %>% 
+  summarise(Count = n(), `Mean Delta log2(TPM+1)` = mean(Delta), `Mean Cornea - Adult log2(TPM + 1)` = mean(log2(cTPM + 1))) %>% 
+  arrange(-Count, -`Mean Delta log2(TPM+1)`) %>% 
+  filter(Count >= 70,
+         `Mean Cornea - Adult log2(TPM + 1)` > 10)
+```
+
+# Exercise(s) for the reader
+What about genes in other Cornea sub tissues?
+
+Genes that are LOWER in expression in cornea?
+
+
+`left_join`, `group_by`, and `summarise` functions
