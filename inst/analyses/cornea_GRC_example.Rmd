@@ -99,7 +99,8 @@ left_join(gene_tpm_long_by_sub_tissue %>%
   summarise(Count = n(), `Mean Delta log2(TPM+1)` = mean(Delta), `Mean Cornea - Adult log2(TPM + 1)` = mean(log2(cTPM + 1))) %>% 
   arrange(-Count, -`Mean Delta log2(TPM+1)`) %>% 
   filter(Count >= 70,
-         `Mean Cornea - Adult log2(TPM + 1)` > 10)
+         `Mean Cornea - Adult log2(TPM + 1)` > 10) %>% 
+  DT::datatable()
 ```
 
 # Exercise(s) for the reader
