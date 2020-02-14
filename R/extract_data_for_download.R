@@ -44,6 +44,9 @@ extract_data_for_download <- function(app_location,
     readr::write_tsv(., path = paste0(save_dir, '2019_tx_TPM_', version_append, '.tsv.gz'))
   
   DNTx_gene_pool_2019 %>% dplyr::tbl('lsTPM_TX') %>% tibble::as_tibble() %>% 
-    dplyr::filter(sample_accession %in% metadata_2019$sample_accession) %>% tidyr::spread(sample_accession, value) %>% 
+    dplyr::filter(sample_accession %in% metadata_2019$sample_accession, !is.na(ID)) %>% tidyr::spread(sample_accession, value) %>% 
     readr::write_tsv(., path = paste0(save_dir, '2019_DNTx_tx_TPM_', version_append, '.tsv.gz'))
+  DNTx_gene_pool_2019 %>% dplyr::tbl('lsTPM_gene') %>% tibble::as_tibble() %>% 
+    dplyr::filter(sample_accession %in% metadata_2019$sample_accession, !is.na(ID)) %>% tidyr::spread(sample_accession, value) %>% 
+    readr::write_tsv(., path = paste0(save_dir, '2019_DNTx_gene_TPM_', version_append, '.tsv.gz'))
 }

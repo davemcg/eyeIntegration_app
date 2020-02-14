@@ -37,7 +37,7 @@ shinyUI(fluidPage(
                                                                checkboxGroupInput('heatmap_clustering_checkbox', strong('Clustering:'),
                                                                                   choices = list("Rows" = 1, "Columns" = 2))), br(), 
                                               selectizeInput('Database', strong('Dataset:'),
-                                                             choices = c("Gene 2017", "Transcript 2017", "Gene 2019", "Transcript 2019", "DNTx v00"), 
+                                                             choices = c("Gene 2017", "Transcript 2017", "Gene 2019", "Transcript 2019", "DNTx v01"), 
                                                              multiple = FALSE, selected = "Gene 2019"),
                                               selectizeInput('ID', strong('ID:'),
                                                              choices=NULL, multiple=TRUE),
@@ -81,7 +81,7 @@ shinyUI(fluidPage(
                           tabPanel('Differential',
                                    fluidPage(
                                      fluidRow(selectizeInput('diff_database', strong('Dataset:'),
-                                                             choices = c('Gene 2017', 'Gene 2019', 'Transcript 2019', 'DNTx v00'),
+                                                             choices = c('Gene 2017', 'Gene 2019', 'Transcript 2019', 'DNTx v01'),
                                                              selected = 'Gene 2019', 
                                                              multiple = FALSE)),
                                      conditionalPanel(condition = "input.diff_database != 'Gene 2017'",
@@ -139,7 +139,7 @@ shinyUI(fluidPage(
                                      fluidRow(br()),
                                      fluidRow(actionButton('SC_density_pan_button','(Re)Draw Plot and Table!', style='background-color: #3399ff; color: #ffffff'), br(), br()),
                                      fluidRow(selectizeInput('SC_dataset', strong('Dataset:'),
-                                                             choices = c('Clark et al.', 'Macosko et al.'))),
+                                                             choices = c('Clark et al. [pub. labels]', 'Clark et al. [bioRxiv labels]', 'Macosko et al.'))),
                                      fluidRow(selectizeInput('mGene', strong('Mouse Genes:'),
                                                              choices=NULL, multiple=FALSE)),
                                      fluidRow(radioButtons('single_cell_stat_type',strong('Summary Statistic Representation:'),
@@ -387,7 +387,7 @@ shinyUI(fluidPage(
                                                              strong('Dataset:'),
                                                              choices = c("Gene 2017", "Transcript 2017",
                                                                          "Gene 2019", "Transcript 2019",
-                                                                         "DNTx v00"),
+                                                                         "DNTx v01"),
                                                              selected = 'Gene 2019')),
                                        column(2,
                                               selectizeInput('table_tissue',
@@ -433,6 +433,9 @@ shinyUI(fluidPage(
                           # Data Download ---------------
                           tabPanel('Data Download',
                                    fluidPage(
+                                     fluidRow(h3('References')),
+                                     fluidRow(tags$a(href='ftp://ftp.ebi.ac.uk/pub/databases/gencode/Gencode_human/release_29/gencode.v29.transcripts.fa.gz', 'gencode.v29.transcripts.fa.gz')),
+                                     fluidRow(tags$a(href='ftp://ftp.ebi.ac.uk/pub/databases/gencode/Gencode_human/release_29/gencode.v29.annotation.gtf.gz', 'gencode.v29.annotation.gtf.gz')),
                                      fluidRow(h3('Bulk Tissue Gene (or transcript(tx)) Raw Count Matrices')),
                                      fluidRow('Rows are genes, columns are samples, values are  
                                               raw counts as calculated by salmon.'),
@@ -463,11 +466,13 @@ shinyUI(fluidPage(
                                                      '2019_tx_TPM_04.tsv.gz')),
                                      fluidRow(h3(tags$em('De novo '), 'transcriptome data')),
                                      fluidRow(tags$a(href='https://hpc.nih.gov/~mcgaugheyd/eyeIntegration/2019_DNTx_tx_TPM_00.tsv.gz',
-                                                     '2019_DNTx_tx_TPM_00.tsv.gz')),
+                                                     '2019_DNTx_gene_TPM_01.tsv.gz')),
+                                     fluidRow(tags$a(href='https://hpc.nih.gov/~mcgaugheyd/eyeIntegration/2019_DNTx_tx_TPM_00.tsv.gz',
+                                                     '2019_DNTx_tx_TPM_01.tsv.gz')),
                                      fluidRow(tags$a(href='https://hpc.nih.gov/~mcgaugheyd/eyeIntegration/DNTx_v00.fa.gz',
-                                                     'DNTx_v00.fa.gz')),
+                                                     'DNTx_v01.fa.gz')),
                                      fluidRow(tags$a(href='https://hpc.nih.gov/~mcgaugheyd/eyeIntegration/DNTx_v00.gtf.gz',
-                                                     'DNTx_v00.gtf.gz')),
+                                                     'DNTx_v01.gtf.gz')),
                                      fluidRow(h3('Everything')),
                                      fluidRow('All of the data and code for this entire web application can be 
                                               retrieved by following the simple directions ', 
@@ -480,7 +485,7 @@ shinyUI(fluidPage(
                navbarMenu('Information',
                           tabPanel('Overview',
                                    fluidPage(
-                                     fluidRow(column(width = 8, offset = 1, h2('eyeIntegration v1.04'))),
+                                     fluidRow(column(width = 8, offset = 1, h2('eyeIntegration v1.05'))),
                                      fluidRow(column(width = 8, offset = 1, img(src='simplified_workflow.svg', width = 300))),
                                      fluidRow(column(width = 8, offset = 1, h2('Mission'))),
                                      fluidRow(column(width = 8, offset = 1,
@@ -530,6 +535,8 @@ shinyUI(fluidPage(
                           # News ---------------
                           tabPanel('News',
                                    fluidPage(
+                                     fluidRow(column(width = 8, offset = 1, h2('2020-02-14 | v1.05'))),
+                                     fluidRow(column(width = 8, offset = 1, 'Updated DNTx to v01. Removed v00 as we have made SUBSTANTIAL improvements to the precision and reliability of the results. We do not recommend v00 be used.')),
                                      fluidRow(column(width = 8, offset = 1, h2('2020-01-31 | v1.04'))),
                                      fluidRow(column(width = 8, offset = 1, 'Add raw counts to data download, as there were a handful of requests from users. Also fix data repo link from gitlab to github.')),
                                      fluidRow(column(width = 8, offset = 1, h2('2019-06-09 | v1.04'))),
