@@ -1,0 +1,103 @@
+---
+title: "Using EiaD data with your RNA-seq data"
+author: David McGaughey
+date: 2020-02-18
+output:  
+  html_notebook:
+    theme: flatly
+    toc: true
+    toc_float: true
+---
+
+# tximport guide
+
+https://bioconductor.org/packages/release/bioc/vignettes/tximport/inst/doc/tximport.html#import_transcript-level_estimates
+
+# Load libraries, import count data and metadata
+
+The `tx_counts` import will take some time, as this file is over 300mb
+
+You can also swap out for transcript counts if you want (use [](https://hpc.nih.gov/~mcgaugheyd/eyeIntegration/2019_12_transcript_counts_04.csv.gz) instead)
+```{r}
+library(tidyverse)
+library(tximport)
+#https://eyeintegration.nei.nih.gov -> Data -> Data Download for links
+metadata <- read_tsv('https://hpc.nih.gov/~mcgaugheyd/eyeIntegration/2019_metadata_04.tsv.gz')
+gene_counts <- read_csv('https://hpc.nih.gov/~mcgaugheyd/eyeIntegration/2019_12_gene_counts_04.csv.gz')
+```
+
+# Load annotation data matched with `EiaD 2019` (`gencode.v29.annotation.gtf.gz`)
+```{r}
+
+gtf <- rtracklayer::readGFF('ftp://ftp.ebi.ac.uk/pub/databases/gencode/Gencode_human/release_29/gencode.v29.annotation.gtf.gz') %>% 
+  dplyr::filter(type=='transcript') %>% 
+  dplyr::mutate(gene_type = 'protein_coding')
+anno <- gtf[,c("gene_id", "gene_name", "transcript_id", "gene_type")]
+```
+
+# Import YOUR personal RNA-seq data
+1. Use [Salmon](http://salmon.readthedocs.io) or [kallisto](https://pachterlab.github.io/kallisto/) with:
+2. [gencode.v29.annotation.gtf.gz](ftp://ftp.ebi.ac.uk/pub/databases/gencode/Gencode_human/release_29/gencode.v29.annotation.gtf.gz)
+3. [gencode.v29.transcripts.fa.gz](ftp://ftp.ebi.ac.uk/pub/databases/gencode/Gencode_human/release_29/gencode.v29.transcripts.fa.gz)
+4. Use [tximport](https://bioconductor.org/packages/release/bioc/vignettes/tximport/inst/doc/tximport.html) to load your Salmon or kallisto data into R
+
+## Using SRA `ERR2303761` for this example
+Salmon version 1.0 used here
+
+This below chunk is NOT run in R, but on the command line.
+```{bash, eval = FALSE}
+# sratoolkit
+fasterq-dump --include-technical --split-files ERR2303761
+# get ref files
+wget ftp://ftp.ebi.ac.uk/pub/databases/gencode/Gencode_human/release_29/gencode.v29.annotation.gtf.gz
+wget ftp://ftp.ebi.ac.uk/pub/databases/gencode/Gencode_human/release_29/gencode.v29.transcripts.fa.gz
+# salmon index
+salmon index -t gencode.v29.transcripts.fa.gz --gencode -i salmon_index -k 31 
+# salmon quant
+salmon quant --libType A -i salmon_index --validateMappings --gcBias --seqBias -p 8 -1 ERR2303761_1.fastq -2 ERR2303761_2.fastq -o ERR2303761_quant
+```
+
+```{r}
+# import with tximport
+txi <- tximport(c('ERR2303761_quant/quant.sf'), type = 'salmon', countsFromAbundance = 'no', txOut = FALSE, tx2gene = anno[,c(3,2)])
+```
+
+# Glue EiaD data into the `txi` object
+
+We'll take 5 random adult cornea samples
+```{r}
+EiaD_samples <- metadata %>% filter(Sub_Tissue == 'Cornea - Adult Tissue', Kept == 'Kept') %>% sample_n(5) %>% pull(sample_accession)
+
+# match up row names
+EiaD_data <- data.frame(gene_counts[, EiaD_samples])
+row.names(EiaD_data) <- gene_counts$ID
+EiaD_data_subset <- EiaD_data[row.names(txi$counts), EiaD_samples]
+
+# update txi$counts colnames to something informative
+colnames(txi$counts) <- c('ERR2303761')
+txi$counts <- cbind(txi$counts, EiaD_data_subset) %>% as.matrix()
+
+# fudge for now - copy length data  of first to match number of samples you add
+# will add length data to website soon (ask if you don't see it!!!!)
+txi$length <- cbind(txi$length, replicate(ncol(EiaD_data_subset), txi$length[,1]))
+
+# confirm it work by looking at a few rows (if you see NA a problem has happened)
+txi$counts %>% as_tibble(rownames = 'ID') %>% sample_n(10)
+```
+
+# Now you can go to DESeq2, or edgeR, or limma, or etc. 
+
+https://bioconductor.org/packages/release/bioc/vignettes/tximport/inst/doc/tximport.html#deseq2
+
+## Build DESeq2 object
+After this, you can use the DESeq2 tutorial: http://bioconductor.org/packages/release/bioc/vignettes/DESeq2/inst/doc/DESeq2.html
+```{r}
+library(DESeq2)
+sampleTable <- data.frame(condition = factor(c("ERR2303761", rep(c("Adult Cornea"), 5))))
+rownames(sampleTable) <- colnames(txi$counts)
+dds <- DESeqDataSetFromTximport(txi, sampleTable, ~condition)
+```
+
+```{r}
+devtools::session_info()
+```
