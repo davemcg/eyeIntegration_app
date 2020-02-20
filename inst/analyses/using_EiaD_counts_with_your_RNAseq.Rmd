@@ -4,17 +4,15 @@ author: David McGaughey
 date: 2020-02-18
 output:  
   html_notebook:
-    theme: flatly
+  html_document:
+    theme: null
     toc: true
-    toc_float: true
 ---
 
-# tximport guide
-
-https://bioconductor.org/packages/release/bioc/vignettes/tximport/inst/doc/tximport.html#import_transcript-level_estimates
+# Intro
+This is a quick guide on how to use the counts data from EiaD with your own, personal, RNA-seq data. 
 
 # Load libraries, import count data and metadata
-
 The `tx_counts` import will take some time, as this file is over 300mb
 
 You can also swap out for transcript counts if you want (use [](https://hpc.nih.gov/~mcgaugheyd/eyeIntegration/2019_12_transcript_counts_04.csv.gz) instead)
@@ -57,7 +55,7 @@ salmon index -t gencode.v29.transcripts.fa.gz --gencode -i salmon_index -k 31
 salmon quant --libType A -i salmon_index --validateMappings --gcBias --seqBias -p 8 -1 ERR2303761_1.fastq -2 ERR2303761_2.fastq -o ERR2303761_quant
 ```
 
-
+## Back to R with tximport loading
 ```{r}
 # import with tximport
 txi <- tximport(c('ERR2303761_quant/quant.sf'), type = 'salmon', countsFromAbundance = 'no', txOut = FALSE, tx2gene = anno[,c(3,2)])
@@ -65,9 +63,9 @@ txi <- tximport(c('ERR2303761_quant/quant.sf'), type = 'salmon', countsFromAbund
 
 # Glue EiaD data into the `txi` object
 
-We'll take 5 random adult cornea samples
+We'll take 5 random adult cornea samples and 5 random adult retina samples
 ```{r}
-EiaD_samples <- metadata %>% filter(Sub_Tissue == 'Cornea - Adult Tissue', Kept == 'Kept') %>% sample_n(5) %>% pull(sample_accession)
+EiaD_samples <- metadata %>% filter(Sub_Tissue %in% c('Cornea - Adult Tissue', 'Retina - Adult Tissue'), Kept == 'Kept') %>% sample_n(5) %>% pull(sample_accession)
 
 # match up row names
 EiaD_data <- data.frame(gene_counts[, EiaD_samples])
@@ -86,11 +84,8 @@ txi$length <- cbind(txi$length, replicate(ncol(EiaD_data_subset), txi$length[,1]
 txi$counts %>% as_tibble(rownames = 'ID') %>% sample_n(10)
 ```
 
-# Now you can go to DESeq2, or edgeR, or limma, or etc. 
 
-https://bioconductor.org/packages/release/bioc/vignettes/tximport/inst/doc/tximport.html#deseq2
-
-## Build DESeq2 object
+# Build DESeq2 object
 After this, you can use the DESeq2 tutorial: http://bioconductor.org/packages/release/bioc/vignettes/DESeq2/inst/doc/DESeq2.html
 ```{r}
 library(DESeq2)
@@ -98,6 +93,9 @@ sampleTable <- data.frame(condition = factor(c("ERR2303761", rep(c("Adult Cornea
 rownames(sampleTable) <- colnames(txi$counts)
 dds <- DESeqDataSetFromTximport(txi, sampleTable, ~condition)
 ```
+
+# You can also use edgeR, or limma, etc. 
+https://bioconductor.org/packages/release/bioc/vignettes/tximport/inst/doc/tximport.html#edger
 
 ```{r}
 devtools::session_info()
