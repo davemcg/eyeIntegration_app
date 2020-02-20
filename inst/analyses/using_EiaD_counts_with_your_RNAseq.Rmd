@@ -56,9 +56,14 @@ salmon quant --libType A -i salmon_index --validateMappings --gcBias --seqBias -
 ```
 
 ## Back to R with tximport loading
+I've run the above command and provide the `quant.sf` via a web link. 
 ```{r}
-# import with tximport
-txi <- tximport(c('ERR2303761_quant/quant.sf'), type = 'salmon', countsFromAbundance = 'no', txOut = FALSE, tx2gene = anno[,c(3,2)])
+# import with tximport if you ran the above chunk
+# txi <- tximport(c('ERR2303761_quant/quant.sf'), type = 'salmon', countsFromAbundance = 'no', txOut = FALSE, tx2gene = anno[,c(3,2)])
+
+# running with the precomputed file
+system('wget https://hpc.nih.gov/~mcgaugheyd/eyeIntegration/ERR2303761.quant.sf')
+txi <- tximport(c('ERR2303761.quant.sf'), type = 'salmon', countsFromAbundance = 'no', txOut = FALSE, tx2gene = anno[,c(3,2)])
 ```
 
 # Glue EiaD data into the `txi` object
