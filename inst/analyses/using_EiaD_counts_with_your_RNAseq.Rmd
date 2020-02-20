@@ -70,7 +70,14 @@ txi <- tximport(c('ERR2303761.quant.sf'), type = 'salmon', countsFromAbundance =
 
 We'll take 5 random adult cornea samples and 5 random adult retina samples
 ```{r}
-EiaD_samples <- metadata %>% filter(Sub_Tissue %in% c('Cornea - Adult Tissue', 'Retina - Adult Tissue'), Kept == 'Kept') %>% sample_n(5) %>% pull(sample_accession)
+EiaD_samples <- metadata %>% 
+  filter(Sub_Tissue %in% c('Cornea - Adult Tissue', 'Retina - Fetal Tissue'), Kept == 'Kept') %>% 
+  group_by(Sub_Tissue) %>% 
+  sample_n(5) %>% 
+  pull(sample_accession) %>% 
+  unique()
+
+EiaD_tissues <- metadata %>% select(sample_accession, Sub_Tissue) %>% unique() %>% filter(sample_accession %in% EiaD_samples) %>% pull(Sub_Tissue)
 
 # match up row names
 EiaD_data <- data.frame(gene_counts[, EiaD_samples])
@@ -85,7 +92,7 @@ txi$counts <- cbind(txi$counts, EiaD_data_subset) %>% as.matrix()
 # will add length data to website soon (ask if you don't see it!!!!)
 txi$length <- cbind(txi$length, replicate(ncol(EiaD_data_subset), txi$length[,1]))
 
-# confirm it work by looking at a few rows (if you see NA a problem has happened)
+# confirm it works by looking at a few rows (if you see NA a problem has happened)
 txi$counts %>% as_tibble(rownames = 'ID') %>% sample_n(10)
 ```
 
@@ -94,7 +101,7 @@ txi$counts %>% as_tibble(rownames = 'ID') %>% sample_n(10)
 After this, you can use the DESeq2 tutorial: http://bioconductor.org/packages/release/bioc/vignettes/DESeq2/inst/doc/DESeq2.html
 ```{r}
 library(DESeq2)
-sampleTable <- data.frame(condition = factor(c("ERR2303761", rep(c("Adult Cornea"), 5))))
+sampleTable <- data.frame(condition = factor(c("ERR2303761", EiaD_tissues)))
 rownames(sampleTable) <- colnames(txi$counts)
 dds <- DESeqDataSetFromTximport(txi, sampleTable, ~condition)
 ```
