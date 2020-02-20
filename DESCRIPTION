@@ -40,6 +40,8 @@ Imports:
     shadowtext,
     htmltools
 Suggests:
-    readr
+    readr,
+    rvest,
+    xml2
 RoxygenNote: 6.1.1
 Remotes: jokergoo/ComplexHeatmap

@@ -57,6 +57,7 @@ salmon index -t gencode.v29.transcripts.fa.gz --gencode -i salmon_index -k 31
 salmon quant --libType A -i salmon_index --validateMappings --gcBias --seqBias -p 8 -1 ERR2303761_1.fastq -2 ERR2303761_2.fastq -o ERR2303761_quant
 ```
 
+
 ```{r}
 # import with tximport
 txi <- tximport(c('ERR2303761_quant/quant.sf'), type = 'salmon', countsFromAbundance = 'no', txOut = FALSE, tx2gene = anno[,c(3,2)])

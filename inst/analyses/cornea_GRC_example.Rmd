@@ -3,10 +3,9 @@ title: "Find Adult Cornea Markers"
 author: David McGaughey
 date: 2020-02-10
 output:  
-  html_notebook:
-    theme: flatly
+  html_document:
+    theme: null
     toc: true
-    toc_float: true
 ---
 
 # Load libraries, import count data and metadata
@@ -101,6 +100,7 @@ left_join(gene_tpm_long_by_sub_tissue %>%
   filter(Count >= 70,
          `Mean Cornea - Adult log2(TPM + 1)` > 10) %>% 
   DT::datatable()
+
 ```
 
 # Exercise(s) for the reader
