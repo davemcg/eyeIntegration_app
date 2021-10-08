@@ -21,7 +21,7 @@ shinyUI(fluidPage(
     navbarPage(title = div(img(src = "eye.png", height = "43px", 
                                style = "position: relative; top: -10px; left: 5px")),
                windowTitle = 'eyeIntegration',
-               footer=list(img(src='NEI_logo_mine.svg', height='75px')), 
+               
                theme = shinytheme('cosmo'),
                selected = 'Overview',
                # Expression ---------------
@@ -75,7 +75,8 @@ shinyUI(fluidPage(
                                                                div(DT::dataTableOutput('rankStats_gene'),style='font-size:75%'))
                                        )
                                      )
-                                   )
+                                   ), br(), br(),
+                                   fluidRow(includeHTML("www/footer.html"))
                           ),
                           # Differential --------
                           tabPanel('Differential',
@@ -106,7 +107,8 @@ shinyUI(fluidPage(
                                                       fluidRow(DT::dataTableOutput('go.table.up')), br(),
                                                       fluidRow(uiOutput('comparison_down2')), br(),
                                                       fluidRow(DT::dataTableOutput('go.table.down'))
-                                     ))),
+                                     )), br(), br(),
+                                   fluidRow(includeHTML("www/footer.html"))),
                           # Retina Development Time Series -----
                           tabPanel('Retina Development Time Series',
                                    fluidPage(
@@ -128,7 +130,8 @@ shinyUI(fluidPage(
                                      fluidRow(
                                        column(10, strong('Gene Expression Levels across Developing Fetal and Organoid Retina (days)'),
                                               plotOutput('temporal_retina_heatmap', height = '2000px')))
-                                   )
+                                   ), br(), br(),
+                                   fluidRow(includeHTML("www/footer.html"))
                           ),
                           # Mouse Single Cell Retina Expression --------
                           tabPanel('Mouse Single Cell Retina Expression',
@@ -177,7 +180,8 @@ shinyUI(fluidPage(
                                        ),
                                        column(10,
                                               ggiraphOutput('tsne', height = '1200px', width = '100%')))
-                                   )
+                                   ), br(), br(),
+                                   fluidRow(includeHTML("www/footer.html"))
                           ),
                           tabPanel('Mouse Retina Single Cell RNA-Seq',
                                    fluidPage(
@@ -282,7 +286,9 @@ shinyUI(fluidPage(
                                               conditionalPanel(strong('Table of enriched GO terms'),
                                                                condition = "input.retina_search_type == 'By Gene'",
                                                                div(DT::dataTableOutput('retina_GO_table_gene'),style='font-size:100%')
-                                              ))))),
+                                              )))), 
+                                   br(), br(),br(), 
+                                   fluidRow(includeHTML("www/footer.html"))),
                           tabPanel('Retina Network Edge Table',
                                    fluidPage(
                                      
@@ -530,7 +536,9 @@ shinyUI(fluidPage(
                                      fluidRow(column(width = 8, offset = 1,
                                                      'First check the FAQ by clicking on ', strong('Information'), 'in the above header, then on ', strong('FAQs'), br(), br(), 'Other issues can be reported two ways: ',
                                                      tags$a(href = "mailto:mcgaugheyd@mail.nih.gov?Subject=eyeIntegration%20Issue", "email"), 'or ',
-                                                     tags$a(href ='https://github.com/davemcg/eyeintegration_app/issues', 'GitLab Issue Tracker'))),br(), br(), br(), br()
+                                                     tags$a(href ='https://github.com/davemcg/eyeintegration_app/issues', 'GitHub Issue Tracker'))),br(), br(), 
+                                     fluidRow(includeHTML("www/footer.html")),
+                                     br(), br()
                                    )),
                           # News ---------------
                           tabPanel('News',
@@ -628,8 +636,44 @@ shinyUI(fluidPage(
                                          tabPanel('What is the Pan-Tissue Bulk RNA-seq Data table showing?',
                                                   'The data table shows, for each gene and tissue set the user selects, the most important metadata for each sample.'),
                                          tabPanel('What is the Single Cell Data table showing?',
-                                                  'This data table set shows the data used to make the Mouse Single Cell Retina Expression plots in Gene Expression.')))),
-                          tabPanel(a("NEI Policies", href = "https://www.nei.nih.gov/tools/policies", target = "_blank"))
-               )))))
+                                                  'This data table set shows the data used to make the Mouse Single Cell Retina Expression plots in Gene Expression.'))))
+               ))),
+  tags$style(HTML("
+footer{
+  background: #000000;
+    margin: 0 auto;
+  height:  70px;
+  padding-top: 10px;
+  padding-bottom: 10px;
+  width: 100%;
+  text-align: center;
+}
+footer ul{
+  margin: 0px;
+  padding:0;
+}
+footer li {
+  /*  float: left;  */
+    list-style-type: none;
+  line-height: 4px;
+  height: 11px;
+  /* border-right: 1px solid #354052; */
+  padding: 0px 10px;
+  display:inline;
+}
+footer li a{
+  text-decoration: none;
+  color: #FFFFFF;
+    font-size: 12px;
+}
+
+.footer {
+  text-align: center;
+}
+.footer img {
+  position: absolute;
+  left: 30px;
+  height: 50px;
+}"))))
 
 
