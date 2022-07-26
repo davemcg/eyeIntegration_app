@@ -543,6 +543,8 @@ shinyUI(fluidPage(
                           # News ---------------
                           tabPanel('News',
                                    fluidPage(
+                                     fluidRow(column(width = 8, offset = 1, h2('2021-10-08 | v1.05'))),
+                                     fluidRow(column(width = 8, offset = 1, 'HHS compliance update. Footers added with required links.')),
                                      fluidRow(column(width = 8, offset = 1, h2('2020-02-14 | v1.05'))),
                                      fluidRow(column(width = 8, offset = 1, 'Updated DNTx to v01. Removed v00 as we have made SUBSTANTIAL improvements to the precision and reliability of the results. We do not recommend v00 be used.')),
                                      fluidRow(column(width = 8, offset = 1, h2('2020-01-31 | v1.04'))),
