@@ -31,7 +31,7 @@ shinyUI(fluidPage(
                                      fluidRow(
                                        column(2,
                                               radioButtons('plot_type_gene',strong('Visualization:'),
-                                                           choices = c('Box Plot', 'Heatmap'),
+                                                           choices = c('Box Plot', 'Heatmap', 'Table'),
                                                            selected = 'Box Plot'),
                                               conditionalPanel(condition = "input.plot_type_gene == 'Heatmap'",
                                                                checkboxGroupInput('heatmap_clustering_checkbox', strong('Clustering:'),
@@ -66,8 +66,14 @@ shinyUI(fluidPage(
                                               conditionalPanel(condition = "input.plot_type_gene == 'Heatmap'",
                                                                plotOutput('bulk_tissue_heatmap')
                                               ),
+                                              conditionalPanel(condition = "input.plot_type_gene == 'Table'",
+                                                               div(DT::dataTableOutput('plot_table'), style='font-size:75%')
+                                              )
                                        ),
-                                     )
+                                       column(3,
+                                              div(DT::dataTableOutput('gene_info'),style='font-size:75%')
+                                       )
+                                     ),
                                    ), br(), br(),
                                    fluidRow(includeHTML("www/footer.html"))
                           ),
@@ -126,10 +132,11 @@ shinyUI(fluidPage(
                                        column(2,
                                               selectizeInput('table_db',
                                                              strong('Dataset:'),
-                                                             choices = c("Gene 2017", "Transcript 2017",
+                                                             choices = c("Gene 2022",
                                                                          "Gene 2019", "Transcript 2019",
+                                                                        "Gene 2017", "Transcript 2017",
                                                                          "DNTx v01"),
-                                                             selected = 'Gene 2019')),
+                                                             selected = 'Gene 2022')),
                                        column(2,
                                               selectizeInput('table_tissue',
                                                              strong('Tissue: '),
@@ -405,7 +412,7 @@ shinyUI(fluidPage(
                                                       fluidRow(DT::dataTableOutput('go.table.down'))
                                      )), br(), br(),
                                    fluidRow(includeHTML("www/footer.html"))),
-                          # Retina Development Time Series -----
+                          ## Retina Development Time Series -----
                           tabPanel('Retina Development Time Series',
                                    fluidPage(
                                      fluidRow(br()),
@@ -429,7 +436,7 @@ shinyUI(fluidPage(
                                    ), br(), br(),
                                    fluidRow(includeHTML("www/footer.html"))
                           ),
-                          # Mouse Single Cell Retina Expression --------
+                          ## Mouse Single Cell Retina Expression --------
                           tabPanel('Mouse Single Cell Retina Expression',
                                    fluidPage(
                                      fluidRow(br()),
@@ -460,7 +467,7 @@ shinyUI(fluidPage(
                                      )
                                    )
                           ),
-                          # 2D Clustering ---------
+                          ## 2D Clustering ---------
                           tabPanel('2D Clustering: Bulk RNA-Seq by Tissue',
                                    fluidPage(
                                      fluidRow(strong('tSNE Clustering of bulk human RNA-seq samples')),
@@ -494,7 +501,7 @@ shinyUI(fluidPage(
                                        column(9,
                                               girafeOutput('single_cell_tsne_plot', height = '800px'))
                                      ))),
-                          # Eye Networks -------
+                          ## Eye Networks -------
                           tabPanel('Eye Networks: Retina Network',
                                    fluidPage(
                                      fluidRow(

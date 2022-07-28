@@ -38,17 +38,17 @@ DNTx_pool_2019 <- dbPool(drv = SQLite(), dbname = "./www/2019/EiaD_human_express
 SC_pool <- dbPool(drv = SQLite(), dbname = "./www/single_cell_retina_info_04.sqlite", idleTimeout = 3600000)
 scEiaD_pool <- dbPool(drv = SQLite(), dbname = "./www/2022/scEiaD.sqlite", idleTimeout = 3600000)
 
-source('./www/theme_Publication.R')
-gene_names_2022 <- gene_pool_2022 %>% tbl('gene_IDs') %>% pull(ID)
+#source('./www/cowplot::theme_cowplot.R')
+gene_names_2022 <- gene_pool_2022 %>% tbl('gene_IDs') %>% pull(ID) %>% unique()
 gene_names_2017 <- gene_pool_2017 %>% tbl('gene_IDs') %>% pull(ID)
 gene_names_2019 <- gene_pool_2019 %>% tbl('gene_IDs') %>% pull(ID)
-geneTX_names_2022 <- gene_pool_2022 %>% tbl('tx_IDs') %>% pull(ID)
+#geneTX_names_2022 <- gene_pool_2022 %>% tbl('tx_IDs') %>% pull(ID) %>% unique()
 geneTX_names_2017 <- gene_pool_2017 %>% tbl('tx_IDs') %>% pull(ID)
 geneTX_names_2019 <- gene_pool_2019 %>% tbl('tx_IDs') %>% pull(ID)
 geneTX_names_2019_DNTx <- DNTx_pool_2019 %>% tbl('tx_IDs') %>% pull(ID)
-core_tight_2022 <- gene_pool_2022 %>% tbl('metadata') %>% as.tibble()
-core_tight_2017 <- gene_pool_2017 %>% tbl('metadata') %>% as.tibble()
-core_tight_2019 <- gene_pool_2019 %>% tbl('metadata') %>% as.tibble()
+core_tight_2022 <- gene_pool_2022 %>% tbl('metadata') %>% as_tibble()
+core_tight_2017 <- gene_pool_2017 %>% tbl('metadata') %>% as_tibble()
+core_tight_2019 <- gene_pool_2019 %>% tbl('metadata') %>% as_tibble()
 
 load('./www/2017/retina_module_network_lists.Rdata') # NOTE THESE ARE PRECOMPUTED htmlwidgets 
 load('./www/2017/rpe_module_network_lists.Rdata') # NOTE THESE ARE PRECOMPUTED htmlwidgets 
@@ -81,17 +81,16 @@ core_tight_2019$Sub_Tissue <- gsub('_',' - ',core_tight_2019$Sub_Tissue)
 core_tight_2022$sample_accession<-gsub('E-MTAB-','E.MTAB.',core_tight_2022$sample_accession)
 core_tight_2022$Sub_Tissue <- gsub('_',' - ',core_tight_2022$Sub_Tissue)
 
-
-# fix tissue <-> color
-meta <- 'core_tight_2019'
-tissue_val <- setNames(c(pals::glasbey(n = 32), pals::kelly(n = get(meta) %>% pull(Tissue) %>% unique() %>% length() - 32)) %>% colorspace::lighten(0.3), get(meta) %>% pull(Tissue) %>% unique() %>% sort())
-tissue_col <- scale_colour_manual(values = tissue_val)
-tissue_fill <- scale_fill_manual(values = tissue_val)
-
 metasc <- scEiaD_pool %>% tbl("scEiaD_CT_table") %>% select(CellType_predict) %>% as_tibble()
 CellType_predict_val <- setNames(c(pals::glasbey(n = 32), pals::kelly(n = metasc %>% pull(CellType_predict) %>% unique() %>% length() - 32)) %>% colorspace::lighten(0.3), metasc %>% pull(CellType_predict) %>% unique() %>% sort())
 CellType_predict_col <- scale_colour_manual(values = CellType_predict_val)
 CellType_predict_fill <- scale_fill_manual(values = CellType_predict_val)
+
+# make global tissue vals
+tissues <- c(core_tight_2017$Tissue, core_tight_2019$Tissue, core_tight_2022$Tissue)%>% unique() %>% sort() 
+tissue_val <- setNames(c(pals::glasbey(n = 32), pals::kelly(n = tissues %>% length() - 32)) %>% colorspace::lighten(0.3), tissues %>% sort())
+
+
 
 # site begins! ---------
 shinyServer(function(input, output, session) {
@@ -409,37 +408,46 @@ shinyServer(function(input, output, session) {
       query = paste0('select * from lsTPM_gene where ID in ("',paste(gene, collapse='","'),'")')
       p <- dbGetQuery(gene_pool_2017, query) %>%
         left_join(.,core_tight_2017) %>%
-        left_join(., gene_pool_2017 %>% tbl('gene_IDs') %>% as.tibble()) %>%
-        as.tibble()
+        left_join(., gene_pool_2017 %>% tbl('gene_IDs') %>% as_tibble()) %>%
+        as_tibble()
     } else if (db == 'Transcript 2017'){
       query = paste0('select * from lsTPM_TX where ID in ("',paste(gene, collapse='","'),'")')
       p <- dbGetQuery(gene_pool_2017, query) %>% left_join(.,core_tight_2017) %>%
-        left_join(., gene_pool_2017 %>% tbl('tx_IDs') %>% as.tibble()) %>%
-        as.tibble()
+        left_join(., gene_pool_2017 %>% tbl('tx_IDs') %>% as_tibble()) %>%
+        as_tibble()
     } else if (db == 'Gene 2019'){
       query = paste0('select * from lsTPM_gene where ID in ("',paste(gene, collapse='","'),'")')
       p <- dbGetQuery(gene_pool_2019, query) %>% left_join(.,core_tight_2019) %>%
-        left_join(., gene_pool_2019 %>% tbl('gene_IDs') %>% as.tibble()) %>%
-        as.tibble()
+        left_join(., gene_pool_2019 %>% tbl('gene_IDs') %>% as_tibble()) %>%
+        as_tibble()
     } else if (db == 'Transcript 2019'){
       query = paste0('select * from lsTPM_tx where ID in ("',paste(gene, collapse='","'),'")')
       p <- dbGetQuery(gene_pool_2019, query) %>% left_join(.,core_tight_2019) %>%
-        left_join(., gene_pool_2019 %>% tbl('tx_IDs') %>% as.tibble()) %>%
-        as.tibble()
+        left_join(., gene_pool_2019 %>% tbl('tx_IDs') %>% as_tibble()) %>%
+        as_tibble()
     } else if (db == 'DNTx v01'){
       query = paste0('select * from lsTPM_tx where ID in ("',paste(gene, collapse='","'),'")')
       p <- dbGetQuery(DNTx_pool_2019, query) %>% left_join(.,core_tight_2019) %>%
-        left_join(., DNTx_pool_2019 %>% tbl('tx_IDs') %>% as.tibble()) %>%
-        as.tibble()
+        left_join(., DNTx_pool_2019 %>% tbl('tx_IDs') %>% as_tibble()) %>%
+        as_tibble()
     } else if (db == 'Gene 2022'){
       query = paste0('select * from lsTPM_gene where ID in ("',paste(gene, collapse='","'),'")')
       p <- dbGetQuery(gene_pool_2022, query) %>% left_join(.,core_tight_2022) %>%
-        left_join(., gene_pool_2022 %>% tbl('gene_IDs') %>% as.tibble()) %>%
-        as.tibble()
+        left_join(., gene_pool_2022 %>% tbl('gene_IDs') %>% as_tibble()) %>%
+        as_tibble()
     }
     p$Type <- p %>% select(contains('type')) %>% pull(1)
-    p <- p %>%
-      filter(Sub_Tissue %in% tissue) %>%
+    
+
+    plot_data <- p %>%
+      filter(Sub_Tissue %in% tissue) 
+
+    # fix tissue <-> color
+    tissue_val <- tissue_val[plot_data$Tissue %>% unique()]
+    tissue_col <- scale_colour_manual(values = tissue_val)
+    tissue_fill <- scale_fill_manual(values = tissue_val)
+    
+    p <- plot_data %>%
       mutate(Info = paste('SRA: ',
                           sample_accession,
                           '\nStudy: ',
@@ -448,25 +456,43 @@ shinyServer(function(input, output, session) {
                                sample_attribute),
                           sep =''),
              ID = gsub(' \\(', '\n(', ID)) %>%
-      ggplot(data=.,aes(x=Sub_Tissue,y=log2(value+1),colour=Tissue)) +
-      geom_boxplot(alpha=0.5, outlier.shape = NA) +
-      geom_point_interactive(size=2, position = 'jitter', alpha=0.25, stroke = 3, aes(tooltip=htmlEscape(Info, TRUE), shape = Type, fill = Tissue)) +
+      ggplot(data=.,aes(x=Sub_Tissue,y=log2(value+1), color = Tissue, fill = Tissue)) +
+      geom_violin(alpha=0.5, scale = 'width') +
+      geom_boxplot(alpha=0.7, outlier.shape = NA, width = 0.1, fill = 'black', color = 'white') +
+      geom_point_interactive(size=2, position = 'jitter', alpha=0.25, stroke = 3, aes(tooltip=htmlEscape(Info, TRUE), shape = Type)) +
       xlab('') +
       facet_wrap(~ID, ncol=col_num) +
-      theme_Publication(base_size = 15) + theme(axis.text.x = element_text(angle = 90, hjust=1, vjust = 0.2)) +
+      cowplot::theme_cowplot(font_size = 15) + theme(axis.text.x = element_text(angle = 90, hjust=1, vjust = 0.2)) +
       ggtitle('Box Plot of Pan-Human Gene Expression') +
-      ylab("log2(TPM +1)") +
+      ylab("log2(TPM + 1)") +
       scale_shape_manual(values=c(0:2,5,6,15:50)) +
-      theme(plot.margin=grid::unit(c(0,0,0,0.1), "cm")) +
-      tissue_col
-    girafe(ggobj = p,width_svg = 12,
-           height_svg= max(10, (6 * (length(gene)/min(col_num,length(gene)))))) %>%
+      theme(plot.margin=grid::unit(c(0,0,0,0.1), "cm"),
+            legend.position = "bottom",
+            legend.direction = "horizontal",
+            legend.key.size= unit(0.2, "cm"),
+            legend.spacing = unit(0.2, "cm")) +
+      
+      tissue_col + tissue_fill
+    output <- list()
+    output$plot <- girafe(ggobj = p,
+           width_svg = 14,
+           height_svg= max(12, (6 * (length(gene)/min(col_num,length(gene)))))) %>%
       girafe_options(., opts_toolbar(position = NULL) )
-    
+    output$data <- plot_data
+    output
+
   })
   output$boxPlot_gene <- renderGirafe({
-    boxPlot_gene_func()
+    boxPlot_gene_func()$plot
   })
+  
+  # output plot data -------
+  output$plot_table <- DT::renderDataTable({
+    boxPlot_gene_func()$data %>%  DT::datatable(extensions = 'Buttons',
+                                                filter = list(position = 'top', clear = TRUE, plain = TRUE),
+                                                options = list(pageLength = 10, scrollX = T, searchHighlight = TRUE, dom = 'frtBip', buttons = c('pageLength','copy', 'csv')))
+  }, server=FALSE)
+  
   
   # Gene heatmap -------
   bulk_tissue_heatmap_func <- eventReactive(input$pan_button_gene, {
@@ -579,7 +605,7 @@ shinyServer(function(input, output, session) {
     ensembl_base <- "https://www.ensembl.org/Homo_sapiens/Gene/Summary?db=core;g="
     genecards_base <- "https://www.genecards.org/cgi-bin/carddisp.pl?gene="
     omim_base <- "https://www.omim.org/search/?index=entry&sort=score+desc%2C+prefix_sort+desc&start=1&limit=10&search="
-    gene_info <- gene %>% as.tibble() %>% rename(ID = value) %>%
+    gene_info <- gene %>% as_tibble() %>% rename(ID = value) %>%
       mutate(Ensembl = paste0('<a href="', ensembl_base, ID, '", target="_blank">Ensembl</a>'),
              GeneCards = paste0('<a href="', genecards_base, ID, '", target="_blank">GeneCards</a>'),
              OMIM = paste0('<a href="', omim_base, ID, '", target="_blank">OMIM</a>'))
@@ -626,7 +652,7 @@ shinyServer(function(input, output, session) {
       ungroup() %>%
       dplyr::select(ID, Tissue, meanlsTPM, Rank, Decile) %>%
       arrange(ID, Tissue) %>%
-      as.tibble() %>%
+      as_tibble() %>%
       mutate(`log2(TPM + 1)` = log2(meanlsTPM + 1)) %>%
       dplyr::select(-meanlsTPM) %>%
       DT::datatable(extensions = 'Buttons', rownames = F, options = list(
@@ -894,7 +920,7 @@ shinyServer(function(input, output, session) {
     
     query = paste0('select * from scEiaD_CT_table where Gene in ("',paste(gene, collapse='","'),'")')
     p <- dbGetQuery(scEiaD_pool, query) %>% 
-      as.tibble()
+      as_tibble()
     
     p$Type <- p %>% select(contains('type')) %>% pull(1)
     
@@ -911,8 +937,8 @@ shinyServer(function(input, output, session) {
       geom_boxplot(alpha=0.5, outlier.shape = NA) + 
       geom_point_interactive(size=2, position = 'jitter', alpha=0.25, stroke = 3, aes(tooltip=htmlEscape(Info, TRUE), fill = CellType_predict)) + 
       xlab('') + 
-      facet_wrap(~Gene, ncol=col_num) +
-      theme_Publication(base_size = 15) + theme(axis.text.x = element_text(angle = 90, hjust=1, vjust = 0.2)) +
+      facet_wrap(~Gene + Stage, ncol=col_num) +
+      cowplot::theme_cowplot(font_size = 15) + theme(axis.text.x = element_text(angle = 90, hjust=1, vjust = 0.2)) +
       ggtitle('Box Plot of Single Cell Gene Expression') +
       ylab("Mean log2(Counts+1)") +
       scale_shape_manual(values=c(0:2,5,6,15:50)) +
@@ -999,13 +1025,13 @@ shinyServer(function(input, output, session) {
         tbl(table_name) %>%
         filter(Gene == gene, `Total Count` > 10, `Cell Type` != 'Doublets', `Cell Type` != 'Red Blood Cells') %>%
         select(Age, `Cell Type`, !!(dec_column)) %>%
-        as.tibble() %>%
+        as_tibble() %>%
         spread(Age, !!(dec_column))
       vals <- SC_pool %>%
         tbl(table_name) %>%
         filter(Gene == gene, `Total Count` > 10, `Cell Type` != 'Doublets', `Cell Type` != 'Red Blood Cells') %>%
         select(Age, `Cell Type`, !!(rank_column)) %>%
-        as.tibble() %>%
+        as_tibble() %>%
         spread(Age, !!(rank_column))
       
       mat_CH <- add_missing(mat) %>% as.matrix()
@@ -1106,7 +1132,7 @@ shinyServer(function(input, output, session) {
         ylab('tSNE 2') +
         guides(colour = FALSE) +
         guides(fill = guide_legend(override.aes = list(alpha = 1))) +
-        theme_Publication(base_size=8) +
+        cowplot::theme_cowplot(font_size=8) +
         guides(fill=guide_legend(nrow = 4,byrow=TRUE)) + interactive
       girafe(code = print(p)) %>% girafe_options(., opts_toolbar(position = NULL) )
       
@@ -1120,7 +1146,7 @@ shinyServer(function(input, output, session) {
         ylab('UMAP 2') +
         guides(colour = FALSE) +
         guides(fill = guide_legend(override.aes = list(alpha = 1))) +
-        theme_Publication(base_size=8) +
+        cowplot::theme_cowplot(font_size=8) +
         guides(fill=guide_legend(nrow = 4,byrow=TRUE)) + interactive
       girafe(code = print(p)) %>% girafe_options(., opts_toolbar(position = NULL) )
     }
@@ -1151,7 +1177,7 @@ shinyServer(function(input, output, session) {
       all_tsne_plot_prepped <- gene_pool_2019 %>%
         tbl('tSNE_bulk_RNA') %>%
         filter(perplexity == perp)
-      p <- ggplot(all_tsne_plot_prepped %>% as.tibble() %>%
+      p <- ggplot(all_tsne_plot_prepped %>% as_tibble() %>%
                     mutate(Label = case_when(grepl('^0', Label) ~ '', TRUE ~ Label),
                            Info = paste('SRA: ',
                                         sample_accession,
@@ -1188,32 +1214,32 @@ shinyServer(function(input, output, session) {
       de_data <- gene_pool_2017 %>%
         tbl('limma_DE_gene') %>%
         filter(Comparison == local(input$de_comparison)) %>%
-        as.tibble()
+        as_tibble()
     } else if (input$diff_database == 'Transcript 2019') {
       de_data <- gene_pool_2019 %>%
         tbl('limma_DE_tx') %>%
         filter(Comparison == local(input$de_comparison)) %>%
-        as.tibble() %>%
+        as_tibble() %>%
         # left join to filter on gene or tx type (e.g. protein coding / miRNA / etc)
-        left_join(., gene_pool_2019 %>% tbl('tx_IDs') %>% as.tibble())  %>%
+        left_join(., gene_pool_2019 %>% tbl('tx_IDs') %>% as_tibble())  %>%
         filter(transcript_type %in% input$gene_tx_type) %>%
         rename(Class = transcript_type)
     } else if (input$diff_database == 'Gene 2019'){
       de_data <- gene_pool_2019 %>%
         tbl('limma_DE_gene') %>%
         filter(Comparison == local(input$de_comparison)) %>%
-        as.tibble() %>%
+        as_tibble() %>%
         # left join to filter on gene or tx type (e.g. protein coding / miRNA / etc)
-        left_join(., gene_pool_2019 %>% tbl('gene_IDs') %>% as.tibble())  %>%
+        left_join(., gene_pool_2019 %>% tbl('gene_IDs') %>% as_tibble())  %>%
         filter(gene_type %in% input$gene_tx_type) %>%
         rename(Class = gene_type)
     } else if (input$diff_database == 'DNTx v01'){
       de_data <- DNTx_pool_2019 %>%
         tbl('limma_DE_tx') %>%
         filter(Comparison == local(input$de_comparison)) %>%
-        as.tibble() %>%
+        as_tibble() %>%
         # left join to filter on gene or tx type (e.g. protein coding / miRNA / etc)
-        left_join(., DNTx_pool_2019 %>% tbl('tx_IDs') %>% as.tibble())  %>%
+        left_join(., DNTx_pool_2019 %>% tbl('tx_IDs') %>% as_tibble())  %>%
         filter(transcript_type %in% input$gene_tx_type) %>%
         rename(Class = transcript_type)
     }
@@ -1305,7 +1331,7 @@ shinyServer(function(input, output, session) {
         dplyr::select(ONTOLOGY:`p.adjust`)
     }
     go %>%
-      as.tibble()} %>%
+      as_tibble()} %>%
       DT::datatable(extensions = 'Buttons', options = list(
         dom = 'frtBip', buttons = c('pageLength','copy', 'csv'))))
   output$go.table.down <- DT::renderDataTable(server = TRUE, {
@@ -1322,7 +1348,7 @@ shinyServer(function(input, output, session) {
         dplyr::select(ONTOLOGY:`p.adjust`)
     }
     go %>%
-      as.tibble()} %>%
+      as_tibble()} %>%
       DT::datatable(extensions = 'Buttons', options = list(
         dom = 'frtBip', buttons = c('pageLength','copy', 'csv'))))
   
@@ -1346,7 +1372,7 @@ shinyServer(function(input, output, session) {
                  highlightNearest = list(enabled = T, degree = 0, hover = F, algorithm = "all"))
   })
   output$retina_table_mod <- renderDataTable(server = TRUE, {
-    DT::datatable(gene_pool_2017 %>% tbl('edges_retina') %>% filter(Color == local(input$retina_mod_color_vis_mod)) %>% as.tibble(), rownames = F, extensions = 'Buttons', options = list(
+    DT::datatable(gene_pool_2017 %>% tbl('edges_retina') %>% filter(Color == local(input$retina_mod_color_vis_mod)) %>% as_tibble(), rownames = F, extensions = 'Buttons', options = list(
       dom = 'frtBip', buttons = c('pageLength','copy', 'csv'))) %>%
       DT::formatSignif(c('length'), digits = 5)
   })
@@ -1358,7 +1384,7 @@ shinyServer(function(input, output, session) {
                     tbl('edges_retina') %>%
                     filter(Color == new_mod_color) %>%
                     filter(Gene1 == local(input$retina_gene) | Gene2 == local(input$retina_gene)) %>%
-                    as.tibble(),
+                    as_tibble(),
                   rownames = F, extensions = 'Buttons', options = list(
                     dom = 'frtBip', buttons = c('pageLength','copy', 'csv'))) %>%
       DT::formatSignif(c('length'), digits = 5)
@@ -1366,7 +1392,7 @@ shinyServer(function(input, output, session) {
   output$retina_connect_table_mod <- renderDataTable(server = TRUE, {
     DT::datatable(gene_pool_2017 %>% tbl('retina_mod_connect') %>%
                     filter(`Module.Color` == local(input$retina_mod_color_vis_mod)) %>%
-                    as.tibble(), extensions = 'Buttons', options = list(
+                    as_tibble(), extensions = 'Buttons', options = list(
                       dom = 'frtBip', buttons = c('pageLength','copy', 'csv'))) %>%
       DT::formatSignif(c('kWithin'), digits = 5)
   })
@@ -1375,19 +1401,19 @@ shinyServer(function(input, output, session) {
     new_mod_color = gene_pool_2017 %>% tbl('retina_gene_name_colors') %>% filter(id == local(input$retina_gene)) %>% pull(Module_Color)
     DT::datatable(gene_pool_2017 %>% tbl('retina_mod_connect') %>%
                     filter(`Module.Color` == new_mod_color) %>%
-                    as.tibble(), extensions = 'Buttons', options = list(
+                    as_tibble(), extensions = 'Buttons', options = list(
                       dom = 'frtBip', buttons = c('pageLength','copy', 'csv'))) %>%
       DT::formatSignif(c('kWithin'), digits = 5)
   })
   output$retina_GO_table_mod <- renderDataTable(server = TRUE, {
-    DT::datatable(gene_pool_2017 %>% tbl('retina_network_GO') %>% filter(Color == local(input$retina_mod_color_vis_mod)) %>% as.tibble(),
+    DT::datatable(gene_pool_2017 %>% tbl('retina_network_GO') %>% filter(Color == local(input$retina_mod_color_vis_mod)) %>% as_tibble(),
                   extensions = 'Buttons', options = list(
                     dom = 'frtBip', buttons = c('pageLength','copy', 'csv')))
   })
   output$retina_GO_table_gene <- renderDataTable(server = TRUE, {
     req(input$retina_gene)
     new_mod_color = gene_pool_2017 %>% tbl('retina_gene_name_colors') %>% filter(id == local(input$retina_gene)) %>% pull(Module_Color)
-    DT::datatable(gene_pool_2017 %>% tbl('retina_network_GO') %>% filter(Color == new_mod_color) %>% as.tibble(),
+    DT::datatable(gene_pool_2017 %>% tbl('retina_network_GO') %>% filter(Color == new_mod_color) %>% as_tibble(),
                   extensions = 'Buttons', options = list(
                     dom = 'frtBip', buttons = c('pageLength','copy', 'csv')))
   })
@@ -1422,7 +1448,7 @@ shinyServer(function(input, output, session) {
                  highlightNearest = list(enabled = T, degree = 0, hover = F, algorithm = "all"))
   })
   output$rpe_table_mod <- renderDataTable(server = TRUE, {
-    DT::datatable(gene_pool_2017 %>% tbl('edges_rpe') %>% filter(Color == local(input$rpe_mod_color_vis_mod)) %>% as.tibble(), rownames = F, extensions = 'Buttons', options = list(
+    DT::datatable(gene_pool_2017 %>% tbl('edges_rpe') %>% filter(Color == local(input$rpe_mod_color_vis_mod)) %>% as_tibble(), rownames = F, extensions = 'Buttons', options = list(
       dom = 'frtBip', buttons = c('pageLength','copy', 'csv'))) %>%
       DT::formatSignif(c('length'), digits = 5)
   })
@@ -1434,7 +1460,7 @@ shinyServer(function(input, output, session) {
                     tbl('edges_rpe') %>%
                     filter(Color == new_mod_color) %>%
                     filter(Gene1 == local(input$rpe_gene) | Gene2 == local(input$rpe_gene)) %>%
-                    as.tibble(),
+                    as_tibble(),
                   rownames = F, extensions = 'Buttons', options = list(
                     dom = 'frtBip', buttons = c('pageLength','copy', 'csv'))) %>%
       DT::formatSignif(c('length'), digits = 5)
@@ -1442,7 +1468,7 @@ shinyServer(function(input, output, session) {
   output$rpe_connect_table_mod <- renderDataTable(server = TRUE, {
     DT::datatable(gene_pool_2017 %>% tbl('rpe_mod_connect') %>%
                     filter(`Module.Color` == local(input$rpe_mod_color_vis_mod)) %>%
-                    as.tibble(), extensions = 'Buttons', options = list(
+                    as_tibble(), extensions = 'Buttons', options = list(
                       dom = 'frtBip', buttons = c('pageLength','copy', 'csv'))) %>%
       DT::formatSignif(c('kWithin'), digits = 5)
   })
@@ -1451,19 +1477,19 @@ shinyServer(function(input, output, session) {
     new_mod_color = gene_pool_2017 %>% tbl('rpe_gene_name_colors') %>% filter(id == local(input$rpe_gene)) %>% pull(Module_Color)
     DT::datatable(gene_pool_2017 %>% tbl('rpe_mod_connect') %>%
                     filter(`Module.Color` == new_mod_color) %>%
-                    as.tibble(), extensions = 'Buttons', options = list(
+                    as_tibble(), extensions = 'Buttons', options = list(
                       dom = 'frtBip', buttons = c('pageLength','copy', 'csv'))) %>%
       DT::formatSignif(c('kWithin'), digits = 5)
   })
   output$rpe_GO_table_mod <- renderDataTable(server = TRUE, {
-    DT::datatable(gene_pool_2017 %>% tbl('rpe_network_GO') %>% filter(Color == local(input$rpe_mod_color_vis_mod)) %>% as.tibble(),
+    DT::datatable(gene_pool_2017 %>% tbl('rpe_network_GO') %>% filter(Color == local(input$rpe_mod_color_vis_mod)) %>% as_tibble(),
                   extensions = 'Buttons', options = list(
                     dom = 'frtBip', buttons = c('pageLength','copy', 'csv')))
   })
   output$rpe_GO_table_gene <- renderDataTable(server = TRUE, {
     req(input$rpe_gene)
     new_mod_color = gene_pool_2017 %>% tbl('rpe_gene_name_colors') %>% filter(id == local(input$rpe_gene)) %>% pull(Module_Color)
-    DT::datatable(gene_pool_2017 %>% tbl('rpe_network_GO') %>% filter(Color == new_mod_color) %>% as.tibble(),
+    DT::datatable(gene_pool_2017 %>% tbl('rpe_network_GO') %>% filter(Color == new_mod_color) %>% as_tibble(),
                   extensions = 'Buttons', options = list(
                     dom = 'frtBip', buttons = c('pageLength','copy', 'csv')))
   })
