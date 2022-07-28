@@ -5,6 +5,8 @@
 # Web app
 [https://eyeIntegration.nei.nih.gov](https://eyeIntegration.nei.nih.gov)
 
+# All below is defunct right now
+
 # Install locally and run in three steps:
 Warning! `get_eyeIntegration_datasets()` currently downloads ~20 GB of data and requires ~65 GB of space, uncompressed. 
 ```
