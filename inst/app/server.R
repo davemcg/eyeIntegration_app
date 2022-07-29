@@ -457,8 +457,8 @@ shinyServer(function(input, output, session) {
                           sep =''),
              ID = gsub(' \\(', '\n(', ID)) %>%
       ggplot(data=.,aes(x=Sub_Tissue,y=log2(value+1), color = Tissue, fill = Tissue)) +
-      geom_violin(alpha=0.5, scale = 'width') +
-      geom_boxplot(alpha=0.7, outlier.shape = NA, width = 0.1, fill = 'black', color = 'white') +
+      #geom_violin(alpha=0.5, scale = 'width') +
+      geom_boxplot(alpha=0.7, outlier.shape = NA, width = 0.6, fill = 'black', color = 'white') +
       geom_point_interactive(size=2, position = 'jitter', alpha=0.25, stroke = 3, aes(tooltip=htmlEscape(Info, TRUE), shape = Type)) +
       xlab('') +
       facet_wrap(~ID, ncol=col_num) +
