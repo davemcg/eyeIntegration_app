@@ -46,7 +46,7 @@ gene_names_2019 <- gene_pool_2019 %>% tbl('gene_IDs') %>% pull(ID)
 geneTX_names_2017 <- gene_pool_2017 %>% tbl('tx_IDs') %>% pull(ID)
 geneTX_names_2019 <- gene_pool_2019 %>% tbl('tx_IDs') %>% pull(ID)
 geneTX_names_2019_DNTx <- DNTx_pool_2019 %>% tbl('tx_IDs') %>% pull(ID)
-core_tight_2022 <- gene_pool_2022 %>% tbl('metadata') %>% as_tibble()
+core_tight_2022 <- gene_pool_2022 %>% tbl('metadata') %>% as_tibble() %>% select(sample_accession:sample_attribute, region:Comment, Sample_comment, BioProject)
 core_tight_2017 <- gene_pool_2017 %>% tbl('metadata') %>% as_tibble()
 core_tight_2019 <- gene_pool_2019 %>% tbl('metadata') %>% as_tibble()
 
@@ -146,7 +146,7 @@ shinyServer(function(input, output, session) {
     if (is.null(query[['Tissue']])){
       # tissue choices
       if (grepl('2017', db)){tissues <- unique(sort(core_tight_2017$Sub_Tissue))}
-      else if (grepl('2022', db)){tissues <- unique(sort(core_tight_2022 %>% filter(Sub_Tissue != 'Choroid Plexus' & Sub_Tissue != 'WIBR3 hESC Choroid plexus Organoids') %>% pull(Sub_Tissue)))
+      else if (grepl('2022', db)){tissues <- unique(sort(core_tight_2022 %>% filter(Tissue != 'EyeLid') %>% pull(Tissue)))
       } else {tissues <- unique(sort(core_tight_2019 %>% filter(Sub_Tissue != 'Choroid Plexus - Adult Tissue') %>% pull(Sub_Tissue)))}
       updateSelectizeInput(session, 'plot_tissue_gene',
                            choices= tissues,
@@ -438,15 +438,20 @@ shinyServer(function(input, output, session) {
     }
     p$Type <- p %>% select(contains('type')) %>% pull(1)
     
-
-    plot_data <- p %>%
-      filter(Sub_Tissue %in% tissue) 
-
+    if (grepl('2022', db)){
+      plot_data <- p %>%
+        filter(Tissue %in% tissue) 
+    } else {
+      plot_data <- p %>%
+        filter(Sub_Tissue %in% tissue) 
+    }
+    
     # fix tissue <-> color
     tissue_val <- tissue_val[plot_data$Tissue %>% unique()]
     tissue_col <- scale_colour_manual(values = tissue_val)
     tissue_fill <- scale_fill_manual(values = tissue_val)
     
+    if (!grepl('2022', db)){
     p <- plot_data %>%
       mutate(Info = paste('SRA: ',
                           sample_accession,
@@ -456,12 +461,12 @@ shinyServer(function(input, output, session) {
                                sample_attribute),
                           sep =''),
              ID = gsub(' \\(', '\n(', ID)) %>%
-      ggplot(data=.,aes(x=Sub_Tissue,y=log2(value+1), color = Tissue, fill = Tissue)) +
+      ggplot(data=.,aes(x=Tissue,y=log2(value+1), color = Tissue, fill = Tissue)) +
       #geom_violin(alpha=0.5, scale = 'width') +
       geom_boxplot(alpha=0.7, outlier.shape = NA, width = 0.6, fill = 'black', color = 'white') +
       geom_point_interactive(size=2, position = 'jitter', alpha=0.25, stroke = 3, aes(tooltip=htmlEscape(Info, TRUE), shape = Type)) +
       xlab('') +
-      facet_wrap(~ID, ncol=col_num) +
+      facet_wrap(~ID + Source, ncol=col_num, scales = 'free_x') +
       cowplot::theme_cowplot(font_size = 15) + theme(axis.text.x = element_text(angle = 90, hjust=1, vjust = 0.2)) +
       ggtitle('Box Plot of Pan-Human Gene Expression') +
       ylab("log2(TPM + 1)") +
@@ -471,16 +476,48 @@ shinyServer(function(input, output, session) {
             legend.direction = "horizontal",
             legend.key.size= unit(0.2, "cm"),
             legend.spacing = unit(0.2, "cm")) +
-      
       tissue_col + tissue_fill
+    } else {
+      p <- plot_data %>% 
+        mutate(Perturbation = case_when(grepl('MGS', Source_details) ~ Source_details)) %>% 
+        mutate(Sub_Tissue = case_when(is.na(Sub_Tissue) ~ '', TRUE ~ Sub_Tissue), 
+               Source = case_when(is.na(Source) ~ '', TRUE ~ Source), 
+               Age = case_when(is.na(Age) ~ '', TRUE ~ Age),
+               Perturbation = case_when(is.na(Perturbation) ~ '', TRUE ~ Sub_Tissue)) %>% 
+        mutate(Info = paste('SRA: ',
+                            sample_accession,
+                            '\nStudy: ',
+                            study_title, '\n',
+                            gsub('\\|\\|', '\n',
+                                 sample_attribute),
+                            sep =''),
+               ID = gsub(' \\(', '\n(', ID)) %>%
+        ggplot(data=.,aes(x=interaction(Source, Sub_Tissue, Age, Perturbation, sep = ' | '),y=log2(value+1), 
+                          color = Tissue, 
+                          fill = Tissue)) +
+        #geom_violin(alpha=0.5, scale = 'width') +
+        geom_boxplot(alpha=0.7, outlier.shape = NA, width = 0.6, fill = 'black', color = 'white') +
+        geom_point_interactive(size=1, position = 'jitter', alpha=0.25, stroke = 3, aes(tooltip=htmlEscape(Info, TRUE), shape = Type)) +
+        ggh4x::facet_nested(~ID + Tissue, scales = 'free_x', nest_line = element_line(linetype = 1)) +
+        cowplot::theme_cowplot(font_size = 15) + theme(axis.text.x = element_text(angle = 90, hjust=1, vjust = 0.2)) +
+        ggtitle('Box Plot of Pan-Human Gene Expression') +
+        ylab("log2(TPM + 1)") +
+        scale_shape_manual(values=c(0:2,5,6,15:50)) +
+        theme(plot.margin=grid::unit(c(0,0,0,0.1), "cm"),
+              legend.position = "bottom",
+              legend.direction = "horizontal",
+              legend.key.size= unit(0.2, "cm"),
+              legend.spacing = unit(0.2, "cm"))  +
+        tissue_col + tissue_fill
+    }
     output <- list()
     output$plot <- girafe(ggobj = p,
-           width_svg = 14,
-           height_svg= max(12, (6 * (length(gene)/min(col_num,length(gene)))))) %>%
+                          width_svg = 14,
+                          height_svg= max(12, (6 * (length(gene)/min(col_num,length(gene)))))) %>%
       girafe_options(., opts_toolbar(position = NULL) )
     output$data <- plot_data
     output
-
+    
   })
   output$boxPlot_gene <- renderGirafe({
     boxPlot_gene_func()$plot
@@ -496,7 +533,7 @@ shinyServer(function(input, output, session) {
   
   # Gene heatmap -------
   bulk_tissue_heatmap_func <- eventReactive(input$pan_button_gene, {
-    cat(file=stderr(), 'Gene heatmap call\n')
+    #cat(file=stderr(), 'Gene heatmap call\n')
     db = input$Database
     gene <- input$ID
     tissue <- input$plot_tissue_gene
