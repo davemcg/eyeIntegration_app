@@ -46,7 +46,7 @@ gene_names_2019 <- gene_pool_2019 %>% tbl('gene_IDs') %>% pull(ID)
 geneTX_names_2017 <- gene_pool_2017 %>% tbl('tx_IDs') %>% pull(ID)
 geneTX_names_2019 <- gene_pool_2019 %>% tbl('tx_IDs') %>% pull(ID)
 geneTX_names_2019_DNTx <- DNTx_pool_2019 %>% tbl('tx_IDs') %>% pull(ID)
-core_tight_2022 <- gene_pool_2022 %>% tbl('metadata') %>% as_tibble() %>% select(sample_accession:sample_attribute, region:Comment, Sample_comment, BioProject)
+core_tight_2022 <- gene_pool_2022 %>% tbl('metadata') %>% as_tibble() %>% select(sample_accession:sample_attribute, region:Comment, Sample_comment, BioProject, Perturbation)
 core_tight_2017 <- gene_pool_2017 %>% tbl('metadata') %>% as_tibble()
 core_tight_2019 <- gene_pool_2019 %>% tbl('metadata') %>% as_tibble()
 
@@ -88,7 +88,7 @@ CellType_predict_fill <- scale_fill_manual(values = CellType_predict_val)
 
 # make global tissue vals
 tissues <- c(core_tight_2017$Tissue, core_tight_2019$Tissue, core_tight_2022$Tissue)%>% unique() %>% sort() 
-tissue_val <- setNames(c(pals::glasbey(n = 32), pals::kelly(n = tissues %>% length() - 32)) %>% colorspace::lighten(0.3), tissues %>% sort())
+tissue_val <- setNames(c( pals::kelly(n = tissues %>% length() - 32), pals::glasbey(n = 32)) %>% colorspace::darken(0.2), tissues %>% sort())
 
 
 
@@ -464,7 +464,7 @@ shinyServer(function(input, output, session) {
       ggplot(data=.,aes(x=Tissue,y=log2(value+1), color = Tissue, fill = Tissue)) +
       #geom_violin(alpha=0.5, scale = 'width') +
       geom_boxplot(alpha=0.7, outlier.shape = NA, width = 0.6, fill = 'black', color = 'white') +
-      geom_point_interactive(size=2, position = 'jitter', alpha=0.25, stroke = 3, aes(tooltip=htmlEscape(Info, TRUE), shape = Type)) +
+      geom_point_interactive(size=1, position = 'jitter', alpha=0.25, stroke = 3, aes(tooltip=htmlEscape(Info, TRUE), shape = Type)) +
       xlab('') +
       facet_wrap(~ID + Source, ncol=col_num, scales = 'free_x') +
       cowplot::theme_cowplot(font_size = 15) + theme(axis.text.x = element_text(angle = 90, hjust=1, vjust = 0.2)) +
@@ -479,11 +479,11 @@ shinyServer(function(input, output, session) {
       tissue_col + tissue_fill
     } else {
       p <- plot_data %>% 
-        mutate(Perturbation = case_when(grepl('MGS', Source_details) ~ Source_details)) %>% 
+        #mutate(Perturbation = case_when(grepl('MGS', Source_details) ~ Source_details)) %>% 
         mutate(Sub_Tissue = case_when(is.na(Sub_Tissue) ~ '', TRUE ~ Sub_Tissue), 
                Source = case_when(is.na(Source) ~ '', TRUE ~ Source), 
                Age = case_when(is.na(Age) ~ '', TRUE ~ Age),
-               Perturbation = case_when(is.na(Perturbation) ~ '', TRUE ~ Sub_Tissue)) %>% 
+               Perturbation = case_when(is.na(Perturbation) ~ '', TRUE ~ Perturbation)) %>% 
         mutate(Info = paste('SRA: ',
                             sample_accession,
                             '\nStudy: ',
@@ -498,7 +498,7 @@ shinyServer(function(input, output, session) {
         #geom_violin(alpha=0.5, scale = 'width') +
         geom_boxplot(alpha=0.7, outlier.shape = NA, width = 0.6, fill = 'black', color = 'white') +
         geom_point_interactive(size=1, position = 'jitter', alpha=0.25, stroke = 3, aes(tooltip=htmlEscape(Info, TRUE), shape = Type)) +
-        ggh4x::facet_nested(~ID + Tissue, scales = 'free_x', nest_line = element_line(linetype = 1)) +
+        ggh4x::facet_nested(~ID + Tissue, scales = 'free_x', independent = 'x', nest_line = element_line(linetype = 1)) +
         cowplot::theme_cowplot(font_size = 15) + theme(axis.text.x = element_text(angle = 90, hjust=1, vjust = 0.2)) +
         ggtitle('Box Plot of Pan-Human Gene Expression') +
         ylab("log2(TPM + 1)") +
