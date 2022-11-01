@@ -25,6 +25,7 @@ Imports:
     tibble,
     ggiraph,
     RSQLite,
+    ggh4x,
     DBI,
     pool,
     ggrepel,
