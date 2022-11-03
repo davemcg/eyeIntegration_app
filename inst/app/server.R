@@ -512,6 +512,38 @@ shinyServer(function(input, output, session) {
         tissue_fill + 
         coord_flip() + 
         theme(strip.text.y.right = element_text(angle = 0))
+      # coord flip
+      # p <- plot_data %>% 
+      #   #mutate(Perturbation = case_when(grepl('MGS', Source_details) ~ Source_details)) %>% 
+      #   mutate(Sub_Tissue = case_when(is.na(Sub_Tissue) ~ '', TRUE ~ Sub_Tissue), 
+      #          Source = case_when(is.na(Source) ~ '', TRUE ~ Source), 
+      #          Age = case_when(is.na(Age) ~ '', TRUE ~ Age),
+      #          Perturbation = case_when(is.na(Perturbation) ~ '', TRUE ~ Perturbation)) %>% 
+      #   mutate(Info = paste('SRA: ',
+      #                       sample_accession,
+      #                       '\nStudy: ',
+      #                       study_title, '\n',
+      #                       gsub('\\|\\|', '\n',
+      #                            sample_attribute),
+      #                       sep =''),
+      #          ID = gsub(' \\(', '\n(', ID)) %>%
+      #   ggplot(data=.,aes(x=interaction(Source, Sub_Tissue, Age, Perturbation, sep = ' | '),y=log2(value+1), 
+      #                     color = Tissue, 
+      #                     fill = Tissue)) +
+      #   #geom_violin(alpha=0.5, scale = 'width') +
+      #   geom_boxplot(alpha=0.7, outlier.shape = NA, width = 0.6, fill = 'black', color = 'white') +
+      #   geom_point_interactive(size=1, position = 'jitter', alpha=0.25, stroke = 3, aes(tooltip=htmlEscape(Info, TRUE), shape = Type)) +
+      #   facet_grid(cols = vars(Tissue), rows = vars(ID), scales = 'free', space = 'free', labeller = labeller(groupwrap = label_wrap_gen(8))) +
+      #   cowplot::theme_cowplot(font_size = 15) + theme(axis.text.x = element_text(angle = 90, hjust=1, vjust = 0.2)) +
+      #   ggtitle('Box Plot of Pan-Human Gene Expression') +
+      #   ylab("log2(TPM + 1)") +
+      #   scale_shape_manual(values=c(0:2,5,6,15:50)) +
+      #   theme(plot.margin=grid::unit(c(0,0,0,0.1), "cm"),
+      #         legend.position = "bottom",
+      #         legend.direction = "horizontal",
+      #         legend.key.size= unit(0.2, "cm"),
+      #         legend.spacing = unit(0.2, "cm"))  +
+      #   tissue_col + tissue_fill 
     }
     output <- list()
     if (!grepl('2022',db)){
