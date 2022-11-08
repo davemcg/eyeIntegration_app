@@ -28,8 +28,6 @@ library(htmltools)
 library(pool)
 library(RSQLite)
 
-#setwd('/Users/parikhpp/git/eyeIntegration_app/ppeyeIntegration/')
-
 # pools for sqlite DBs ------------
 gene_pool_2022 <- dbPool(drv = SQLite(), dbname = "./www/2022/eyeIntegration_2022_human.sqlite", idleTimeout = 3600000)
 gene_pool_2017 <- dbPool(drv = SQLite(), dbname = "./www/2017/eyeIntegration_human_2017_01.sqlite", idleTimeout = 3600000)
@@ -81,8 +79,8 @@ core_tight_2019$Sub_Tissue <- gsub('_',' - ',core_tight_2019$Sub_Tissue)
 core_tight_2022$sample_accession<-gsub('E-MTAB-','E.MTAB.',core_tight_2022$sample_accession)
 core_tight_2022$Sub_Tissue <- gsub('_',' - ',core_tight_2022$Sub_Tissue)
 
-metasc <- scEiaD_pool %>% tbl("scEiaD_CT_table") %>% select(CellType_predict) %>% as_tibble()
-CellType_predict_val <- setNames(c(pals::glasbey(n = 32), pals::kelly(n = metasc %>% pull(CellType_predict) %>% unique() %>% length() - 32)) %>% colorspace::lighten(0.3), metasc %>% pull(CellType_predict) %>% unique() %>% sort())
+metasc <- scEiaD_pool %>% tbl("scEiaD_CT_table") %>% select(CellType_predict) %>% as_tibble() %>% unique()
+CellType_predict_val <- setNames(c(pals::glasbey(n = 32), pals::kelly(n = metasc %>% pull(CellType_predict) %>% length() - 32)) %>% colorspace::lighten(0.3), metasc %>% pull(CellType_predict) %>% sort())
 CellType_predict_col <- scale_colour_manual(values = CellType_predict_val)
 CellType_predict_fill <- scale_fill_manual(values = CellType_predict_val)
 
@@ -461,12 +459,12 @@ shinyServer(function(input, output, session) {
                                  sample_attribute),
                             sep =''),
                ID = gsub(' \\(', '\n(', ID)) %>%
-        ggplot(data=.,aes(x=Tissue,y=log2(value+1), color = Tissue, fill = Tissue)) +
+        ggplot(data=.,aes(x=Sub_Tissue,y=log2(value+1), color = Tissue, fill = Tissue)) +
         #geom_violin(alpha=0.5, scale = 'width') +
         geom_boxplot(alpha=0.7, outlier.shape = NA, width = 0.6, fill = 'black', color = 'white') +
         geom_point_interactive(size=1, position = 'jitter', alpha=0.25, stroke = 3, aes(tooltip=htmlEscape(Info, TRUE), shape = Type)) +
         xlab('') +
-        facet_wrap(~ID + Source, ncol=col_num, scales = 'free_x') +
+        facet_wrap(~ID, ncol=col_num, scales = 'free_x') +
         cowplot::theme_cowplot(font_size = 15) + theme(axis.text.x = element_text(angle = 90, hjust=1, vjust = 0.2)) +
         ggtitle('Box Plot of Pan-Human Gene Expression') +
         ylab("log2(TPM + 1)") +
@@ -484,6 +482,11 @@ shinyServer(function(input, output, session) {
                Source = case_when(is.na(Source) ~ '', TRUE ~ Source), 
                Age = case_when(is.na(Age) ~ '', TRUE ~ Age),
                Perturbation = case_when(is.na(Perturbation) ~ '', TRUE ~ Perturbation)) %>% 
+        mutate(Sub_Tissue = glue::glue("<span style='color:#E41A1C'>{Sub_Tissue}</span>"),
+               Source = glue::glue("<span style='color:#377EB8'>{Source}</span>"),
+               Age = glue::glue("<span style='color:#4DAF4A'>{Age}</span>"),
+               Perturbation = glue::glue("<span style='color:#984EA3'>{Perturbation}</span>")
+        ) %>% 
         mutate(Info = paste('SRA: ',
                             sample_accession,
                             '\nStudy: ',
@@ -497,53 +500,51 @@ shinyServer(function(input, output, session) {
                           fill = Tissue)) +
         #geom_violin(alpha=0.5, scale = 'width') +
         geom_boxplot(alpha=0.7, outlier.shape = NA, width = 0.6, fill = 'black', color = 'white') +
-        geom_point_interactive(size=1, position = 'jitter', alpha=0.25, stroke = 3, aes(tooltip=htmlEscape(Info, TRUE), shape = Type)) +
-        facet_grid(rows = vars(Tissue), cols = vars(ID), scales = 'free', space = 'free') +
         cowplot::theme_cowplot(font_size = 15) + theme(axis.text.x = element_text(angle = 90, hjust=1, vjust = 0.2)) +
         ggtitle('Box Plot of Pan-Human Gene Expression') +
         ylab("log2(TPM + 1)") +
         scale_shape_manual(values=c(0:2,5,6,15:50)) +
-        theme(plot.margin=grid::unit(c(0,0,0,0.1), "cm"),
+        theme(strip.background = element_rect(fill = 'black'),
+              strip.text = element_text(color = 'white'),
+              panel.background = element_rect(fill = 'gray90'),
+              plot.margin=grid::unit(c(0,0,0,0.1), "cm"),
               legend.position = "bottom",
               legend.direction = "horizontal",
               legend.key.size= unit(0.2, "cm"),
               legend.spacing = unit(0.2, "cm"))  +
         tissue_col + 
-        tissue_fill + 
-        coord_flip() + 
-        theme(strip.text.y.right = element_text(angle = 0))
-      # coord flip
-      # p <- plot_data %>% 
-      #   #mutate(Perturbation = case_when(grepl('MGS', Source_details) ~ Source_details)) %>% 
-      #   mutate(Sub_Tissue = case_when(is.na(Sub_Tissue) ~ '', TRUE ~ Sub_Tissue), 
-      #          Source = case_when(is.na(Source) ~ '', TRUE ~ Source), 
-      #          Age = case_when(is.na(Age) ~ '', TRUE ~ Age),
-      #          Perturbation = case_when(is.na(Perturbation) ~ '', TRUE ~ Perturbation)) %>% 
-      #   mutate(Info = paste('SRA: ',
-      #                       sample_accession,
-      #                       '\nStudy: ',
-      #                       study_title, '\n',
-      #                       gsub('\\|\\|', '\n',
-      #                            sample_attribute),
-      #                       sep =''),
-      #          ID = gsub(' \\(', '\n(', ID)) %>%
-      #   ggplot(data=.,aes(x=interaction(Source, Sub_Tissue, Age, Perturbation, sep = ' | '),y=log2(value+1), 
-      #                     color = Tissue, 
-      #                     fill = Tissue)) +
-      #   #geom_violin(alpha=0.5, scale = 'width') +
-      #   geom_boxplot(alpha=0.7, outlier.shape = NA, width = 0.6, fill = 'black', color = 'white') +
-      #   geom_point_interactive(size=1, position = 'jitter', alpha=0.25, stroke = 3, aes(tooltip=htmlEscape(Info, TRUE), shape = Type)) +
-      #   facet_grid(cols = vars(Tissue), rows = vars(ID), scales = 'free', space = 'free', labeller = labeller(groupwrap = label_wrap_gen(8))) +
-      #   cowplot::theme_cowplot(font_size = 15) + theme(axis.text.x = element_text(angle = 90, hjust=1, vjust = 0.2)) +
-      #   ggtitle('Box Plot of Pan-Human Gene Expression') +
-      #   ylab("log2(TPM + 1)") +
-      #   scale_shape_manual(values=c(0:2,5,6,15:50)) +
-      #   theme(plot.margin=grid::unit(c(0,0,0,0.1), "cm"),
-      #         legend.position = "bottom",
-      #         legend.direction = "horizontal",
-      #         legend.key.size= unit(0.2, "cm"),
-      #         legend.spacing = unit(0.2, "cm"))  +
-      #   tissue_col + tissue_fill 
+        tissue_fill 
+      
+      if (input$rotation == 1){
+        p <- p + 
+          coord_flip() + 
+          facet_grid(rows = vars(Tissue), cols = vars(ID), scales = 'free', space = 'free') +
+          theme(strip.text.y.right = element_text(angle = 0)) +
+          theme(
+            axis.text.y = element_markdown(),
+            axis.title.y = element_markdown()) +
+          labs(x = "<span style='color:#377EB8'>Source</span> | 
+       <span style='color:#E41A1C'>Sub Tissue</span> |
+       <span style='color:#4DAF4A'>Age</span> |
+       <span style='color:#984EA3'>Perturbation</span>")
+      } else {
+        p <- p + 
+          facet_grid(cols = vars(Tissue), rows = vars(ID), 
+                     scales = 'free_x', space = 
+                       'free', labeller = labeller(Tissue = label_wrap_gen(7))) +
+          theme(
+            axis.text.x = element_markdown(),
+            axis.title.x = element_markdown()) +
+          labs(x = "<span style='color:#377EB8'>Source</span> | 
+       <span style='color:#E41A1C'>Sub Tissue</span> |
+       <span style='color:#4DAF4A'>Age</span> |
+       <span style='color:#984EA3'>Perturbation</span>")
+      }
+      
+      if (input$points){
+        p <- p + geom_point_interactive(size=1, position = 'jitter', alpha=0.25, stroke = 3, aes(tooltip=htmlEscape(Info, TRUE), shape = Type)) 
+      }
+      
     }
     output <- list()
     if (!grepl('2022',db)){
@@ -553,7 +554,7 @@ shinyServer(function(input, output, session) {
         girafe_options(., opts_toolbar(position = NULL) )
     } else {
       output$plot <- girafe(ggobj = p,
-                            width_svg = 20,
+                            width_svg = 16,
                             height_svg= max(12, (2 * (length(tissue)/min(col_num,length(tissue)))))) %>%
         girafe_options(., opts_toolbar(position = NULL) )
     }

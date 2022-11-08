@@ -43,9 +43,17 @@ shinyUI(fluidPage(
                                                              choices=NULL, multiple=TRUE),
                                               selectizeInput('plot_tissue_gene',strong('Tissues:'),
                                                              choices=NULL,multiple=TRUE),
-                                              conditionalPanel(condition = "input.plot_type_gene != 'Heatmap'",
+                                              conditionalPanel(condition = "input.plot_type_gene != 'Heatmap' & input.Database != 'Gene 2022'",
                                                                numericInput('num_gene', strong('Number of columns:'),
-                                                                            value = 2, min = 1, max = 8)), br(), 
+                                                                            value = 2, min = 1, max = 50)), br(), 
+                                              conditionalPanel(condition = "input.plot_type_gene != 'Heatmap' & input.Database == 'Gene 2022'",
+                                                               radioButtons('rotation', strong('Plot Orientation:'),
+                                                                            choices = list("Samples as rows" = 1, "Samples as columns" = 2), 
+                                                                            selected = 1)), br(), 
+                                              conditionalPanel(condition = "input.plot_type_gene != 'Heatmap' & input.Database == 'Gene 2022'",
+                                                               checkboxInput('points', 
+                                                                            label = strong('Display individual sample values'),
+                                                                            value = FALSE)), br(), 
                                               actionButton('pan_button_gene','(Re)Draw Plot!', 
                                                            style='background-color: #3399ff; color: #ffffff'), br(), br(), 
                                               actionButton('build_pan_url','Build URL Shortcut', 
@@ -56,7 +64,7 @@ shinyUI(fluidPage(
                                                                "Fill in the Gene and Tissue values and click the (RE)Draw Plot! button. 
                                                                It may take a few seconds for the plot and table to appear."), 
                                               conditionalPanel(condition = "input.plot_type_gene == 'Box Plot'",
-                                                               girafeOutput('boxPlot_gene', height = '1000px', width='100%')
+                                                               girafeOutput('boxPlot_gene', height = '100%', width='100%')
                                               ),
                                               conditionalPanel(condition = "input.plot_type_gene == 'Fold Change'",
                                                                selectizeInput('Bench_gene','Select Reference Tissue(s):',
@@ -233,7 +241,7 @@ shinyUI(fluidPage(
                navbarMenu('Information',
                           tabPanel('Overview',
                                    fluidPage(
-                                     fluidRow(column(width = 8, offset = 1, h2('eyeIntegration v1.05'))),
+                                     fluidRow(column(width = 8, offset = 1, h2('eyeIntegration v2.00'))),
                                      fluidRow(column(width = 8, offset = 1, img(src='simplified_workflow.svg', width = 300))),
                                      fluidRow(column(width = 8, offset = 1, h2('Mission'))),
                                      fluidRow(column(width = 8, offset = 1,
@@ -285,6 +293,8 @@ shinyUI(fluidPage(
                           # News ---------------
                           tabPanel('News',
                                    fluidPage(
+                                     fluidRow(column(width = 8, offset = 1, h2('2022-11-03 | v2.00'))),
+                                     fluidRow(column(width = 8, offset = 1, 'EVERYTHING CHANGE PANIC')),
                                      fluidRow(column(width = 8, offset = 1, h2('2020-02-14 | v1.05'))),
                                      fluidRow(column(width = 8, offset = 1, 'Updated DNTx to v01. Removed v00 as we have made SUBSTANTIAL improvements to the precision and reliability of the results. We do not recommend v00 be used.')),
                                      fluidRow(column(width = 8, offset = 1, h2('2020-01-31 | v1.04'))),
