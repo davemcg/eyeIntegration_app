@@ -1,14 +1,14 @@
 Package: eyeIntegrationApp
 Title: eyeIntegration Shiny App Code
-Version: 1.0.2
+Version: 2.0.0
 Authors@R: 
     person(given = "David",
            family = "McGaughey",
            role = c("aut", "cre"),
            email = "mcgaugheyd@nei.nih.gov")
 Description: The Shiny codebase for eyeIntegration.nei.nih.gov. The package does 
-    not contain the three sqlite databases holding the bulk RNA-seq, single cell 
-    RNA-seq, and WGCNA networks that underlie eyeIntegration. There is a helper 
+    not contain the sqlite databases holding the bulk RNA-seq, single cell 
+    RNA-seq that underlie eyeIntegration. There is a helper 
     script given that downloads and decompresses these data. 
 License: LICENSE
 Encoding: UTF-8
@@ -26,6 +26,7 @@ Imports:
     ggiraph,
     RSQLite,
     ggh4x,
+    ggtext,
     DBI,
     pool,
     ggrepel,
