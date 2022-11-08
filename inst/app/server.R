@@ -27,6 +27,7 @@ library(shadowtext)
 library(htmltools)
 library(pool)
 library(RSQLite)
+library(ggtext)
 
 # pools for sqlite DBs ------------
 gene_pool_2022 <- dbPool(drv = SQLite(), dbname = "./www/2022/eyeIntegration_2022_human.sqlite", idleTimeout = 3600000)
@@ -44,7 +45,7 @@ gene_names_2019 <- gene_pool_2019 %>% tbl('gene_IDs') %>% pull(ID)
 geneTX_names_2017 <- gene_pool_2017 %>% tbl('tx_IDs') %>% pull(ID)
 geneTX_names_2019 <- gene_pool_2019 %>% tbl('tx_IDs') %>% pull(ID)
 geneTX_names_2019_DNTx <- DNTx_pool_2019 %>% tbl('tx_IDs') %>% pull(ID)
-core_tight_2022 <- gene_pool_2022 %>% tbl('metadata') %>% as_tibble() %>% select(sample_accession:sample_attribute, region:Comment, Sample_comment, BioProject, Perturbation)
+core_tight_2022 <- gene_pool_2022 %>% tbl('metadata') %>% as_tibble() %>% select(sample_accession:sample_attribute, region:Comment, Sample_comment, Perturbation)
 core_tight_2017 <- gene_pool_2017 %>% tbl('metadata') %>% as_tibble()
 core_tight_2019 <- gene_pool_2019 %>% tbl('metadata') %>% as_tibble()
 
@@ -80,7 +81,7 @@ core_tight_2022$sample_accession<-gsub('E-MTAB-','E.MTAB.',core_tight_2022$sampl
 core_tight_2022$Sub_Tissue <- gsub('_',' - ',core_tight_2022$Sub_Tissue)
 
 metasc <- scEiaD_pool %>% tbl("scEiaD_CT_table") %>% select(CellType_predict) %>% as_tibble() %>% unique()
-CellType_predict_val <- setNames(c(pals::glasbey(n = 32), pals::kelly(n = metasc %>% pull(CellType_predict) %>% length() - 32)) %>% colorspace::lighten(0.3), metasc %>% pull(CellType_predict) %>% sort())
+CellType_predict_val <- setNames(c(pals::glasbey(n = 32), pals::kelly(n = scEiaD_pool %>% tbl('cell_types') %>% pull(1) %>% length() - 32)) %>% colorspace::lighten(0.3), metasc %>% pull(CellType_predict) %>% sort())
 CellType_predict_col <- scale_colour_manual(values = CellType_predict_val)
 CellType_predict_fill <- scale_fill_manual(values = CellType_predict_val)
 
@@ -506,7 +507,7 @@ shinyServer(function(input, output, session) {
         scale_shape_manual(values=c(0:2,5,6,15:50)) +
         theme(strip.background = element_rect(fill = 'black'),
               strip.text = element_text(color = 'white'),
-              panel.background = element_rect(fill = 'gray90'),
+              panel.background = element_rect(fill = 'gray80'),
               plot.margin=grid::unit(c(0,0,0,0.1), "cm"),
               legend.position = "bottom",
               legend.direction = "horizontal",
@@ -518,7 +519,7 @@ shinyServer(function(input, output, session) {
       if (input$rotation == 1){
         p <- p + 
           coord_flip() + 
-          facet_grid(rows = vars(Tissue), cols = vars(ID), scales = 'free', space = 'free') +
+          facet_grid(rows = vars(Tissue), cols = vars(ID), scales = 'free_y', space = 'free') +
           theme(strip.text.y.right = element_text(angle = 0)) +
           theme(
             axis.text.y = element_markdown(),
