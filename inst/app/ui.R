@@ -118,7 +118,36 @@ shinyUI(fluidPage(
                                      )
                                    ), br(), br(),
                                    fluidRow(includeHTML("www/footer.html"))
-                          )
+                          ),
+                          # Eye PCA ---------------
+                          tabPanel('PCA Analysis Plotting',
+                                   fluidPage(
+                                     fluidRow(
+                                       column(2,
+                                              radioButtons('pca_data_format',strong('Visualization:'),
+                                                           choices = c('PCA Plot'),
+                                                           selected = 'PCA Plot'),
+                                              selectizeInput('pca_component_one', strong('First PCA Component:'),
+                                                             choices = c(names(eye_pca_data) %>% head(10)), 
+                                                             multiple = FALSE, selected = "PC1"),
+                                              selectizeInput('pca_component_two', strong('Second PCA Component:'),
+                                                             choices = c(names(eye_pca_data) %>% head(10)), 
+                                                             multiple = FALSE, selected = "PC2"),
+                                              actionButton('pca_button','(Re)Draw PCA Plot!', 
+                                                           style='background-color: #3399ff; color: #ffffff'),
+                                       ),
+                                       column(10,
+                                              conditionalPanel(condition = "input.pca_button == 0", 
+                                                               "Select a first and second PCA component then click the (RE)Draw PCA Plot! button. 
+                                                               It may take a few seconds for the plot to appear."),
+                                              conditionalPanel(condition = "input.pca_data_format == 'PCA Plot'",
+                                                               plotlyOutput("eye_pca_plot", height = "1080", width = "100%"),
+                                              ),
+                                       ),
+                                     ),
+                                   ), br(), br(),
+                                   fluidRow(includeHTML("www/footer.html"))
+                          ),
                ),
                # navbarMenu("Find a Friend",
                #            tabPanel("Gene - Gene Euclidean Distance",

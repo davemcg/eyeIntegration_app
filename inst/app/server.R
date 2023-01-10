@@ -28,6 +28,7 @@ library(htmltools)
 library(pool)
 library(RSQLite)
 library(ggtext)
+library(stringr)
 
 # pools for sqlite DBs ------------
 gene_pool_2022 <- dbPool(drv = SQLite(), dbname = "./www/2022/eyeIntegration_2022_human.sqlite", idleTimeout = 3600000)
@@ -48,6 +49,10 @@ geneTX_names_2019_DNTx <- DNTx_pool_2019 %>% tbl('tx_IDs') %>% pull(ID)
 core_tight_2022 <- gene_pool_2022 %>% tbl('metadata') %>% as_tibble() %>% select(sample_accession:sample_attribute, region:Comment, Sample_comment, Perturbation)
 core_tight_2017 <- gene_pool_2017 %>% tbl('metadata') %>% as_tibble()
 core_tight_2019 <- gene_pool_2019 %>% tbl('metadata') %>% as_tibble()
+
+# Data for PCA Visualization - created by the EiaD_build/scripts/pca_workup.Rmd script
+load('./www/2022/eye_pca_data.Rdata')
+load('./www/2022/eye_percentVar_data.Rdata')
 
 load('./www/2017/retina_module_network_lists.Rdata') # NOTE THESE ARE PRECOMPUTED htmlwidgets 
 load('./www/2017/rpe_module_network_lists.Rdata') # NOTE THESE ARE PRECOMPUTED htmlwidgets 
@@ -390,6 +395,41 @@ shinyServer(function(input, output, session) {
     
   })
   
+  # Pan - Eye PCA -------
+  
+  visualize_pca_function <- eventReactive(input$pca_button, {
+    pcFirst <- input$pca_component_one
+    pcSecond <- input$pca_component_two
+    
+    validate(
+      need(input$pca_component_one != input$pca_component_two, 
+           "Please select two distinct PCA components and click the (RE)Draw PCA Plot! button. It may take a few seconds for the plot to appear.")
+    )
+    
+      p <- eye_pca_data %>%
+        #filter(Source != 'scRNA') %>%
+        as_tibble() %>%
+        ggplot(., aes(.data[[pcFirst]], .data[[pcSecond]])) +
+        geom_point(size=3, aes(color=Tissue, shape = Source,
+                               text = paste("Study: ", study_accession, "\n", "Sample: ", sample_accession, "\n",
+                                            "Tissue: ", Tissue, "\n", "Sub-Tissue: ", Sub_Tissue, "\n", "Source: ", 
+                                            Source, "\n", "Age: ", Age, "\n", "Count: ", 
+                                            Count, "\n", "Nearest Neighboring Tissues: ", Tissue2))) +
+        xlab(paste0(pcFirst, ": ",eye_percentVar_data[str_extract(pcFirst, '\\d+') %>% as.integer()],"% variance")) +
+        ylab(paste0(pcSecond, ": ",eye_percentVar_data[str_extract(pcSecond, '\\d+') %>% as.integer()],"% variance")) +
+        cowplot::theme_cowplot() +
+        ggtitle(label = "Ocular Sample PCA Visualization for the top 1000 protein coding genes in eyeIntegration") +
+        scale_color_manual(values = c(pals::glasbey(), pals::alphabet2(), pals::alphabet2()) %>% unname()) +
+        scale_fill_manual(values = c(pals::glasbey(), pals::alphabet2(), pals::alphabet2()) %>% unname()) +
+        scale_shape_manual(values = 0:10)
+      
+      ggplotly(p, tooltip = 'text')
+    })
+    
+    output$eye_pca_plot <- renderPlotly({
+      visualize_pca_function()
+    })
+  
   # Pan - Tissue Boxplot -------
   boxPlot_gene_func <- eventReactive(input$pan_button_gene, {
     cat(file=stderr(), 'boxPlot Gene call\n')
@@ -552,12 +592,12 @@ shinyServer(function(input, output, session) {
       output$plot <- girafe(ggobj = p,
                             width_svg = 14,
                             height_svg= max(12, (6 * (length(gene)/min(col_num,length(gene)))))) %>%
-        girafe_options(., opts_toolbar(position = NULL) )
+        girafe_options(., opts_toolbar(position = "top") )
     } else {
       output$plot <- girafe(ggobj = p,
                             width_svg = 16,
                             height_svg= max(12, (2 * (length(tissue)/min(col_num,length(tissue)))))) %>%
-        girafe_options(., opts_toolbar(position = NULL) )
+        girafe_options(., opts_toolbar(position = "top") )
     }
     output$data <- plot_data
     output
@@ -1027,7 +1067,7 @@ shinyServer(function(input, output, session) {
       CellType_predict_col
     girafe(ggobj = p,width_svg = 12, 
            height_svg= max(10, (6 * (length(gene)/min(col_num,length(gene)))))) %>% 
-      girafe_options(., opts_toolbar(position = NULL) )
+      girafe_options(., opts_toolbar(position = "top") )
     
   })
   output$scboxPlot_gene <- renderGirafe({
@@ -1215,7 +1255,7 @@ shinyServer(function(input, output, session) {
         guides(fill = guide_legend(override.aes = list(alpha = 1))) +
         cowplot::theme_cowplot(font_size=8) +
         guides(fill=guide_legend(nrow = 4,byrow=TRUE)) + interactive
-      girafe(code = print(p)) %>% girafe_options(., opts_toolbar(position = NULL) )
+      girafe(code = print(p)) %>% girafe_options(., opts_toolbar(position = "top") )
       
     } else {
       p <- ggplot(tsne_coords %>%
@@ -1229,7 +1269,7 @@ shinyServer(function(input, output, session) {
         guides(fill = guide_legend(override.aes = list(alpha = 1))) +
         cowplot::theme_cowplot(font_size=8) +
         guides(fill=guide_legend(nrow = 4,byrow=TRUE)) + interactive
-      girafe(code = print(p)) %>% girafe_options(., opts_toolbar(position = NULL) )
+      girafe(code = print(p)) %>% girafe_options(., opts_toolbar(position = "top") )
     }
   })
   
