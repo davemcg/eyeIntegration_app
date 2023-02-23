@@ -284,7 +284,7 @@ shinyUI(fluidPage(
                                   and RPE (choroid) tissues to build the first human weighted gene correlation networks and use them to highlight known biological pathways and eye gene disease
                                   enrichment.", br(), br(),
                                                      h2("Basic Statistics"),
-                                                     fluidRow(column(6, img(src='sample_count_2017_2019.svg', align='middle', width = 1000))),
+                                                     fluidRow(column(6, img(src='sample_count_2022.svg', align='middle', width = 1000))),
                                                      tableOutput('basic_stats'),
                                                      "We make these data, analyses, and visualizations available here with a powerful interactive web application.")),
                                      fluidRow(column(width = 8, offset = 1, h2('Attribution'))),
