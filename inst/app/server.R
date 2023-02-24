@@ -92,7 +92,7 @@ CellType_predict_fill <- scale_fill_manual(values = CellType_predict_val)
 
 # make global tissue vals
 tissues <- c(core_tight_2017$Tissue, core_tight_2019$Tissue, core_tight_2022$Tissue)%>% unique() %>% sort() 
-tissue_val <- setNames(c( pals::kelly(n = tissues %>% length() - 32), pals::glasbey(n = 32)) %>% colorspace::darken(0.2), tissues %>% sort())
+tissue_val <- setNames(c(pals::polychrome()[3:36],  pals::kelly()[c(3:7,10:21)])[1:length(tissues)], tissues %>% sort())
 
 
 
@@ -523,10 +523,10 @@ shinyServer(function(input, output, session) {
                Source = case_when(is.na(Source) ~ '', TRUE ~ Source), 
                Age = case_when(is.na(Age) ~ '', TRUE ~ Age),
                Perturbation = case_when(is.na(Perturbation) ~ '', TRUE ~ Perturbation)) %>% 
-        mutate(Sub_Tissue = glue::glue("<span style='color:#E41A1C'>{Sub_Tissue}</span>"),
-               Source = glue::glue("<span style='color:#377EB8'>{Source}</span>"),
-               Age = glue::glue("<span style='color:#4DAF4A'>{Age}</span>"),
-               Perturbation = glue::glue("<span style='color:#984EA3'>{Perturbation}</span>")
+        mutate(Sub_Tissue = glue::glue("<span style='color:#000000FF'>{Sub_Tissue}</span>"),
+               Source = glue::glue("<span style='color:#1E46A2FF'>{Source}</span>"),
+               Age = glue::glue("<span style='color:#FB323BFF'>{Age}</span>"),
+               Perturbation = glue::glue("<span style='color:#85660D'>{Perturbation}</span>")
         ) %>% 
         mutate(Info = paste('SRA: ',
                             sample_accession,
@@ -540,14 +540,14 @@ shinyServer(function(input, output, session) {
                           color = Tissue, 
                           fill = Tissue)) +
         #geom_violin(alpha=0.5, scale = 'width') +
-        geom_boxplot(alpha=0.7, outlier.shape = NA, width = 0.6, fill = 'black', color = 'white') +
+        geom_boxplot(alpha=0.7, outlier.shape = NA, width = 0.6, fill = 'black') +
         cowplot::theme_cowplot(font_size = 15) + theme(axis.text.x = element_text(angle = 90, hjust=1, vjust = 0.2)) +
         ggtitle('Box Plot of Pan-Human Gene Expression') +
         ylab("log2(TPM + 1)") +
         scale_shape_manual(values=c(0:2,5,6,15:50)) +
         theme(strip.background = element_rect(fill = 'black'),
               strip.text = element_text(color = 'white'),
-              panel.background = element_rect(fill = 'gray80'),
+              panel.background = element_rect(fill = 'gray90'),
               plot.margin=grid::unit(c(0,0,0,0.1), "cm"),
               legend.position = "bottom",
               legend.direction = "horizontal",
@@ -564,10 +564,10 @@ shinyServer(function(input, output, session) {
           theme(
             axis.text.y = element_markdown(),
             axis.title.y = element_markdown()) +
-          labs(x = "<span style='color:#377EB8'>Source</span> | 
-       <span style='color:#E41A1C'>Sub Tissue</span> |
-       <span style='color:#4DAF4A'>Age</span> |
-       <span style='color:#984EA3'>Perturbation</span>")
+          labs(x = "<span style='color:#1E46A2FF'>Source</span> | 
+       <span style='color:#000000FF'>Sub Tissue</span> |
+       <span style='color:#FB323BFF'>Age</span> |
+       <span style='color:#85660D'>Perturbation</span>")
       } else {
         p <- p + 
           facet_grid(cols = vars(Tissue), rows = vars(ID), 
@@ -576,14 +576,14 @@ shinyServer(function(input, output, session) {
           theme(
             axis.text.x = element_markdown(),
             axis.title.x = element_markdown()) +
-          labs(x = "<span style='color:#377EB8'>Source</span> | 
-       <span style='color:#E41A1C'>Sub Tissue</span> |
-       <span style='color:#4DAF4A'>Age</span> |
-       <span style='color:#984EA3'>Perturbation</span>")
+          labs(x = "<span style='color:#1E46A2FF'>Source</span> | 
+       <span style='color:#000000FF'>Sub Tissue</span> |
+       <span style='color:#FB323BFF'>Age</span> |
+       <span style='color:#85660D'>Perturbation</span>")
       }
       
       if (input$points){
-        p <- p + geom_point_interactive(size=1, position = 'jitter', alpha=0.25, stroke = 3, aes(tooltip=htmlEscape(Info, TRUE), shape = Type)) 
+        p <- p + geom_point_interactive(size=0.4, position = 'jitter', alpha=0.15, stroke = 3, aes(tooltip=htmlEscape(Info, TRUE), shape = Type)) 
       }
       
     }

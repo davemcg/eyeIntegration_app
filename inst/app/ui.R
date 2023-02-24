@@ -8,6 +8,10 @@ library(visNetwork)
 library(colourpicker)
 library(ggiraph)
 library(shinythemes)
+library(plotly)
+# Data for PCA Visualization - created by the EiaD_build/scripts/pca_workup.Rmd script
+load('./www/2022/eye_pca_data.Rdata')
+load('./www/2022/eye_percentVar_data.Rdata')
 
 load('./www/2017/retina_colors.Rdata')
 load('./www/2017/rpe_colors.Rdata')
