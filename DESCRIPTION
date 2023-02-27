@@ -17,6 +17,7 @@ biocViews:
 Imports:
     shiny,
     shinyjs,
+    cowplot,
     ggplot2,
     dplyr,
     tidyr,
