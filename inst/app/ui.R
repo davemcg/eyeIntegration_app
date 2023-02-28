@@ -116,7 +116,7 @@ shinyUI(fluidPage(
                                                                "Fill in the Gene and Tissue values and click the (RE)Draw Plot! button. 
                                                                It may take a few seconds for the plot to appear."),
                                               conditionalPanel(condition = "input.scplot_type_gene == 'Box Plot'",
-                                                               girafeOutput('scboxPlot_gene', height = '1000px', width='100%')
+                                                               girafeOutput('scboxPlot_gene', height = '100%', width='100%')
                                               ),
                                        )
                                      )

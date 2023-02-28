@@ -31,12 +31,12 @@ library(ggtext)
 library(stringr)
 
 # pools for sqlite DBs ------------
-gene_pool_2022 <- dbPool(drv = SQLite(), dbname = "./www/2022/eyeIntegration_2022_human.sqlite", idleTimeout = 3600000)
+gene_pool_2022 <- dbPool(drv = SQLite(), dbname = "/Volumes/Thunder/eyeIntegration_app/inst/app/www/2022/eyeIntegration_2022_human.sqlite", idleTimeout = 3600000)
 gene_pool_2017 <- dbPool(drv = SQLite(), dbname = "./www/2017/eyeIntegration_human_2017_01.sqlite", idleTimeout = 3600000)
 gene_pool_2019 <- dbPool(drv = SQLite(), dbname = "./www/2019/EiaD_human_expression_2019_04.sqlite", idleTimeout = 3600000)
 DNTx_pool_2019 <- dbPool(drv = SQLite(), dbname = "./www/2019/EiaD_human_expression_2020_02.DNTx01.sqlite", idleTimeout = 3600000)
 SC_pool <- dbPool(drv = SQLite(), dbname = "./www/single_cell_retina_info_04.sqlite", idleTimeout = 3600000)
-scEiaD_pool <- dbPool(drv = SQLite(), dbname = "./www/2022/scEiaD.sqlite", idleTimeout = 3600000)
+scEiaD_pool <- dbPool(drv = SQLite(), dbname = "/Volumes/Thunder/eyeIntegration_app/inst/app/www/2022/scEiaD.sqlite", idleTimeout = 3600000)
 
 #source('./www/cowplot::theme_cowplot.R')
 gene_names_2022 <- gene_pool_2022 %>% tbl('gene_IDs') %>% pull(ID) %>% unique()
@@ -85,7 +85,7 @@ core_tight_2019$Sub_Tissue <- gsub('_',' - ',core_tight_2019$Sub_Tissue)
 core_tight_2022$sample_accession<-gsub('E-MTAB-','E.MTAB.',core_tight_2022$sample_accession)
 core_tight_2022$Sub_Tissue <- gsub('_',' - ',core_tight_2022$Sub_Tissue)
 
-metasc <- scEiaD_pool %>% tbl("scEiaD_CT_table") %>% select(CellType_predict) %>% as_tibble() %>% unique()
+metasc <- scEiaD_pool %>% tbl("scEiaD_CT_table_info") %>% select(CellType_predict) %>% as_tibble() %>% unique()
 CellType_predict_val <- setNames(c(pals::glasbey(n = 32), pals::kelly(n = scEiaD_pool %>% tbl('cell_types') %>% pull(1) %>% length() - 32)) %>% colorspace::lighten(0.3), metasc %>% pull(CellType_predict) %>% sort())
 CellType_predict_col <- scale_colour_manual(values = CellType_predict_val)
 CellType_predict_fill <- scale_fill_manual(values = CellType_predict_val)
@@ -116,19 +116,19 @@ shinyServer(function(input, output, session) {
     # gene / tx lists
     if (is.null(query[['scmaturity']])){
       updateSelectizeInput(session, 'scmaturity',
-                           choices = c("Early Development", "Maturing", "Mature", "Late Development"),
+                           choices = c("Early Dev.", "Maturing", "Mature", "Late Dev."),
                            options = list(placeholder = 'Type to search'),
                            server = TRUE)
     }
     if (is.null(query[['scGene']])){
       updateSelectizeInput(session, 'scGene',
-                           choices = scEiaD_pool %>% tbl("scEiaD_CT_table") %>% pull(Gene) %>% unique(),
+                           choices = scEiaD_pool %>% tbl("scEiaD_CT_table_info") %>% pull(Gene) %>% unique(),
                            options = list(placeholder = 'Type to search'),
                            server = TRUE)
     }
     if (is.null(query[['scplot_tissue_gene']])){
       updateSelectizeInput(session, 'scplot_tissue_gene',
-                           choices = scEiaD_pool %>% tbl("scEiaD_CT_table") %>% pull(CellType_predict) %>% unique(),
+                           choices = scEiaD_pool %>% tbl("scEiaD_CT_table_info") %>% pull(CellType_predict) %>% unique(),
                            options = list(placeholder = 'Type to search'),
                            server = TRUE)
     }
@@ -406,29 +406,29 @@ shinyServer(function(input, output, session) {
            "Please select two distinct PCA components and click the (RE)Draw PCA Plot! button. It may take a few seconds for the plot to appear.")
     )
     
-      p <- eye_pca_data %>%
-        #filter(Source != 'scRNA') %>%
-        as_tibble() %>%
-        ggplot(., aes(.data[[pcFirst]], .data[[pcSecond]])) +
-        geom_point(size=3, aes(color=Tissue, shape = Source,
-                               text = paste("Study: ", study_accession, "\n", "Sample: ", sample_accession, "\n",
-                                            "Tissue: ", Tissue, "\n", "Sub-Tissue: ", Sub_Tissue, "\n", "Source: ", 
-                                            Source, "\n", "Age: ", Age, "\n", "Count: ", 
-                                            Count, "\n", "Nearest Neighboring Tissues: ", Tissue2))) +
-        xlab(paste0(pcFirst, ": ",eye_percentVar_data[str_extract(pcFirst, '\\d+') %>% as.integer()],"% variance")) +
-        ylab(paste0(pcSecond, ": ",eye_percentVar_data[str_extract(pcSecond, '\\d+') %>% as.integer()],"% variance")) +
-        cowplot::theme_cowplot() +
-        ggtitle(label = "Ocular Sample PCA Visualization for the top 1000 protein coding genes in eyeIntegration") +
-        scale_color_manual(values = c(pals::glasbey(), pals::alphabet2(), pals::alphabet2()) %>% unname()) +
-        scale_fill_manual(values = c(pals::glasbey(), pals::alphabet2(), pals::alphabet2()) %>% unname()) +
-        scale_shape_manual(values = 0:10)
-      
-      ggplotly(p, tooltip = 'text')
-    })
+    p <- eye_pca_data %>%
+      #filter(Source != 'scRNA') %>%
+      as_tibble() %>%
+      ggplot(., aes(.data[[pcFirst]], .data[[pcSecond]])) +
+      geom_point(size=3, aes(color=Tissue, shape = Source,
+                             text = paste("Study: ", study_accession, "\n", "Sample: ", sample_accession, "\n",
+                                          "Tissue: ", Tissue, "\n", "Sub-Tissue: ", Sub_Tissue, "\n", "Source: ", 
+                                          Source, "\n", "Age: ", Age, "\n", "Count: ", 
+                                          Count, "\n", "Nearest Neighboring Tissues: ", Tissue2))) +
+      xlab(paste0(pcFirst, ": ",eye_percentVar_data[str_extract(pcFirst, '\\d+') %>% as.integer()],"% variance")) +
+      ylab(paste0(pcSecond, ": ",eye_percentVar_data[str_extract(pcSecond, '\\d+') %>% as.integer()],"% variance")) +
+      cowplot::theme_cowplot() +
+      ggtitle(label = "Ocular Sample PCA Visualization for the top 1000 protein coding genes in eyeIntegration") +
+      scale_color_manual(values = c(pals::glasbey(), pals::alphabet2(), pals::alphabet2()) %>% unname()) +
+      scale_fill_manual(values = c(pals::glasbey(), pals::alphabet2(), pals::alphabet2()) %>% unname()) +
+      scale_shape_manual(values = 0:10)
     
-    output$eye_pca_plot <- renderPlotly({
-      visualize_pca_function()
-    })
+    ggplotly(p, tooltip = 'text')
+  })
+  
+  output$eye_pca_plot <- renderPlotly({
+    visualize_pca_function()
+  })
   
   # Pan - Tissue Boxplot -------
   boxPlot_gene_func <- eventReactive(input$pan_button_gene, {
@@ -1039,33 +1039,44 @@ shinyServer(function(input, output, session) {
                             footer = NULL))
     }
     
-    query = paste0('select * from scEiaD_CT_table where Gene in ("',paste(gene, collapse='","'),'")')
+    query = paste0('select * from TPM_pseudoBulk where Gene in ("',paste(gene, collapse='","'),'") and CellType_predict in ("',paste(tissue, collapse='","'),'") ')
+    meta_query <- paste0('select * from scEiaD_CT_table_info where Gene in ("',paste(gene, collapse='","'),'") and CellType_predict in ("',paste(tissue, collapse='","'),'") ')
     p <- dbGetQuery(scEiaD_pool, query) %>% 
       as_tibble()
-    
-    p$Type <- p %>% select(contains('type')) %>% pull(1)
-    
-    if (!is.null(maturity)){
-      p <- p %>% filter(Stage %in% maturity)
-    }
-    
-    p <- p %>% 
-      filter(CellType_predict %in% tissue) %>% 
-      mutate(Info = paste('Study: ', 
-                          study_accession,
-                          sep ='')) %>% 
-      ggplot(data=.,aes(x=CellType_predict,y=`Meanlog2(Counts+1)`,colour=CellType_predict)) +
-      geom_boxplot(alpha=0.5, outlier.shape = NA) + 
-      geom_point_interactive(size=2, position = 'jitter', alpha=0.25, stroke = 3, aes(tooltip=htmlEscape(Info, TRUE), fill = CellType_predict)) + 
+    p_query <- dbGetQuery(scEiaD_pool, meta_query) %>% 
+      as_tibble()
+    joined <- p %>% 
+      left_join(p_query, by = c('Gene','CellType_predict', 'study_accession', 'Stage')) %>% 
+      dplyr::select(-organism)
+    joined[is.na(joined)] <- 0
+    plot <-     joined %>% 
+      filter(Stage %in% maturity) %>% 
+      mutate(Info = 
+               paste(
+                 paste('Study: ', 
+                       study_accession),
+                 paste("<br/>CellType: ",
+                       CellType_predict),
+                 paste('<br/>Cell % Detected: ',
+                       `% of Cells Detected`)
+                 
+               )) %>% 
+      ggplot(data=.,aes(x=CellType_predict,y=`Mean log2(Counts + 1)`, group = CellType_predict, 
+                        tooltip=(Info))) +
+      geom_boxplot(alpha=0.5, outlier.shape = NA, color = 'black') + 
+      geom_point_interactive(aes(colour=study_accession, 
+                                 size = log2((`% of Cells Detected`) + 1 )),
+                             position = 'jitter', alpha=0.25, stroke = 3) +
       xlab('') + 
-      facet_wrap(~Gene + Stage, ncol=col_num) +
-      cowplot::theme_cowplot(font_size = 15) + theme(axis.text.x = element_text(angle = 90, hjust=1, vjust = 0.2)) +
+      facet_wrap(~Gene, ncol=col_num) +
+      cowplot::theme_cowplot(font_size = 12) + theme(axis.text.x = element_text(angle = 90, hjust=1, vjust = 0.2)) +
       ggtitle('Box Plot of Single Cell Gene Expression') +
-      ylab("Mean log2(Counts+1)") +
+      ylab("log2(TPM+1)") +
       scale_shape_manual(values=c(0:2,5,6,15:50)) +
       theme(plot.margin=grid::unit(c(0,0,0,0.1), "cm")) +
-      CellType_predict_col
-    girafe(ggobj = p,width_svg = 12, 
+      coord_flip() +
+      theme( legend.position = "bottom")
+    girafe(ggobj = plot,width_svg = 12, 
            height_svg= max(10, (6 * (length(gene)/min(col_num,length(gene)))))) %>% 
       girafe_options(., opts_toolbar(position = "top") )
     
