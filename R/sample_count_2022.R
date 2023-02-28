@@ -10,7 +10,7 @@ library(pool)
 library(RSQLite)
 library(colorspace)
 
-#sample_count_2022 <- function(){
+sample_count_2022 <- function(){
   app_location <- '/Users/parikhpp/git/eyeIntegration_app_v2_pp/inst/app'
   gene_pool_2022 <- dbPool(drv = SQLite(), dbname = paste0(app_location, "/www/2022/eyeIntegration_2022_human.sqlite"))
   core_tight_2022 <- gene_pool_2022 %>% tbl('metadata') %>% as_tibble()
@@ -45,4 +45,4 @@ library(colorspace)
     tissue_col
     
   ggsave(filename = paste0(app_location, '/www/sample_count_2022.svg'),dpi = 'retina', height = 10, width=15)
-#}
+}
