@@ -99,7 +99,7 @@ shinyUI(fluidPage(
                                                            selected = 'Box Plot'),
                                               selectizeInput('scGene', strong('ID:'),
                                                              choices=NULL, multiple=TRUE),
-                                              selectizeInput('scmaturity', strong('Maturity Stage:'),
+                                              selectizeInput('scmaturity', strong('Stage:'),
                                                              choices=NULL, multiple=TRUE),
                                               selectizeInput('scplot_tissue_gene',strong('Cells:'),
                                                              choices=NULL,multiple=TRUE),

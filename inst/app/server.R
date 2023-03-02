@@ -34,12 +34,12 @@ library(stringr)
 base_dir <- "/Volumes/Thunder/eyeIntegration_app/inst/app/www/2022/"
 #base_dir <- "~/data/EiaD/data_temp/"
 # pools for sqlite DBs ------------
-gene_pool_2022 <- dbPool(drv = SQLite(), dbname = paste0(base_dir, "eyeIntegration_2022_human.sqlite"), idleTimeout = 3600000)
+gene_pool_2022 <- dbPool(drv = SQLite(), dbname = ("./www/2022/eyeIntegration_2022_human.sqlite"), idleTimeout = 3600000)
 gene_pool_2017 <- dbPool(drv = SQLite(), dbname = "./www/2017/eyeIntegration_human_2017_01.sqlite", idleTimeout = 3600000)
 gene_pool_2019 <- dbPool(drv = SQLite(), dbname = "./www/2019/EiaD_human_expression_2019_04.sqlite", idleTimeout = 3600000)
 DNTx_pool_2019 <- dbPool(drv = SQLite(), dbname = "./www/2019/EiaD_human_expression_2020_02.DNTx01.sqlite", idleTimeout = 3600000)
 SC_pool <- dbPool(drv = SQLite(), dbname = "./www/single_cell_retina_info_04.sqlite", idleTimeout = 3600000)
-scEiaD_pool <- dbPool(drv = SQLite(), dbname = paste0(base_dir, "scEiaD.sqlite"), idleTimeout = 3600000)
+scEiaD_pool <- dbPool(drv = SQLite(), dbname = ("./www/2022/scEiaD.sqlite"), idleTimeout = 3600000)
 
 #source('./www/cowplot::theme_cowplot.R')
 gene_names_2022 <- gene_pool_2022 %>% tbl('gene_IDs') %>% pull(ID) %>% unique()
@@ -119,8 +119,8 @@ shinyServer(function(input, output, session) {
     # gene / tx lists
     if (is.null(query[['scmaturity']])){
       updateSelectizeInput(session, 'scmaturity',
-                           choices = c("Early Dev.", "Maturing", "Mature", "Late Dev."),
-                           selected = c("Maturing","Mature"),
+                           choices = c("Development", "Mature"),
+                           selected = c("Mature"),
                            options = list(placeholder = 'Type to search'),
                            server = TRUE)
     }
@@ -1024,10 +1024,7 @@ shinyServer(function(input, output, session) {
     ))
   })
   
-  # single cell info page -----
-  # first set (see ui.R)
-  # table
-  
+  # scEiaD single cell info page -----
   scboxPlot_gene_func <- eventReactive(input$scpan_button_gene, {
     cat(file=stderr(), 'scboxPlot Gene call\n')
     db <- scEiaD_pool
@@ -1038,7 +1035,7 @@ shinyServer(function(input, output, session) {
     col_num <- input$scnum_gene
     if (length(db) < 1 || length(gene) < 1 || length(tissue) < 1){
       showModal(modalDialog(title = "Box Plot Warning",
-                            "Have you specified at least one gene or tissue?", 
+                            "Have you specified at least one gene or cell type?", 
                             easyClose = T,
                             footer = NULL))
     }
@@ -1066,11 +1063,12 @@ shinyServer(function(input, output, session) {
         missing[[i]] <- temp
         out <- bind_rows(all %>% filter(!is.na(Gene)),
                          bind_rows(missing))
-        all <- out
       }
-      data[[i]] <- all
+      data[[i]] <- out
     }
     plot <- bind_rows(data) %>% 
+      mutate(Stage = case_when(grepl("Mat", Stage) ~ "Mature",
+                               TRUE ~ "Development")) %>% 
       filter(Stage %in% maturity) %>% 
       left_join(., scEiaD_pool %>% tbl('ct_site') %>% collect(),  by =c("CellType_predict" = "CellType")) %>% 
       mutate(Site = case_when(is.na(Site) ~ Organ,
@@ -1103,16 +1101,16 @@ shinyServer(function(input, output, session) {
             legend.direction = "horizontal",
             legend.key.size= unit(0.2, "cm"),
             legend.spacing = unit(0.2, "cm"))
-    
+    ## plot orientation
     if (input$sc_rotation == 1){
       plot <- plot +
-        facet_grid(cols = vars(Gene), rows = vars(Site), space = 'free', scales = 'free') 
+        facet_grid(cols = vars(Gene), rows = vars(Stage, Site), space = 'free', scales = 'free') 
     } else {
       plot <- plot +
         coord_flip() +
-        facet_grid(rows = vars(Gene), cols = vars(Site), space = 'free', scales = 'free') 
+        facet_grid(rows = vars(Gene), cols = vars(Stage, Site), space = 'free', scales = 'free') 
     }
-    
+    ## whether to show interactive points
     if (input$sc_points){
       plot <- plot + 
         geom_point_interactive(aes(colour=study_accession,
@@ -1156,7 +1154,7 @@ shinyServer(function(input, output, session) {
       DT::formatRound(c('Mean Expression Count of Gene in Tissue'), digits=2)
     
   })
-  # heatmap for single cell ------------
+  # deprecated  heatmap for single cell ------------
   output$SC_gene_means_by_type_heatmap <- renderPlot({
     input$SC_density_pan_button
     isolate({
