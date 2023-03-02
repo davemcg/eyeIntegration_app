@@ -94,7 +94,21 @@ CellType_predict_fill <- scale_fill_manual(values = CellType_predict_val)
 tissues <- c(core_tight_2017$Tissue, core_tight_2019$Tissue, core_tight_2022$Tissue)%>% unique() %>% sort() 
 tissue_val <- setNames(c(pals::polychrome()[3:36],  pals::kelly()[c(3:7,10:21)])[1:length(tissues)], tissues %>% sort())
 
-
+# make 2022 heatmap tissue vals
+heatmap_data_2022 <- core_tight_2022 %>% select(Tissue, Sub_Tissue, Source, Perturbation, Age)
+heatmap_data_2022[is.na(heatmap_data_2022)] <- ""
+heatmap_data_2022 <- heatmap_data_2022 %>%
+  mutate(combined_tissue_name = paste0(heatmap_data_2022$Tissue, " | ", heatmap_data_2022$Sub_Tissue, " | ",
+                                       heatmap_data_2022$Source, " | ", heatmap_data_2022$Perturbation, " | ",
+                                       heatmap_data_2022$Age)) %>% filter(combined_tissue_name != "NA | NA | NA | NA | NA")
+tissues_heatmap_2022 <- heatmap_data_2022 %>% pull(combined_tissue_name) %>% unique() %>% sort()
+tissues_heatmap_2022 <- data.frame(combined_tissue_name = tissues_heatmap_2022,
+                                      Tissue = str_extract(tissues_heatmap_2022, "^[^|]*") %>% trimws())
+# Join the tissue vals colors to our heat map data
+tissues_heatmap_2022 <- tissues_heatmap_2022 %>% left_join(data.frame(Tissue = tissue_val %>% names(),
+                                                                         color = tissue_val), by = "Tissue") %>% select(combined_tissue_name, color)
+tissue_val_heatmap_2022 <- tissues_heatmap_2022$color
+names(tissue_val_heatmap_2022) <- tissues_heatmap_2022$combined_tissue_name
 
 # site begins! ---------
 shinyServer(function(input, output, session) {
@@ -147,6 +161,7 @@ shinyServer(function(input, output, session) {
                            selected = select_gene,
                            server = TRUE)
     }
+    
     if (is.null(query[['Tissue']])){
       # tissue choices
       if (grepl('2017', db)){tissues <- unique(sort(core_tight_2017$Sub_Tissue))}
@@ -614,13 +629,13 @@ shinyServer(function(input, output, session) {
                                                 options = list(pageLength = 10, scrollX = T, searchHighlight = TRUE, dom = 'frtBip', buttons = c('pageLength','copy', 'csv')))
   }, server=FALSE)
   
-  
   # Gene heatmap -------
   bulk_tissue_heatmap_func <- eventReactive(input$pan_button_gene, {
     #cat(file=stderr(), 'Gene heatmap call\n')
     db = input$Database
     gene <- input$ID
-    tissue <- input$plot_tissue_gene
+    tissue <- input$plot_tissue_gene 
+    
     if (length(db) < 1 || length(gene) < 2 || length(tissue) < 2){
       showModal(modalDialog(title = "Heatmap Warning",
                             "Have you specified at least two genes and two tissues?",
@@ -628,6 +643,7 @@ shinyServer(function(input, output, session) {
                             footer = NULL))
     }
     label_size = 0.2
+    
     if (db == 'Gene 2017') {
       pool <- 'gene_pool_2017'
       table <- 'mean_rank_decile_gene'
@@ -636,11 +652,6 @@ shinyServer(function(input, output, session) {
       pool <- 'gene_pool_2017'
       table <- 'mean_rank_decile_tx'
       meta <- 'core_tight_2017'
-      label_size = 0.8
-    } else if (db == 'Gene 2022'){
-      pool <- 'gene_pool_2022'
-      table <- 'mean_rank_decile_gene'
-      meta <- 'core_tight_2022'
       label_size = 0.8
     } else if (db == 'Gene 2019') {
       tissue <- trimws(tissue)
@@ -659,33 +670,80 @@ shinyServer(function(input, output, session) {
       meta <- 'core_tight_2019'
       table <- 'mean_rank_decile_tx'
       label_size = 0.8
+    } else if (db == 'Gene 2022'){
+      pool <- 'gene_pool_2022'
+      table <- 'mean_rank_decile_gene'
+      meta <- 'core_tight_2022'
+      label_size = 0.8
     }
     
-    id_matrix <- get(pool) %>%
-      tbl(table) %>%
-      filter(ID %in% gene, Sub_Tissue %in% tissue) %>%
-      data.frame() %>%
-      mutate(lsTPM = log2(meanlsTPM+1)) %>%
-      select(-meanlsTPM, -Rank, -Decile) %>%
-      spread(Sub_Tissue, lsTPM)
-    gene_IDs <- id_matrix %>% pull(ID)
-    id_matrix <- id_matrix %>% select(-ID) %>% as.matrix()
+    if (db == "Gene 2022") {
+      heatmap_data_2022 <- get(pool) %>%
+        tbl(table) %>%
+        filter(ID %in% gene, Tissue %in% tissue) %>%
+        data.frame()
+      heatmap_data_2022[is.na(heatmap_data_2022)] <- ""
+      
+      id_matrix <- heatmap_data_2022 %>% 
+        mutate(combined_tissue_name = paste0(heatmap_data_2022$Tissue, " | ", heatmap_data_2022$Sub_Tissue, " | ", 
+                                               heatmap_data_2022$Source, " | ", heatmap_data_2022$Perturbation, " | ", 
+                                               heatmap_data_2022$Age)) %>% 
+        mutate(lsTPM = log2(meanlsTPM+1)) %>%
+        select(-meanlsTPM, -Rank, -Decile, -Tissue, -Sub_Tissue, -Source, -Perturbation, -Age) %>%
+        spread(combined_tissue_name, lsTPM)
+      gene_IDs <- id_matrix %>% pull(ID)
+      id_matrix <- id_matrix %>% select(-ID) %>% as.matrix()
+    }
+    else {
+      id_matrix <- get(pool) %>%
+        tbl(table) %>%
+        filter(ID %in% gene, Sub_Tissue %in% tissue) %>%
+        data.frame() %>%
+        mutate(lsTPM = log2(meanlsTPM+1)) %>%
+        select(-meanlsTPM, -Rank, -Decile) %>%
+        spread(Sub_Tissue, lsTPM)
+      gene_IDs <- id_matrix %>% pull(ID)
+      id_matrix <- id_matrix %>% select(-ID) %>% as.matrix()
+    }
     
     row.names(id_matrix) <- gene_IDs
     text_col <- NA
     
-    ha = HeatmapAnnotation(Tissue = get(meta) %>%
-                             select(Tissue, Sub_Tissue) %>%
-                             unique() %>%
-                             mutate(Sub_Tissue = trimws(Sub_Tissue)) %>%
-                             right_join(colnames(id_matrix) %>%
-                                          trimws() %>%
+    if (grepl("2022", db)){
+      
+      heatmap_data_2022 <- get(pool) %>%
+        tbl(table) %>%
+        filter(ID %in% gene, Tissue %in% tissue) %>%
+        data.frame()
+      heatmap_data_2022[is.na(heatmap_data_2022)] <- ""
+    
+      ha = HeatmapAnnotation(Tissue = heatmap_data_2022 %>%
+                               mutate(combined_tissue_name = paste0(heatmap_data_2022$Tissue, " | ", heatmap_data_2022$Sub_Tissue, " | ", 
+                                             heatmap_data_2022$Source, " | ", heatmap_data_2022$Perturbation, " | ", 
+                                             heatmap_data_2022$Age)) %>%
+                               select(Tissue, combined_tissue_name) %>% 
+                               unique() %>%
+                               right_join(colnames(id_matrix) %>% 
                                           enframe(),
-                                        by = c('Sub_Tissue' = 'value')) %>%
-                             pull(Tissue),
-                           col = list(Tissue = tissue_val),
+                                        by = c('combined_tissue_name' = 'value')) %>%
+                             pull(combined_tissue_name),
+                           col = list(Tissue = tissue_val_heatmap_2022),
                            show_annotation_name = TRUE,
                            which = 'column')
+    } else {
+      ha = HeatmapAnnotation(Tissue = get(meta) %>%
+                               select(Tissue, Sub_Tissue) %>%
+                               unique() %>%
+                               mutate(Sub_Tissue = trimws(Sub_Tissue)) %>%
+                               right_join(colnames(id_matrix) %>%
+                                            trimws() %>%
+                                            enframe(),
+                                          by = c('Sub_Tissue' = 'value')) %>%
+                               pull(Tissue),
+                             col = list(Tissue = tissue_val),
+                             show_annotation_name = TRUE,
+                             which = 'column')
+    }
     
     breaks = c(0,5,10)
     show_row_names = TRUE
@@ -706,7 +764,7 @@ shinyServer(function(input, output, session) {
             show_row_names = show_row_names,
             name = 'log2(TPM+1)',
             #show_heatmap_legend = show_heatmap_legend,
-            column_names_max_height = unit(8, "cm"),
+            column_names_max_height = unit(12, "cm"),
             row_names_max_width = unit(8, "cm"),
             clustering_distance_rows = "pearson",
             clustering_distance_columns = "euclidean")
