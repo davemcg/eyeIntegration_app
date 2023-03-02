@@ -31,8 +31,8 @@ library(ggtext)
 library(stringr)
 
 # base directory for files not held in ./www
-# base_dir <- "/Volumes/Thunder/eyeIntegration_app/inst/app/www/2022/"
-base_dir <- "~/data/EiaD/data_temp/"
+base_dir <- "/Volumes/Thunder/eyeIntegration_app/inst/app/www/2022/"
+#base_dir <- "~/data/EiaD/data_temp/"
 # pools for sqlite DBs ------------
 gene_pool_2022 <- dbPool(drv = SQLite(), dbname = paste0(base_dir, "eyeIntegration_2022_human.sqlite"), idleTimeout = 3600000)
 gene_pool_2017 <- dbPool(drv = SQLite(), dbname = "./www/2017/eyeIntegration_human_2017_01.sqlite", idleTimeout = 3600000)
@@ -88,7 +88,7 @@ core_tight_2019$Sub_Tissue <- gsub('_',' - ',core_tight_2019$Sub_Tissue)
 core_tight_2022$sample_accession<-gsub('E-MTAB-','E.MTAB.',core_tight_2022$sample_accession)
 core_tight_2022$Sub_Tissue <- gsub('_',' - ',core_tight_2022$Sub_Tissue)
 
-metasc <- scEiaD_pool %>% tbl("scEiaD_CT_table_info") %>% select(CellType_predict) %>% as_tibble() %>% unique()
+metasc <- scEiaD_pool %>% tbl("scEiaD_CT_table_info") %>% select(CellType_predict) %>% as_tibble() %>% unique() %>% arrange(CellType_predict)
 CellType_predict_val <- setNames(c(pals::glasbey(n = 32), pals::kelly(n = scEiaD_pool %>% tbl('cell_types') %>% pull(1) %>% length() - 32)) %>% colorspace::lighten(0.3), metasc %>% pull(CellType_predict) %>% sort())
 CellType_predict_col <- scale_colour_manual(values = CellType_predict_val)
 CellType_predict_fill <- scale_fill_manual(values = CellType_predict_val)
@@ -120,6 +120,7 @@ shinyServer(function(input, output, session) {
     if (is.null(query[['scmaturity']])){
       updateSelectizeInput(session, 'scmaturity',
                            choices = c("Early Dev.", "Maturing", "Mature", "Late Dev."),
+                           selected = c("Maturing","Mature"),
                            options = list(placeholder = 'Type to search'),
                            server = TRUE)
     }
@@ -131,7 +132,7 @@ shinyServer(function(input, output, session) {
     }
     if (is.null(query[['scplot_tissue_gene']])){
       updateSelectizeInput(session, 'scplot_tissue_gene',
-                           choices = scEiaD_pool %>% tbl("scEiaD_CT_table_info") %>% pull(CellType_predict) %>% unique(),
+                           choices = scEiaD_pool %>% tbl("scEiaD_CT_table_info") %>% pull(CellType_predict) %>% unique() %>% sort(),
                            options = list(placeholder = 'Type to search'),
                            server = TRUE)
     }
@@ -1041,19 +1042,40 @@ shinyServer(function(input, output, session) {
                             easyClose = T,
                             footer = NULL))
     }
-    
-    query = paste0('select * from TPM_pseudoBulk where Gene in ("',paste(gene, collapse='","'),'") and CellType_predict in ("',paste(tissue, collapse='","'),'") ')
+    # build queries  
+    query = paste0('select * from pseudoBulk where Gene in ("',paste(gene, collapse='","'),'") and CellType_predict in ("',paste(tissue, collapse='","'),'") ')
     meta_query <- paste0('select * from scEiaD_CT_table_info where Gene in ("',paste(gene, collapse='","'),'") and CellType_predict in ("',paste(tissue, collapse='","'),'") ')
-    p <- dbGetQuery(scEiaD_pool, query) %>% 
-      as_tibble()
-    p_query <- dbGetQuery(scEiaD_pool, meta_query) %>% 
-      as_tibble()
-    joined <- p %>% 
-      left_join(p_query, by = c('Gene','CellType_predict', 'study_accession', 'Stage')) %>% 
-      dplyr::select(-organism)
-    joined[is.na(joined)] <- 0
-    plot <-     joined %>% 
+    meta_cell_counts <- paste0('select * from scEiaD_meta_counts where CellType_predict in ("',paste(tissue, collapse='","'),'") ')
+    # get values
+    p <- dbGetQuery(scEiaD_pool, query) %>% as_tibble()
+    p_query <- dbGetQuery(scEiaD_pool, meta_query) %>% as_tibble()
+    counts_query <- dbGetQuery(scEiaD_pool, meta_cell_counts) %>% as_tibble()
+    # run join across each gene individually so as to backfill in 0 for missing sets
+    data <- list()
+    for (i in gene){
+      counts_join <- p %>% 
+        left_join(p_query, by = c('Gene','CellType_predict', 'study_accession', 'Stage')) %>% 
+        filter(Gene == i)
+      #joined[is.na(joined)] <- 0
+      all <- counts_query %>% left_join(counts_join, by = c('study_accession','Organ','CellType_predict','Stage'))
+      # fill in missing genes with 0 across numeric values
+      if (nrow(all %>% filter(is.na(Gene)) > 0)){
+        missing <- list()
+        temp <- all %>% filter(is.na(Gene)) %>% mutate(Gene = i, `Total Cells` = Count) %>% select(-Count)
+        temp[is.na(temp)] <- 0
+        missing[[i]] <- temp
+        out <- bind_rows(all %>% filter(!is.na(Gene)),
+                         bind_rows(missing))
+        all <- out
+      }
+      data[[i]] <- all
+    }
+    plot <- bind_rows(data) %>% 
       filter(Stage %in% maturity) %>% 
+      left_join(., scEiaD_pool %>% tbl('ct_site') %>% collect(),  by =c("CellType_predict" = "CellType")) %>% 
+      mutate(Site = case_when(is.na(Site) ~ Organ,
+                              TRUE ~ Site),
+             Site = factor(Site, levels = c("Back Eye", "Front Eye", "Eye", "Body"))) %>% 
       mutate(Info = 
                paste(
                  paste('Study: ', 
@@ -1061,24 +1083,42 @@ shinyServer(function(input, output, session) {
                  paste("<br/>CellType: ",
                        CellType_predict),
                  paste('<br/>Cell % Detected: ',
-                       `% of Cells Detected`)
-                 
+                       `% of Cells Detected`),
+                 paste('<br/>Associated Tissue(s): ',
+                       Tissue)
                )) %>% 
-      ggplot(data=.,aes(x=CellType_predict,y=`Mean log2(Counts + 1)`, group = CellType_predict, 
+      ggplot(data=.,aes(y=CellType_predict,x=log2(zCount+1), group = CellType_predict, 
                         tooltip=(Info))) +
       geom_boxplot(alpha=0.5, outlier.shape = NA, color = 'black') + 
-      geom_point_interactive(aes(colour=study_accession, 
-                                 size = log2((`% of Cells Detected`) + 1 )),
-                             position = 'jitter', alpha=0.25, stroke = 3) +
-      xlab('') + 
-      facet_wrap(~Gene, ncol=col_num) +
+      ylab('') + 
+      facet_grid(cols = vars(Gene), rows = vars(Organ), space = 'free', scales = 'free') +
       cowplot::theme_cowplot(font_size = 12) + theme(axis.text.x = element_text(angle = 90, hjust=1, vjust = 0.2)) +
       ggtitle('Box Plot of Single Cell Gene Expression') +
-      ylab("log2(TPM+1)") +
       scale_shape_manual(values=c(0:2,5,6,15:50)) +
-      theme(plot.margin=grid::unit(c(0,0,0,0.1), "cm")) +
-      coord_flip() +
-      theme( legend.position = "bottom")
+      theme(strip.background = element_rect(fill = 'black'),
+            strip.text = element_text(color = 'white'),
+            panel.background = element_rect(fill = 'gray90'),
+            plot.margin=grid::unit(c(0,0,0,0.1), "cm"),
+            legend.position = "bottom",
+            legend.direction = "horizontal",
+            legend.key.size= unit(0.2, "cm"),
+            legend.spacing = unit(0.2, "cm"))
+    
+    if (input$sc_rotation == 1){
+      plot <- plot +
+        facet_grid(cols = vars(Gene), rows = vars(Site), space = 'free', scales = 'free') 
+    } else {
+      plot <- plot +
+        coord_flip() +
+        facet_grid(rows = vars(Gene), cols = vars(Site), space = 'free', scales = 'free') 
+    }
+    
+    if (input$sc_points){
+      plot <- plot + 
+        geom_point_interactive(aes(colour=study_accession,
+                                   size = log2((`% of Cells Detected`) + 1 )),
+                               position = 'jitter', alpha=0.25, stroke = 3)
+    }
     girafe(ggobj = plot,width_svg = 12, 
            height_svg= max(10, (6 * (length(gene)/min(col_num,length(gene)))))) %>% 
       girafe_options(., opts_toolbar(position = "top") )
