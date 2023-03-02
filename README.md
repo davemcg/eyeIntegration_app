@@ -5,6 +5,9 @@
 # Web app
 [https://eyeIntegration.nei.nih.gov](https://eyeIntegration.nei.nih.gov)
 
+# scEiaD based sqlite file:
+https://hpc.nih.gov/~mcgaugheyd/eyeIntegration/scEiaD.2023_03_02.sqlite.gz
+
 # Files for use in PCA Visualization can be found here:
 
 https://hpc.nih.gov/~parikhpp/eyeIntegration_app_v2/eye_pca_data.RData.gz
