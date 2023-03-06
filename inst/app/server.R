@@ -55,6 +55,7 @@ core_tight_2019 <- gene_pool_2019 %>% tbl('metadata') %>% as_tibble()
 
 # Data for PCA Visualization - created by the EiaD_build/scripts/pca_workup.Rmd script
 load('./www/2022/eye_pca_data.Rdata')
+load('./www/2022/eye_pca_data_with_GTEx.Rdata')
 load('./www/2022/eye_percentVar_data.Rdata')
 
 load('./www/2017/retina_module_network_lists.Rdata') # NOTE THESE ARE PRECOMPUTED htmlwidgets 
@@ -415,17 +416,23 @@ shinyServer(function(input, output, session) {
   })
   
   # Pan - Eye PCA -------
-  
   visualize_pca_function <- eventReactive(input$pca_button, {
     pcFirst <- input$pca_component_one
     pcSecond <- input$pca_component_two
+    pca_visualization <- input$pca_visualization
+    
+    if (pca_visualization == 'Eye PCA Plot with GTEx Data') {
+      pca_database <- eye_pca_data_with_GTEx
+    } else {
+      pca_database <- eye_pca_data
+    }
     
     validate(
       need(input$pca_component_one != input$pca_component_two, 
            "Please select two distinct PCA components and click the (RE)Draw PCA Plot! button. It may take a few seconds for the plot to appear.")
     )
     
-    p <- eye_pca_data %>%
+    p <- pca_database %>%
       #filter(Source != 'scRNA') %>%
       as_tibble() %>%
       ggplot(., aes(.data[[pcFirst]], .data[[pcSecond]])) +
@@ -437,7 +444,8 @@ shinyServer(function(input, output, session) {
       xlab(paste0(pcFirst, ": ",eye_percentVar_data[str_extract(pcFirst, '\\d+') %>% as.integer()],"% variance")) +
       ylab(paste0(pcSecond, ": ",eye_percentVar_data[str_extract(pcSecond, '\\d+') %>% as.integer()],"% variance")) +
       cowplot::theme_cowplot() +
-      ggtitle(label = "Ocular Sample PCA Visualization for the top 1000 protein coding genes in eyeIntegration") +
+      {if(pca_visualization == 'Eye PCA Plot')ggtitle(label = "Ocular Sample PCA Visualization for the top 1000 protein coding genes in eyeIntegration")} +
+      {if(pca_visualization == 'Eye PCA Plot with GTEx Data')ggtitle(label = "Ocular and GTEx Sample PCA Visualization for the top 1000 protein coding genes in eyeIntegration")} +
       scale_color_manual(values = c(pals::glasbey(), pals::alphabet2(), pals::alphabet2()) %>% unname()) +
       scale_fill_manual(values = c(pals::glasbey(), pals::alphabet2(), pals::alphabet2()) %>% unname()) +
       scale_shape_manual(values = 0:10)
