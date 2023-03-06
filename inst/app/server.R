@@ -34,12 +34,12 @@ library(stringr)
 base_dir <- "/Volumes/Thunder/eyeIntegration_app/inst/app/www/2022/"
 #base_dir <- "~/data/EiaD/data_temp/"
 # pools for sqlite DBs ------------
-gene_pool_2022 <- dbPool(drv = SQLite(), dbname = ("./www/2022/eyeIntegration_2022_human.sqlite"), idleTimeout = 3600000)
+gene_pool_2022 <- dbPool(drv = SQLite(), dbname = ("/Volumes/Thunder/eyeIntegration_app/inst/app/www/2022/eyeIntegration_2022_human.sqlite"), idleTimeout = 3600000)
 gene_pool_2017 <- dbPool(drv = SQLite(), dbname = "./www/2017/eyeIntegration_human_2017_01.sqlite", idleTimeout = 3600000)
 gene_pool_2019 <- dbPool(drv = SQLite(), dbname = "./www/2019/EiaD_human_expression_2019_04.sqlite", idleTimeout = 3600000)
 DNTx_pool_2019 <- dbPool(drv = SQLite(), dbname = "./www/2019/EiaD_human_expression_2020_02.DNTx01.sqlite", idleTimeout = 3600000)
 SC_pool <- dbPool(drv = SQLite(), dbname = "./www/single_cell_retina_info_04.sqlite", idleTimeout = 3600000)
-scEiaD_pool <- dbPool(drv = SQLite(), dbname = ("./www/2022/scEiaD.2023_03_02.sqlite"), idleTimeout = 3600000)
+scEiaD_pool <- dbPool(drv = SQLite(), dbname = ("/Volumes/Thunder/eyeIntegration_app/inst/app/www/2022/scEiaD.2023_03_02.sqlite"), idleTimeout = 3600000)
 
 #source('./www/cowplot::theme_cowplot.R')
 gene_names_2022 <- gene_pool_2022 %>% tbl('gene_IDs') %>% pull(ID) %>% unique()
@@ -1090,7 +1090,6 @@ shinyServer(function(input, output, session) {
     maturity <- input$scmaturity
     gene <- input$scGene
     tissue <- input$scplot_tissue_gene
-    col_num <- input$scnum_gene
     if (length(db) < 1 || length(gene) < 1 || length(tissue) < 1){
       showModal(modalDialog(title = "Box Plot Warning",
                             "Have you specified at least one gene or cell type?", 
@@ -1121,10 +1120,14 @@ shinyServer(function(input, output, session) {
         missing[[i]] <- temp
         out <- bind_rows(all %>% filter(!is.na(Gene)),
                          bind_rows(missing))
+      } else {
+        out <- all
       }
       data[[i]] <- out
     }
-    plot <- bind_rows(data) %>% 
+    plot_data <- bind_rows(data)
+    plot_data[is.na(plot_data)] <- 0
+    plot <- plot_data %>% 
       mutate(Stage = case_when(grepl("Mat", Stage) ~ "Mature",
                                TRUE ~ "Development")) %>% 
       filter(Stage %in% maturity) %>% 
@@ -1176,7 +1179,7 @@ shinyServer(function(input, output, session) {
                                position = 'jitter', alpha=0.25, stroke = 3)
     }
     girafe(ggobj = plot,width_svg = 12, 
-           height_svg= max(10, (6 * (length(gene)/min(col_num,length(gene)))))) %>% 
+           height_svg= max(10, (6 * (length(gene)/(length(gene)))))) %>% 
       girafe_options(., opts_toolbar(position = "top") )
     
   })
