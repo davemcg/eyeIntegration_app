@@ -11,6 +11,7 @@ https://hpc.nih.gov/~mcgaugheyd/eyeIntegration/scEiaD.2023_03_02.sqlite.gz
 # Files for use in PCA Visualization can be found here:
 
 https://hpc.nih.gov/~parikhpp/eyeIntegration_app_v2/eye_pca_data.RData.gz
+https://hpc.nih.gov/~parikhpp/eyeIntegration_app_v2/eye_pca_data_with_GTEx.RData.gz
 https://hpc.nih.gov/~parikhpp/eyeIntegration_app_v2/eye_percentVar_data.RData.gz
 
 # All below is defunct right now
