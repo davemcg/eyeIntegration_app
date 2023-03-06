@@ -11,6 +11,7 @@ library(shinythemes)
 library(plotly)
 # Data for PCA Visualization - created by the EiaD_build/scripts/pca_workup.Rmd script
 load('./www/2022/eye_pca_data.Rdata')
+load('./www/2022/eye_pca_data_with_GTEx.Rdata')
 load('./www/2022/eye_percentVar_data.Rdata')
 
 load('./www/2017/retina_colors.Rdata')
@@ -133,9 +134,9 @@ shinyUI(fluidPage(
                                    fluidPage(
                                      fluidRow(
                                        column(2,
-                                              radioButtons('pca_data_format',strong('Visualization:'),
-                                                           choices = c('PCA Plot'),
-                                                           selected = 'PCA Plot'),
+                                              radioButtons('pca_visualization',strong('Visualization:'),
+                                                           choices = c('Eye PCA Plot', 'Eye PCA Plot with GTEx Data'),
+                                                           selected = 'Eye PCA Plot'),
                                               selectizeInput('pca_component_one', strong('First PCA Component:'),
                                                              choices = c(names(eye_pca_data) %>% head(10)), 
                                                              multiple = FALSE, selected = "PC1"),
@@ -149,7 +150,7 @@ shinyUI(fluidPage(
                                               conditionalPanel(condition = "input.pca_button == 0", 
                                                                "Select a first and second PCA component then click the (RE)Draw PCA Plot! button. 
                                                                It may take a few seconds for the plot to appear."),
-                                              conditionalPanel(condition = "input.pca_data_format == 'PCA Plot'",
+                                              conditionalPanel(condition = "input.pca_visualization != 0",
                                                                plotlyOutput("eye_pca_plot", height = "1080", width = "100%"),
                                               ),
                                        ),
