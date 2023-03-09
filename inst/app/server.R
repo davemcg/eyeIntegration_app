@@ -34,12 +34,12 @@ library(stringr)
 base_dir <- "/Volumes/Thunder/eyeIntegration_app/inst/app/www/2022/"
 #base_dir <- "~/data/EiaD/data_temp/"
 # pools for sqlite DBs ------------
-gene_pool_2022 <- dbPool(drv = SQLite(), dbname = ("/Volumes/Thunder/eyeIntegration_app/inst/app/www/2022/eyeIntegration_2022_human.sqlite"), idleTimeout = 3600000)
+gene_pool_2022 <- dbPool(drv = SQLite(), dbname = ("./www/2022/eyeIntegration_2022_human.sqlite"), idleTimeout = 3600000)
 gene_pool_2017 <- dbPool(drv = SQLite(), dbname = "./www/2017/eyeIntegration_human_2017_01.sqlite", idleTimeout = 3600000)
 gene_pool_2019 <- dbPool(drv = SQLite(), dbname = "./www/2019/EiaD_human_expression_2019_04.sqlite", idleTimeout = 3600000)
 DNTx_pool_2019 <- dbPool(drv = SQLite(), dbname = "./www/2019/EiaD_human_expression_2020_02.DNTx01.sqlite", idleTimeout = 3600000)
 SC_pool <- dbPool(drv = SQLite(), dbname = "./www/single_cell_retina_info_04.sqlite", idleTimeout = 3600000)
-scEiaD_pool <- dbPool(drv = SQLite(), dbname = ("/Volumes/Thunder/eyeIntegration_app/inst/app/www/2022/scEiaD.2023_03_02.sqlite"), idleTimeout = 3600000)
+scEiaD_pool <- dbPool(drv = SQLite(), dbname = ("./www/2022/scEiaD.2023_03_02.sqlite"), idleTimeout = 3600000)
 
 #source('./www/cowplot::theme_cowplot.R')
 gene_names_2022 <- gene_pool_2022 %>% tbl('gene_IDs') %>% pull(ID) %>% unique()
@@ -441,8 +441,8 @@ shinyServer(function(input, output, session) {
                                           "Tissue: ", Tissue, "\n", "Sub-Tissue: ", Sub_Tissue, "\n", "Source: ", 
                                           Source, "\n", "Age: ", Age, "\n", "Count: ", 
                                           Count, "\n", "Nearest Neighboring Tissues: ", Tissue2))) +
-      xlab(paste0(pcFirst, ": ",eye_percentVar_data[str_extract(pcFirst, '\\d+') %>% as.integer()],"% variance")) +
-      ylab(paste0(pcSecond, ": ",eye_percentVar_data[str_extract(pcSecond, '\\d+') %>% as.integer()],"% variance")) +
+      xlab(paste0(pcFirst, ": ",percentVar[str_extract(pcFirst, '\\d+') %>% as.integer()],"% variance")) +
+      ylab(paste0(pcSecond, ": ",percentVar[str_extract(pcSecond, '\\d+') %>% as.integer()],"% variance")) +
       cowplot::theme_cowplot() +
       {if(pca_visualization == 'Eye PCA Plot')ggtitle(label = "Ocular Sample PCA Visualization for the top 1000 protein coding genes in eyeIntegration")} +
       {if(pca_visualization == 'Eye PCA Plot with GTEx Data')ggtitle(label = "Ocular and GTEx Sample PCA Visualization for the top 1000 protein coding genes in eyeIntegration")} +
