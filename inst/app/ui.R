@@ -201,30 +201,6 @@ shinyUI(fluidPage(
                                                              multiple = TRUE)),
                                        column(10, fluidRow(div(DT::dataTableOutput('table'), style='font-size:75%'))
                                        )))),
-                          tabPanel('Mouse Retina Single Cell RNA-seq Table',
-                                   fluidPage(
-                                     fluidRow(
-                                       column(2,
-                                              selectInput('SC_datatable_dataset',
-                                                          strong('Dataset:'),
-                                                          choices = c('Clark et al.', 'Macosko et al.')),
-                                              selectizeInput('sc_datatable_tissue',
-                                                             strong('Cell Type:'),
-                                                             choices = NULL))),
-                                     column(10,
-                                            fluidRow(radioButtons('single_cell_stat_type__datatable',strong('Summary Statistic Representation:'),
-                                                                  choices = c('Mean Gene Expression (across all cells, split by cell type)',
-                                                                              'Percentage Cells Expressing Gene (across all cells, split by cell type)',
-                                                                              'Percentage of Cell Types (across only cells expressing the gene, split by cell type)'),
-                                                                  selected = 'Mean Gene Expression (across all cells, split by cell type)')),
-                                            fluidRow(conditionalPanel(condition = "input.single_cell_stat_type__datatable == 'Mean Gene Expression (across all cells, split by cell type)'",
-                                                                      div(DT::dataTableOutput('SCtable_1'), style='font-size:75%'))),
-                                            fluidRow(conditionalPanel(condition = "input.single_cell_stat_type__datatable == 'Percentage Cells Expressing Gene (across all cells, split by cell type)'",
-                                                                      div(DT::dataTableOutput('SCtable_2'), style='font-size:75%'))),
-                                            fluidRow(conditionalPanel(condition = "input.single_cell_stat_type__datatable == 'Percentage of Cell Types (across only cells expressing the gene, split by cell type)'",
-                                                                      div(DT::dataTableOutput('SCtable_3'), style='font-size:75%')))
-                                            
-                                     ))),
                           # Data Download ---------------
                           tabPanel('Data Download',
                                    fluidPage(
@@ -516,6 +492,31 @@ shinyUI(fluidPage(
                                      )
                                    )
                           ),
+                          ## Mouse Single Cell Retina RNA-seq Table ---------
+                          tabPanel('Mouse Retina Single Cell RNA-seq Table',
+                                   fluidPage(
+                                     fluidRow(
+                                       column(2,
+                                              selectInput('SC_datatable_dataset',
+                                                          strong('Dataset:'),
+                                                          choices = c('Clark et al.', 'Macosko et al.')),
+                                              selectizeInput('sc_datatable_tissue',
+                                                             strong('Cell Type:'),
+                                                             choices = NULL))),
+                                     column(10,
+                                            fluidRow(radioButtons('single_cell_stat_type__datatable',strong('Summary Statistic Representation:'),
+                                                                  choices = c('Mean Gene Expression (across all cells, split by cell type)',
+                                                                              'Percentage Cells Expressing Gene (across all cells, split by cell type)',
+                                                                              'Percentage of Cell Types (across only cells expressing the gene, split by cell type)'),
+                                                                  selected = 'Mean Gene Expression (across all cells, split by cell type)')),
+                                            fluidRow(conditionalPanel(condition = "input.single_cell_stat_type__datatable == 'Mean Gene Expression (across all cells, split by cell type)'",
+                                                                      div(DT::dataTableOutput('SCtable_1'), style='font-size:75%'))),
+                                            fluidRow(conditionalPanel(condition = "input.single_cell_stat_type__datatable == 'Percentage Cells Expressing Gene (across all cells, split by cell type)'",
+                                                                      div(DT::dataTableOutput('SCtable_2'), style='font-size:75%'))),
+                                            fluidRow(conditionalPanel(condition = "input.single_cell_stat_type__datatable == 'Percentage of Cell Types (across only cells expressing the gene, split by cell type)'",
+                                                                      div(DT::dataTableOutput('SCtable_3'), style='font-size:75%')))
+                                            
+                                     ))),
                           ## 2D Clustering ---------
                           tabPanel('2D Clustering: Bulk RNA-Seq by Tissue',
                                    fluidPage(
