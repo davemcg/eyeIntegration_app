@@ -332,12 +332,12 @@ shinyServer(function(input, output, session) {
       if (grepl('Gene', table_db)){
         updateSelectizeInput(session, 'table_gene',
                              choices = gene_names_2022,
-                             selected= 'TYRP1',
+                             selected= 'TYRP1 (ENSG00000107165.12)',
                              server = TRUE)
       } else {
         updateSelectizeInput(session, 'table_gene',
                              choices = geneTX_names_2022,
-                             selected= 'TYRP1 (ENST00000381136.2)',
+                             selected= 'TYRP1-201 (ENST00000381136.2)',
                              server = TRUE)
       }
     }
@@ -1773,6 +1773,9 @@ shinyServer(function(input, output, session) {
       } else if (db == 'DNTx v01'){
         table <- dbGetQuery(DNTx_pool_2019,  paste0('select * from lsTPM_tx where ID in ("',paste(input$table_gene, collapse='","'),'")') ) %>%
           left_join(.,core_tight_2019)
+      } else if (db == 'Gene 2022'){
+        table <- dbGetQuery(gene_pool_2022,  paste0('select * from lsTPM_gene where ID in ("',paste(input$table_gene, collapse='","'),'")') ) %>%
+          left_join(.,core_tight_2022)
       }
       table %>% filter(Tissue == local(input$table_tissue)) %>%
         dplyr::select(one_of(c(core_cols, input$table_columns))) %>%
