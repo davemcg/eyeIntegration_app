@@ -1372,7 +1372,7 @@ shinyServer(function(input, output, session) {
         geom_point(alpha=0.1, size=1, shape = 21, aes(fill = `Cell Type`, colour = `Cell Type`), stroke = 0) +
         xlab('tSNE 1') +
         ylab('tSNE 2') +
-        guides(colour = FALSE) +
+        guides(colour = "none") +
         guides(fill = guide_legend(override.aes = list(alpha = 1))) +
         cowplot::theme_cowplot(font_size=8) +
         guides(fill=guide_legend(nrow = 4,byrow=TRUE)) + interactive
@@ -1386,7 +1386,7 @@ shinyServer(function(input, output, session) {
         facet_wrap(~age) +
         xlab('UMAP 1') +
         ylab('UMAP 2') +
-        guides(colour = FALSE) +
+        guides(colour = "none") +
         guides(fill = guide_legend(override.aes = list(alpha = 1))) +
         cowplot::theme_cowplot(font_size=8) +
         guides(fill=guide_legend(nrow = 4,byrow=TRUE)) + interactive
