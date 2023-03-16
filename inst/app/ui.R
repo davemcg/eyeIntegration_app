@@ -444,7 +444,7 @@ shinyUI(fluidPage(
                                      fluidRow(strong('Heatmap of developing retina. Rows are genes, columns are age (in days) of retina or organoid.')),
                                      fluidRow(br()),
                                      fluidRow(selectizeInput('temporal_retina_heatmap_table', strong('Table:'),
-                                                             choices = c('Gene 2019','Transcript 2019', 'Gene 2022'))),
+                                                             choices = c('Gene 2019','Transcript 2019'))),
                                      fluidRow(selectizeInput('temporal_retina_heatmap_ID', strong('ID:'),
                                                              choices = NULL, multiple = T)),
                                      fluidRow(radioButtons('temporal_retina_heatmap_viz', strong('Type:'),

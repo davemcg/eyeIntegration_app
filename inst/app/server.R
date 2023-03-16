@@ -923,8 +923,6 @@ shinyServer(function(input, output, session) {
     
     if (table == 'Gene 2019') {
       pool <- 'gene_pool_2019'
-    } else {
-      pool <- 'gene_pool_2022'
     }
     
     if (table == 'Transcript 2019') {
