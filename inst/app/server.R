@@ -1335,6 +1335,7 @@ shinyServer(function(input, output, session) {
       table_name_tsne <- paste(SC_dataset, 'tsne_coords', sep='__')
       table_name_gc <- paste(SC_dataset, 'SC_gene_counts', sep='__')
     })
+    
     tsne_coords <- dbGetQuery(SC_pool, paste('SELECT * FROM ', table_name_tsne)) %>%
       filter(!grepl('Red|Doub', `Cell Type`)) # remove Red Blood Cells and Doublets
     # identify cells with gene expression count above min_single_cell_gene_count
@@ -1373,8 +1374,9 @@ shinyServer(function(input, output, session) {
         guides(colour = "none") +
         guides(fill = guide_legend(override.aes = list(alpha = 1))) +
         cowplot::theme_cowplot(font_size=8) +
-        guides(fill=guide_legend(nrow = 4,byrow=TRUE)) + interactive
-      girafe(code = print(p)) %>% girafe_options(., opts_toolbar(position = "top") )
+        guides(fill=guide_legend(nrow = 4,byrow=TRUE)) +
+        theme(legend.position="bottom") + interactive
+      girafe(code = print(p)) %>% girafe_options(., opts_toolbar(position = "bottomleft") )
       
     } else {
       p <- ggplot(tsne_coords %>%
@@ -1387,8 +1389,9 @@ shinyServer(function(input, output, session) {
         guides(colour = "none") +
         guides(fill = guide_legend(override.aes = list(alpha = 1))) +
         cowplot::theme_cowplot(font_size=8) +
-        guides(fill=guide_legend(nrow = 4,byrow=TRUE)) + interactive
-      girafe(code = print(p)) %>% girafe_options(., opts_toolbar(position = "top") )
+        guides(fill=guide_legend(nrow = 4,byrow=TRUE)) +
+        theme(legend.position="bottom") + interactive
+      girafe(code = print(p)) %>% girafe_options(., opts_toolbar(position = "bottomleft") )
     }
   })
   
