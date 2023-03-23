@@ -446,8 +446,8 @@ shinyServer(function(input, output, session) {
       cowplot::theme_cowplot() +
       {if(pca_visualization == 'Eye PCA Plot')ggtitle(label = "Ocular Sample PCA Visualization for the top 1000 protein coding genes in eyeIntegration")} +
       {if(pca_visualization == 'Eye PCA Plot with GTEx Data')ggtitle(label = "Ocular and GTEx Sample PCA Visualization for the top 1000 protein coding genes in eyeIntegration")} +
-      scale_color_manual(values = c(pals::glasbey(), pals::alphabet2(), pals::alphabet2()) %>% unname()) +
-      scale_fill_manual(values = c(pals::glasbey(), pals::alphabet2(), pals::alphabet2()) %>% unname()) +
+      scale_color_manual(values = tissue_val) +
+      scale_fill_manual(values = tissue_val) +
       scale_shape_manual(values = 0:10)
     
     ggplotly(p, tooltip = 'text')
