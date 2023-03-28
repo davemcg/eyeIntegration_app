@@ -9,10 +9,10 @@ library(colourpicker)
 library(ggiraph)
 library(shinythemes)
 library(plotly)
-# Data for PCA Visualization - created by the EiaD_build/scripts/pca_workup.Rmd script
-load('./www/2022/eye_pca_data.Rdata')
-load('./www/2022/eye_pca_data_with_GTEx.Rdata')
-load('./www/2022/eye_percentVar_data.Rdata')
+# Data for PCA Visualization - created by the EiaD_build/scripts/pca_workup_for_eyeIntegration_app.Rmd script
+load('./www/2022/eyeIntegration_2023_pca.Rdata')
+# created by the EiaD_build/scripts/pca_workup_data_prep.R script
+load('./www/2022/EiaD_pca_analysis.Rdata')
 
 load('./www/2017/retina_colors.Rdata')
 load('./www/2017/rpe_colors.Rdata')
@@ -129,29 +129,56 @@ shinyUI(fluidPage(
                                    ), br(), br(),
                                    fluidRow(includeHTML("www/footer.html"))
                           ),
-                          # Eye PCA ---------------
+                          # Pan - Eye and Body PCA ---------------
                           tabPanel('PCA Analysis Plotting',
                                    fluidPage(
                                      fluidRow(
                                        column(2,
                                               radioButtons('pca_visualization',strong('Visualization:'),
-                                                           choices = c('Eye PCA Plot', 'Eye PCA Plot with GTEx Data'),
-                                                           selected = 'Eye PCA Plot'),
+                                                           choices = c('eyeIntegration PCA Plot', 'Upload your own data'),
+                                                           selected = 'eyeIntegration PCA Plot'),
+                                              checkboxInput('GTEx_pca_data', 
+                                                            label = 'Display GTEx Sample Data',
+                                                            value = FALSE),
+                                              checkboxInput('scRNA_pca_data', 
+                                                            label = 'Display scRNA Sample Data',
+                                                            value = FALSE), br(),
+                                              conditionalPanel(condition = "input.pca_visualization == 'Upload your own data'",
+                                                               fileInput("user_samples", "Please choose a CSV or TSV File for Upload",
+                                                                         multiple = FALSE,
+                                                                         accept = c(".csv", ".tsv", ".tsv.gz", ".csv.gz"))),
+                                              conditionalPanel(condition = "input.pca_visualization == 'Upload your own data'",
+                                                               selectizeInput('pca_user_plot_type', strong('How would you like to display your data?'),
+                                                                              choices = c("Faceted", "Overlayed"), 
+                                                                              multiple = FALSE, selected = "Faceted")),
+                                              conditionalPanel(condition = "input.pca_visualization == 'Upload your own data'",
+                                                               textInput("user_given_input_project_name", label = strong("Enter Your Data Project Name:"), value = "User Generated Data"),
+                                                               fluidRow(column(2, verbatimTextOutput("value")))), br(),
                                               selectizeInput('pca_component_one', strong('First PCA Component:'),
-                                                             choices = c(names(eye_pca_data) %>% head(10)), 
+                                                             choices = c(eyeIntegration_2023_pca[[2]] %>% names() %>% head(10)), 
                                                              multiple = FALSE, selected = "PC1"),
                                               selectizeInput('pca_component_two', strong('Second PCA Component:'),
-                                                             choices = c(names(eye_pca_data) %>% head(10)), 
+                                                             choices = c(eyeIntegration_2023_pca[[2]] %>% names() %>% head(10)), 
                                                              multiple = FALSE, selected = "PC2"),
-                                              actionButton('pca_button','(Re)Draw PCA Plot!', 
-                                                           style='background-color: #3399ff; color: #ffffff'),
+                                              conditionalPanel(condition = "input.pca_visualization == 'eyeIntegration PCA Plot'",
+                                                               actionButton('pca_button','(Re)Draw PCA Plot!', 
+                                                                            style='background-color: #3399ff; color: #ffffff')),
+                                              conditionalPanel(condition = "input.pca_visualization == 'Upload your own data'",
+                                                               actionButton('user_generated_pca_button','(Re)Draw PCA Plot!', 
+                                                                            style='background-color: #3399ff; color: #ffffff')),
                                        ),
                                        column(10,
-                                              conditionalPanel(condition = "input.pca_button == 0", 
+                                              conditionalPanel(condition = "input.pca_button == 0 & input.pca_visualization == 'eyeIntegration PCA Plot'", 
                                                                "Select a first and second PCA component then click the (RE)Draw PCA Plot! button. 
                                                                It may take a few seconds for the plot to appear."),
-                                              conditionalPanel(condition = "input.pca_visualization != 0",
-                                                               plotlyOutput("eye_pca_plot", height = "1080", width = "100%"),
+                                              conditionalPanel(condition = "input.user_generated_pca_button == 0 & input.pca_visualization == 'Upload your own data'",
+                                                               "Select a first and second PCA component then click the (RE)Draw PCA Plot! button. 
+                                                               It may take a few seconds for the plot to appear."),
+                                              conditionalPanel(condition = "input.pca_button != 0 & input.pca_visualization == 'eyeIntegration PCA Plot'",
+                                                               plotlyOutput("eyeIntegration_pca_plot", height = "1080", width = "100%"),
+                                              ),
+                                              conditionalPanel(condition = "input.user_generated_pca_button != 0 & input.pca_visualization == 'Upload your own data'",
+                                                               plotlyOutput("user_pca_plot", height = "1080", width = "100%"),
                                               ),
                                        ),
                                      ),

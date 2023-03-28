@@ -2,7 +2,7 @@
 time <- Sys.time()
 cat(file = stderr(), 'Server Go!\n')
 #options(shiny.trace=TRUE)
-options(shiny.sanitize.errors = FALSE)
+options(shiny.sanitize.errors = FALSE, shiny.maxRequestSize = 30*1024^2)
 
 # load stuff for server
 library(plotly)
@@ -53,10 +53,10 @@ core_tight_2022 <- gene_pool_2022 %>% tbl('metadata') %>% as_tibble() %>% select
 core_tight_2017 <- gene_pool_2017 %>% tbl('metadata') %>% as_tibble()
 core_tight_2019 <- gene_pool_2019 %>% tbl('metadata') %>% as_tibble()
 
-# Data for PCA Visualization - created by the EiaD_build/scripts/pca_workup.Rmd script
-load('./www/2022/eye_pca_data.Rdata')
-load('./www/2022/eye_pca_data_with_GTEx.Rdata')
-load('./www/2022/eye_percentVar_data.Rdata')
+# Data for PCA Visualization - created by the EiaD_build/scripts/pca_workup_for_eyeIntegration_app.Rmd script
+load('./www/2022/eyeIntegration_2023_pca.Rdata')
+# created by the EiaD_build/scripts/pca_workup_data_prep.R script
+load('./www/2022/EiaD_pca_analysis.Rdata')
 
 load('./www/2017/retina_module_network_lists.Rdata') # NOTE THESE ARE PRECOMPUTED htmlwidgets 
 load('./www/2017/rpe_module_network_lists.Rdata') # NOTE THESE ARE PRECOMPUTED htmlwidgets 
@@ -107,10 +107,10 @@ heatmap_data_2022 <- heatmap_data_2022 %>%
                                        heatmap_data_2022$Age)) %>% filter(combined_tissue_name != "NA | NA | NA | NA | NA")
 tissues_heatmap_2022 <- heatmap_data_2022 %>% pull(combined_tissue_name) %>% unique() %>% sort()
 tissues_heatmap_2022 <- data.frame(combined_tissue_name = tissues_heatmap_2022,
-                                      Tissue = str_extract(tissues_heatmap_2022, "^[^|]*") %>% trimws())
+                                   Tissue = str_extract(tissues_heatmap_2022, "^[^|]*") %>% trimws())
 # Join the tissue vals colors to our heat map data
 tissues_heatmap_2022 <- tissues_heatmap_2022 %>% left_join(data.frame(Tissue = tissue_val %>% names(),
-                                                                         color = tissue_val), by = "Tissue") %>% select(combined_tissue_name, color)
+                                                                      color = tissue_val), by = "Tissue") %>% select(combined_tissue_name, color)
 tissue_val_heatmap_2022 <- tissues_heatmap_2022$color
 names(tissue_val_heatmap_2022) <- tissues_heatmap_2022$combined_tissue_name
 
@@ -415,16 +415,28 @@ shinyServer(function(input, output, session) {
     
   })
   
-  # Pan - Eye PCA -------
+  # Pan - Eye and Body PCA -------
   visualize_pca_function <- eventReactive(input$pca_button, {
     pcFirst <- input$pca_component_one
     pcSecond <- input$pca_component_two
-    pca_visualization <- input$pca_visualization
     
-    if (pca_visualization == 'Eye PCA Plot with GTEx Data') {
-      pca_database <- eye_pca_data_with_GTEx
+    # Which data will we be using in our visualization?
+    if (input$GTEx_pca_data == FALSE & input$scRNA_pca_data == FALSE) {
+      pca_database <- eyeIntegration_2023_pca[[2]] %>% filter(Cohort == "Eye", Source != "scRNA")
+    } else if (input$GTEx_pca_data == TRUE & input$scRNA_pca_data == FALSE) {
+      pca_database <- eyeIntegration_2023_pca[[2]] %>% filter(Source != "scRNA") %>%
+        mutate(Sub_Tissue = ifelse(Cohort == "Body", paste0(Tissue, " - ", Sub_Tissue), Sub_Tissue)) %>% 
+        mutate(Tissue = ifelse(Cohort == "Body", "GTEx", Tissue)) %>% 
+        mutate(Tissue = ifelse(grepl("Brain", Sub_Tissue), "Brain", Tissue))
+    } else if (input$GTEx_pca_data == FALSE & input$scRNA_pca_data == TRUE) {
+      pca_database <- eyeIntegration_2023_pca[[2]] %>% filter(Cohort == "Eye" | Source == "scRNA") %>%
+        mutate(Tissue = ifelse(Source == "scRNA", "Single Cell Data", Tissue))
     } else {
-      pca_database <- eye_pca_data
+      pca_database <- eyeIntegration_2023_pca[[2]] %>%
+        mutate(Sub_Tissue = ifelse(Cohort == "Body", paste0(Tissue, " - ", Sub_Tissue), Sub_Tissue)) %>% 
+        mutate(Tissue = ifelse(Cohort == "Body", "GTEx", Tissue)) %>% 
+        mutate(Tissue = ifelse(grepl("Brain", Sub_Tissue), "Brain", Tissue)) %>%
+        mutate(Tissue = ifelse(Source == "scRNA", "Single Cell Data", Tissue))
     }
     
     validate(
@@ -432,29 +444,162 @@ shinyServer(function(input, output, session) {
            "Please select two distinct PCA components and click the (RE)Draw PCA Plot! button. It may take a few seconds for the plot to appear.")
     )
     
-    p <- pca_database %>%
-      #filter(Source != 'scRNA') %>%
-      as_tibble() %>%
+    p <- pca_database %>% 
       ggplot(., aes(.data[[pcFirst]], .data[[pcSecond]])) +
       geom_point(size=3, aes(color=Tissue, shape = Source,
                              text = paste("Study: ", study_accession, "\n", "Sample: ", sample_accession, "\n",
                                           "Tissue: ", Tissue, "\n", "Sub-Tissue: ", Sub_Tissue, "\n", "Source: ", 
-                                          Source, "\n", "Age: ", Age, "\n", "Count: ", 
-                                          Count, "\n", "Nearest Neighboring Tissues: ", Tissue2))) +
-      xlab(paste0(pcFirst, ": ",percentVar[str_extract(pcFirst, '\\d+') %>% as.integer()],"% variance")) +
-      ylab(paste0(pcSecond, ": ",percentVar[str_extract(pcSecond, '\\d+') %>% as.integer()],"% variance")) +
+                                          Source, "\n", "Age: ", Age))) +
+      xlab(paste0(pcFirst, ": ",eyeIntegration_2023_pca[[3]][str_extract(pcFirst, '\\d+') %>% as.integer()],"% variance")) +
+      ylab(paste0(pcSecond, ": ",eyeIntegration_2023_pca[[3]][str_extract(pcSecond, '\\d+') %>% as.integer()],"% variance")) +
       cowplot::theme_cowplot() +
-      {if(pca_visualization == 'Eye PCA Plot')ggtitle(label = "Ocular Sample PCA Visualization for the top 1000 protein coding genes in eyeIntegration")} +
-      {if(pca_visualization == 'Eye PCA Plot with GTEx Data')ggtitle(label = "Ocular and GTEx Sample PCA Visualization for the top 1000 protein coding genes in eyeIntegration")} +
-      scale_color_manual(values = tissue_val) +
-      scale_fill_manual(values = tissue_val) +
+      {if(input$GTEx_pca_data == FALSE & input$scRNA_pca_data == FALSE)ggtitle(label = "Ocular Sample PCA Visualization")} +
+      {if(input$GTEx_pca_data == TRUE & input$scRNA_pca_data == FALSE)ggtitle(label = "Ocular and GTEx Sample PCA Visualization")} +
+      {if(input$GTEx_pca_data == FALSE & input$scRNA_pca_data == TRUE)ggtitle(label = "Ocular and scRNA Sample PCA Visualization")} +
+      {if(input$GTEx_pca_data == TRUE & input$scRNA_pca_data == TRUE)ggtitle(label = "All eyeIntegration Sample PCA Visualization")} +
+      scale_color_manual(values = c(tissue_val, setNames("goldenrod3","GTEx"))) +
+      scale_fill_manual(values = c(tissue_val, setNames("goldenrod3","GTEx"))) +
       scale_shape_manual(values = 0:10)
     
     ggplotly(p, tooltip = 'text')
   })
   
-  output$eye_pca_plot <- renderPlotly({
+  output$eyeIntegration_pca_plot <- renderPlotly({
     visualize_pca_function()
+  })
+  
+  # User-Generated Pan - Eye and Body PCA -------
+  user_pca_function <- eventReactive(input$user_generated_pca_button, {
+    
+    pcFirst <- input$pca_component_one
+    pcSecond <- input$pca_component_two
+    
+    validate(
+      need(!is.null(input$user_samples), 
+           "Please upload a CSV or TSV file containing your samples for upload and click the (RE)Draw PCA Plot! button. It may take a few seconds for the plot to appear."),
+      need(input$pca_component_one != input$pca_component_two, 
+           "Please select two distinct PCA components and click the (RE)Draw PCA Plot! button. It may take a few seconds for the plot to appear.")
+    )
+    
+    new_input_data <- data.table::fread(input$user_samples$datapath)
+    # turn into matrix
+    raw_matrix <- new_input_data[,-1] %>% as.matrix()
+    row_genes <- new_input_data[,1] %>% pull(1) %>% gsub('\\.\\d+','',.)
+    
+    # gene name repair
+    ### build a gene id table
+    gene_id_table <- row.names(mat_all) %>% enframe() %>% separate(value, c('gene_id','ensgene'), sep = ' \\(') %>% mutate(ensgene = gsub(')','',ensgene)) %>% select(-name)
+    
+    overlap_with_ID <- row_genes[row_genes %in% gene_id_table$gene_id]
+    overlap_with_ens <- row_genes[row_genes %in% gene_id_table$ensgene]
+    
+    if ((length(overlap_with_ID) < 1000) &
+        (length(overlap_with_ens) < 1000)){
+      stop("Failure to align gene names, please check your input matrix first column")
+    } else {
+      # select column ID type to use
+      if (length(overlap_with_ID) >
+          length(overlap_with_ens)){
+        column_val <- 1
+      } else {
+        column_val <- 2
+      }
+    }
+    
+    # scale
+    scaled <- scale(raw_matrix)
+    row.names(scaled) <- row_genes
+    # Only genes that match our internal genes used
+    gene_universe <- gene_id_table %>% pull(column_val)
+    scaled_cutdown <- scaled[gene_universe[gene_universe %in% row.names(scaled)], ]
+    
+    # Code chunk to insert missing columns
+    not_included <- gene_universe[!gene_universe %in% intersect(row.names(scaled_cutdown), gene_universe)]
+    data <- matrix(nrow=length(not_included), ncol=ncol(scaled_cutdown))
+    row.names(data) <- not_included
+    colnames(data) <- colnames(scaled_cutdown)
+    scaled_cutdown <- rbind(scaled_cutdown, data)
+    
+    # Replace NAs with 0
+    scaled_cutdown[is.na(scaled_cutdown)] <- 0
+    
+    # Match order of gene_ids in kallisto data to columns from original PCA
+    ## build PCA rotation gene object to ensure the input data is in the
+    ## same order
+    rotation_gene_table <- eyeIntegration_2023_pca[[1]]$rotation %>% row.names() %>% enframe() %>% separate(value, c('gene_id','ensgene'), sep = ' \\(') %>% mutate(ensgene = gsub(')','',ensgene)) %>% select(-name)
+    rotation_gene_vector <- rotation_gene_table %>% pull(column_val) # pull from the matched gene ID type
+    scaled_cutdown <- scaled_cutdown[rotation_gene_vector, ]
+    
+    # rotate to get samples as rows
+    scaled_rotate <-  scaled_cutdown %>% t()
+    
+    # project new data onto the PCA space
+    projected_input <- log2(scaled_rotate + 1) %*% eyeIntegration_2023_pca[[1]]$rotation %>% as.data.frame()
+    
+    
+    ########## merge all data
+    pca_projected_merge <- bind_rows(eyeIntegration_2023_pca[[2]] %>% mutate(Data = 'EiaD') %>% mutate(user_accession = "eyeIntegration"),
+                                     projected_input %>% rownames_to_column(var = "user_accession") %>% 
+                                       mutate(Data = input$user_given_input_project_name))
+    
+    # Which data will we be using in our visualization?
+    if (input$GTEx_pca_data == FALSE & input$scRNA_pca_data == FALSE) {
+      pca_projected_merge <- pca_projected_merge %>% 
+        filter(Cohort == "Eye" | is.na(Cohort), Source != "scRNA" | is.na(Source))
+    } else if (input$GTEx_pca_data == TRUE & input$scRNA_pca_data == FALSE) {
+      pca_projected_merge <- pca_projected_merge %>% 
+        filter(Source != "scRNA" | is.na(Source)) %>% 
+        mutate(Sub_Tissue = ifelse(Cohort == "Body", paste0(Tissue, " - ", Sub_Tissue), Sub_Tissue)) %>% 
+        mutate(Tissue = ifelse(Cohort == "Body", "GTEx", Tissue)) %>% 
+        mutate(Tissue = ifelse(grepl("Brain", Sub_Tissue), "Brain", Tissue))
+    } else if (input$GTEx_pca_data == FALSE & input$scRNA_pca_data == TRUE) {
+      pca_projected_merge <- pca_projected_merge %>% 
+        filter(Cohort == "Eye" | is.na(Cohort)) %>% 
+        mutate(Tissue = ifelse(Source == "scRNA", "Single Cell Data", Tissue))
+    } else {
+      pca_projected_merge <- pca_projected_merge %>% 
+        mutate(Sub_Tissue = ifelse(Cohort == "Body", paste0(Tissue, " - ", Sub_Tissue), Sub_Tissue)) %>% 
+        mutate(Tissue = ifelse(Cohort == "Body", "GTEx", Tissue)) %>% 
+        mutate(Tissue = ifelse(grepl("Brain", Sub_Tissue), "Brain", Tissue)) %>%
+        mutate(Tissue = ifelse(Source == "scRNA", "Single Cell Data", Tissue))
+    }
+    
+    if (input$pca_user_plot_type == "Faceted") {
+      p <- pca_projected_merge %>% 
+        ggplot(., aes(.data[[pcFirst]], .data[[pcSecond]])) +
+        geom_point(size=3, aes(color=Tissue, shape = Source,
+                               text = paste("Study: ", study_accession, "\n", "Sample: ", sample_accession, "\n",
+                                            "Tissue: ", Tissue, "\n", "Sub-Tissue: ", Sub_Tissue, "\n", "Source: ", 
+                                            Source, "\n", "Age: ", Age, "\n", "User Accession: ", user_accession))) +
+        xlab(paste0(pcFirst, ": ",eyeIntegration_2023_pca[[3]][str_extract(pcFirst, '\\d+') %>% as.integer()],"% variance")) +
+        ylab(paste0(pcSecond, ": ",eyeIntegration_2023_pca[[3]][str_extract(pcSecond, '\\d+') %>% as.integer()],"% variance")) +
+        cowplot::theme_cowplot() + 
+        facet_wrap(~Data) +
+        ggtitle(label = "PCA Visualization of eyeIntegration and User-Generated Samples") +
+        scale_color_manual(values = c(tissue_val, setNames("goldenrod3","GTEx"))) +
+        scale_fill_manual(values = c(tissue_val, setNames("goldenrod3","GTEx"))) +
+        scale_shape_manual(values = 0:10)
+      
+      ggplotly(p, tooltip = 'text')
+    } else {
+      p <- pca_projected_merge %>% 
+        ggplot(., aes(.data[[pcFirst]], .data[[pcSecond]])) +
+        geom_point(size=3, shape=4, aes(color=Data,
+                                        text = paste("Study: ", study_accession, "\n", "Sample: ", sample_accession, "\n",
+                                                     "Tissue: ", Tissue, "\n", "Sub-Tissue: ", Sub_Tissue, "\n", "Source: ", 
+                                                     Source, "\n", "Age: ", Age, "\n", "User Accession: ", user_accession))) +
+        xlab(paste0(pcFirst, ": ",eyeIntegration_2023_pca[[3]][str_extract(pcFirst, '\\d+') %>% as.integer()],"% variance")) +
+        ylab(paste0(pcSecond, ": ",eyeIntegration_2023_pca[[3]][str_extract(pcSecond, '\\d+') %>% as.integer()],"% variance")) +
+        cowplot::theme_cowplot() +
+        ggtitle(label = "PCA Visualization of eyeIntegration and User-Generated Samples")
+      
+      ggplotly(p, tooltip = 'text')
+    }
+    
+  })
+  
+  output$user_pca_plot <- renderPlotly({
+    user_pca_function()
   })
   
   # Pan - Tissue Boxplot -------
@@ -698,8 +843,8 @@ shinyServer(function(input, output, session) {
       
       id_matrix <- heatmap_data_2022 %>% 
         mutate(combined_tissue_name = paste0(heatmap_data_2022$Tissue, " | ", heatmap_data_2022$Sub_Tissue, " | ", 
-                                               heatmap_data_2022$Source, " | ", heatmap_data_2022$Perturbation, " | ", 
-                                               heatmap_data_2022$Age)) %>% 
+                                             heatmap_data_2022$Source, " | ", heatmap_data_2022$Perturbation, " | ", 
+                                             heatmap_data_2022$Age)) %>% 
         mutate(lsTPM = log2(meanlsTPM+1)) %>%
         select(-meanlsTPM, -Rank, -Decile, -Tissue, -Sub_Tissue, -Source, -Perturbation, -Age) %>%
         spread(combined_tissue_name, lsTPM)
@@ -728,20 +873,20 @@ shinyServer(function(input, output, session) {
         filter(ID %in% gene, Tissue %in% tissue) %>%
         data.frame()
       heatmap_data_2022[is.na(heatmap_data_2022)] <- ""
-    
+      
       ha = HeatmapAnnotation(Tissue = heatmap_data_2022 %>%
                                mutate(combined_tissue_name = paste0(heatmap_data_2022$Tissue, " | ", heatmap_data_2022$Sub_Tissue, " | ", 
-                                             heatmap_data_2022$Source, " | ", heatmap_data_2022$Perturbation, " | ", 
-                                             heatmap_data_2022$Age)) %>%
+                                                                    heatmap_data_2022$Source, " | ", heatmap_data_2022$Perturbation, " | ", 
+                                                                    heatmap_data_2022$Age)) %>%
                                select(Tissue, combined_tissue_name) %>% 
                                unique() %>%
                                right_join(colnames(id_matrix) %>% 
-                                          enframe(),
-                                        by = c('combined_tissue_name' = 'value')) %>%
-                             pull(combined_tissue_name),
-                           col = list(Tissue = tissue_val_heatmap_2022),
-                           show_annotation_name = TRUE,
-                           which = 'column')
+                                            enframe(),
+                                          by = c('combined_tissue_name' = 'value')) %>%
+                               pull(combined_tissue_name),
+                             col = list(Tissue = tissue_val_heatmap_2022),
+                             show_annotation_name = TRUE,
+                             which = 'column')
     } else {
       ha = HeatmapAnnotation(Tissue = get(meta) %>%
                                select(Tissue, Sub_Tissue) %>%
