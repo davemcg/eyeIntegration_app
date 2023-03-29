@@ -11,8 +11,13 @@ library(RSQLite)
 library(colorspace)
 
 sample_count_2022 <- function(){
-  app_location <- '/Users/parikhpp/git/eyeIntegration_app_v2_pp/inst/app'
+  app_location <- '/Users/parikhpp/git_collab/eyeIntegration_app/inst/app'
+  gene_pool_2017 <- dbPool(drv = SQLite(), dbname = "./www/2017/eyeIntegration_human_2017_01.sqlite", idleTimeout = 3600000)
+  gene_pool_2019 <- dbPool(drv = SQLite(), dbname = "./www/2019/EiaD_human_expression_2019_04.sqlite", idleTimeout = 3600000)
   gene_pool_2022 <- dbPool(drv = SQLite(), dbname = paste0(app_location, "/www/2022/eyeIntegration_2022_human.sqlite"))
+  
+  core_tight_2017 <- gene_pool_2017 %>% tbl('metadata') %>% as_tibble()
+  core_tight_2019 <- gene_pool_2019 %>% tbl('metadata') %>% as_tibble()
   core_tight_2022 <- gene_pool_2022 %>% tbl('metadata') %>% as_tibble()
   core_tight_2022 <- core_tight_2022 %>% mutate(Sub_Tissue = case_when(is.na(Sub_Tissue) ~ '', TRUE ~ Sub_Tissue), 
                                                 Source = case_when(is.na(Source) ~ '', TRUE ~ Source), 
@@ -20,11 +25,15 @@ sample_count_2022 <- function(){
                                                 Perturbation = case_when(is.na(Perturbation) ~ '', TRUE ~ Perturbation),
                                                 Tissue = case_when(is.na(Tissue) ~ '', TRUE ~ Tissue))
   
-  # fix tissue <-> color
-  meta <- 'core_tight_2022'
-  tissue_col <- scale_fill_manual(values = setNames(c(pals::glasbey(n = 32), 
-                                                      pals::kelly(n = get(meta) %>% pull(Tissue) %>% unique() %>% length() - 32 + 1)[-1]) %>% 
-                                                      colorspace::lighten(0.3), get(meta) %>% pull(Tissue) %>% unique() %>% sort()))
+  # # fix tissue <-> color
+  # meta <- 'core_tight_2022'
+  # tissue_col <- scale_fill_manual(values = setNames(c(pals::glasbey(n = 32), 
+  #                                                     pals::kelly(n = get(meta) %>% pull(Tissue) %>% unique() %>% length() - 32 + 1)[-1]) %>% 
+  #                                                     colorspace::lighten(0.3), get(meta) %>% pull(Tissue) %>% unique() %>% sort()))
+  
+  # Use global tissue values to match remainder of eyeIntegration app
+  tissues <- c(core_tight_2017$Tissue, core_tight_2019$Tissue, core_tight_2022$Tissue)%>% unique() %>% sort() 
+  tissue_col <- scale_fill_manual(values = setNames(c(pals::polychrome()[3:36],  pals::kelly()[c(3:7,10:21)])[1:length(tissues)], tissues %>% sort()))
   
   core_tight_2022 %>% 
     arrange(Tissue) %>% 
