@@ -511,7 +511,7 @@ shinyServer(function(input, output, session) {
     row.names(scaled) <- row_genes
     # Only genes that match our internal genes used
     gene_universe <- gene_id_table %>% pull(column_val)
-    scaled_cutdown <- scaled[gene_universe[gene_universe %in% row.names(scaled)], ]
+    scaled_cutdown <- scaled[gene_universe[gene_universe %in% row.names(scaled)], , drop = FALSE]
     
     # Code chunk to insert missing columns
     not_included <- gene_universe[!gene_universe %in% intersect(row.names(scaled_cutdown), gene_universe)]
