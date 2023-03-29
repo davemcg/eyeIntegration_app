@@ -429,7 +429,7 @@ shinyServer(function(input, output, session) {
         mutate(Tissue = ifelse(Cohort == "Body", "GTEx", Tissue)) %>% 
         mutate(Tissue = ifelse(grepl("Brain", Sub_Tissue), "Brain", Tissue))
     } else if (input$GTEx_pca_data == FALSE & input$scRNA_pca_data == TRUE) {
-      pca_database <- eyeIntegration_2023_pca[[2]] %>% filter(Cohort == "Eye" | Source == "scRNA") %>%
+      pca_database <- eyeIntegration_2023_pca[[2]] %>% filter(Source == "scRNA") %>%
         mutate(Tissue = ifelse(Source == "scRNA", "Single Cell Data", Tissue))
     } else {
       pca_database <- eyeIntegration_2023_pca[[2]] %>%
@@ -443,6 +443,18 @@ shinyServer(function(input, output, session) {
       need(input$pca_component_one != input$pca_component_two, 
            "Please select two distinct PCA components and click the (RE)Draw PCA Plot! button. It may take a few seconds for the plot to appear.")
     )
+    pc_rotation <- eyeIntegration_2023_pca[[1]]$rotation
+    rotations <- c(pcFirst, pcSecond)
+    
+    top_rotations <- 
+      c(pc_rotation[,str_extract(pcFirst, '\\d+') %>% as.integer()] %>% sort() %>% head(3) %>% names(),
+        pc_rotation[,str_extract(pcFirst, '\\d+') %>% as.integer()] %>% sort() %>% tail(3) %>% names(),
+        pc_rotation[,str_extract(pcSecond, '\\d+') %>% as.integer()] %>% sort() %>% head(3) %>% names(),
+        pc_rotation[,str_extract(pcSecond, '\\d+') %>% as.integer()] %>% sort() %>% tail(3) %>% names()) %>% 
+      unique()
+    
+    rotation_multipler_first <- pca_database[pcFirst] %>% pull(1) %>% abs() %>% max() / pc_rotation[,str_extract(pcFirst, '\\d+') %>% as.integer()] %>% abs() %>% max()
+    rotation_multipler_second <- pca_database[pcSecond] %>% pull(1) %>% abs() %>% max() / pc_rotation[,str_extract(pcSecond, '\\d+') %>% as.integer()] %>% abs() %>% max()
     
     p <- pca_database %>% 
       ggplot(., aes(.data[[pcFirst]], .data[[pcSecond]])) +
@@ -461,6 +473,14 @@ shinyServer(function(input, output, session) {
       scale_fill_manual(values = c(tissue_val, setNames("goldenrod3","GTEx"))) +
       scale_shape_manual(values = 0:10)
     
+    if (input$pc_top_genes == TRUE){
+      p <- p +
+        geom_text(data = pc_rotation[top_rotations,rotations] %>% 
+                    as_tibble(rownames = 'Gene') %>% 
+                    mutate(Gene = gsub(' \\(.*','',Gene)), 
+                  aes(x=.data[[pcFirst]]*rotation_multipler_first * 1.05, y = .data[[pcSecond]] * rotation_multipler_second * 1.05, text = Gene, label = Gene)) +
+        geom_segment(data =pc_rotation[top_rotations,rotations] %>% data.frame(), aes(x=0,y=0, xend = .data[[pcFirst]]*rotation_multipler_first, yend = .data[[pcSecond]]*rotation_multipler_second)) 
+    }
     ggplotly(p, tooltip = 'text')
   })
   
