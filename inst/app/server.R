@@ -469,8 +469,8 @@ shinyServer(function(input, output, session) {
       {if(input$GTEx_pca_data == TRUE & input$scRNA_pca_data == FALSE)ggtitle(label = "Ocular and GTEx Sample PCA Visualization")} +
       {if(input$GTEx_pca_data == FALSE & input$scRNA_pca_data == TRUE)ggtitle(label = "Ocular and scRNA Sample PCA Visualization")} +
       {if(input$GTEx_pca_data == TRUE & input$scRNA_pca_data == TRUE)ggtitle(label = "All eyeIntegration Sample PCA Visualization")} +
-      scale_color_manual(values = c(tissue_val, setNames("goldenrod3","GTEx"))) +
-      scale_fill_manual(values = c(tissue_val, setNames("goldenrod3","GTEx"))) +
+      scale_color_manual(values = c(tissue_val, setNames(object = c("goldenrod3", "darkolivegreen"), nm = c("GTEx", "Single Cell Data")))) +
+      scale_fill_manual(values = c(tissue_val, setNames(object = c("goldenrod3", "darkolivegreen"), nm = c("GTEx", "Single Cell Data")))) +
       scale_shape_manual(values = 0:10)
     
     if (input$pc_top_genes == TRUE){
@@ -481,12 +481,26 @@ shinyServer(function(input, output, session) {
                   aes(x=.data[[pcFirst]]*rotation_multipler_first * 1.05, y = .data[[pcSecond]] * rotation_multipler_second * 1.05, text = Gene, label = Gene)) +
         geom_segment(data =pc_rotation[top_rotations,rotations] %>% data.frame(), aes(x=0,y=0, xend = .data[[pcFirst]]*rotation_multipler_first, yend = .data[[pcSecond]]*rotation_multipler_second)) 
     }
-    ggplotly(p, tooltip = 'text')
+    
+    list_output <- list()
+    list_output$plot <- ggplotly(p, tooltip = 'text')
+    list_output$table <- pca_database
+    list_output
+    
   })
   
   output$eyeIntegration_pca_plot <- renderPlotly({
-    visualize_pca_function()
+    visualize_pca_function()$plot
   })
+  
+  output$PCA_eyeIntegration_data <- downloadHandler(
+    filename = function() {
+      paste("eyeIntegration_pca_data_", Sys.Date(), ".csv", sep="")
+    },
+    content = function(file) {
+      write.csv(visualize_pca_function()$table, file, row.names = FALSE)
+    }
+  )
   
   # User-Generated Pan - Eye and Body PCA -------
   user_pca_function <- eventReactive(input$user_generated_pca_button, {
@@ -603,8 +617,6 @@ shinyServer(function(input, output, session) {
         scale_color_manual(values = c(tissue_val, setNames(object = c("goldenrod3", "darkolivegreen"), nm = c("GTEx", "Single Cell Data")))) +
         scale_fill_manual(values = c(tissue_val, setNames(object = c("goldenrod3", "darkolivegreen"), nm = c("GTEx", "Single Cell Data")))) +
         scale_shape_manual(values = 0:10)
-      
-      ggplotly(p, tooltip = 'text')
     } else {
       p <- pca_projected_merge %>%
         mutate(Tissue = case_when(
@@ -620,15 +632,31 @@ shinyServer(function(input, output, session) {
         ylab(paste0(pcSecond, ": ",eyeIntegration_2023_pca[[3]][str_extract(pcSecond, '\\d+') %>% as.integer()],"% variance")) +
         cowplot::theme_cowplot() +
         ggtitle(label = "PCA Visualization of eyeIntegration and User-Generated Samples")
-      
-      ggplotly(p, tooltip = 'text')
     }
-    
+      
+      list_output <- list()
+      list_output$plot <- ggplotly(p, tooltip = 'text')
+      list_output$table <- pca_projected_merge %>% 
+        mutate(Tissue = case_when(
+          Data == input$user_given_input_project_name ~ input$user_given_input_project_name,
+          TRUE ~ Tissue
+        ))
+      list_output
+      
   })
   
   output$user_pca_plot <- renderPlotly({
-    user_pca_function()
+    user_pca_function()$plot
   })
+  
+  output$PCA_ei_user_combined_data <- downloadHandler(
+    filename = function() {
+      paste("eyeIntegration_user_combined_pca_data_", Sys.Date(), ".csv", sep="")
+    },
+    content = function(file) {
+      write.csv(user_pca_function()$table, file, row.names = FALSE)
+    }
+  )
   
   # Pan - Tissue Boxplot -------
   boxPlot_gene_func <- eventReactive(input$pan_button_gene, {
