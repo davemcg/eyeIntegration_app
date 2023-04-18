@@ -429,7 +429,7 @@ shinyServer(function(input, output, session) {
         mutate(Tissue = ifelse(Cohort == "Body", "GTEx", Tissue)) %>% 
         mutate(Tissue = ifelse(grepl("Brain", Sub_Tissue), "Brain", Tissue))
     } else if (input$GTEx_pca_data == FALSE & input$scRNA_pca_data == TRUE) {
-      pca_database <- eyeIntegration_2023_pca[[2]] %>% filter(Source == "scRNA") %>%
+      pca_database <- eyeIntegration_2023_pca[[2]] %>% filter(Cohort == "Eye" | is.na(Cohort)) %>%
         mutate(Tissue = ifelse(Source == "scRNA", "Single Cell Data", Tissue))
     } else {
       pca_database <- eyeIntegration_2023_pca[[2]] %>%
@@ -784,12 +784,12 @@ shinyServer(function(input, output, session) {
       output$plot <- girafe(ggobj = p,
                             width_svg = 14,
                             height_svg= max(12, (6 * (length(gene)/min(col_num,length(gene)))))) %>%
-        girafe_options(., opts_toolbar(position = "top") )
+        girafe_options(., opts_toolbar(position = "bottomleft") )
     } else {
       output$plot <- girafe(ggobj = p,
                             width_svg = 16,
                             height_svg= max(12, (2 * (length(tissue)/min(col_num,length(tissue)))))) %>%
-        girafe_options(., opts_toolbar(position = "top") )
+        girafe_options(., opts_toolbar(position = "bottomleft") )
     }
     output$data <- plot_data
     output
@@ -1351,7 +1351,7 @@ shinyServer(function(input, output, session) {
     }
     girafe(ggobj = plot,width_svg = 12, 
            height_svg= max(10, (6 * (length(gene)/(length(gene)))))) %>% 
-      girafe_options(., opts_toolbar(position = "top") )
+      girafe_options(., opts_toolbar(position = "bottomleft") )
     
   })
   output$scboxPlot_gene <- renderGirafe({
