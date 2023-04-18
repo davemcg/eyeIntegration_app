@@ -586,6 +586,10 @@ shinyServer(function(input, output, session) {
     
     if (input$pca_user_plot_type == "Faceted") {
       p <- pca_projected_merge %>% 
+        mutate(Tissue = case_when(
+          Data == input$user_given_input_project_name ~ input$user_given_input_project_name,
+          TRUE ~ Tissue
+        )) %>% 
         ggplot(., aes(.data[[pcFirst]], .data[[pcSecond]])) +
         geom_point(size=3, aes(color=Tissue, shape = Source,
                                text = paste("Study: ", study_accession, "\n", "Sample: ", sample_accession, "\n",
@@ -596,15 +600,19 @@ shinyServer(function(input, output, session) {
         cowplot::theme_cowplot() + 
         facet_wrap(~Data) +
         ggtitle(label = "PCA Visualization of eyeIntegration and User-Generated Samples") +
-        scale_color_manual(values = c(tissue_val, setNames("goldenrod3","GTEx"))) +
-        scale_fill_manual(values = c(tissue_val, setNames("goldenrod3","GTEx"))) +
+        scale_color_manual(values = c(tissue_val, setNames(object = c("goldenrod3", "darkolivegreen"), nm = c("GTEx", "Single Cell Data")))) +
+        scale_fill_manual(values = c(tissue_val, setNames(object = c("goldenrod3", "darkolivegreen"), nm = c("GTEx", "Single Cell Data")))) +
         scale_shape_manual(values = 0:10)
       
       ggplotly(p, tooltip = 'text')
     } else {
-      p <- pca_projected_merge %>% 
+      p <- pca_projected_merge %>%
+        mutate(Tissue = case_when(
+          Data == input$user_given_input_project_name ~ input$user_given_input_project_name,
+          TRUE ~ Tissue
+        )) %>% 
         ggplot(., aes(.data[[pcFirst]], .data[[pcSecond]])) +
-        geom_point(size=3, shape=4, aes(color=Data,
+        geom_point(size=3, shape=20, aes(color=Data,
                                         text = paste("Study: ", study_accession, "\n", "Sample: ", sample_accession, "\n",
                                                      "Tissue: ", Tissue, "\n", "Sub-Tissue: ", Sub_Tissue, "\n", "Source: ", 
                                                      Source, "\n", "Age: ", Age, "\n", "User Accession: ", user_accession))) +
