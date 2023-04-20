@@ -293,7 +293,7 @@ shinyUI(fluidPage(
                           tabPanel('Overview',
                                    fluidPage(
                                      fluidRow(column(width = 8, offset = 1, h2('eyeIntegration v2.00'))),
-                                     fluidRow(column(width = 8, offset = 1, img(src='simplified_workflow.svg', width = 300))),
+                                     fluidRow(column(width = 8, offset = 1, img(src='2023_eyeIntegration_Overview_drawIO.drawio.svg', width = 300))),
                                      fluidRow(column(width = 8, offset = 1, h2('Mission'))),
                                      fluidRow(column(width = 8, offset = 1,
                                                      "The human eye has several specialized tissues which direct, capture, and pre-process information to provide vision.
