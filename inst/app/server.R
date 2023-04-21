@@ -37,7 +37,7 @@ base_dir <- "/Volumes/Thunder/eyeIntegration_app/inst/app/www/2022/"
 gene_pool_2022 <- dbPool(drv = SQLite(), dbname = ("./www/2022/eyeIntegration_2022_human.sqlite"), idleTimeout = 3600000)
 gene_pool_2017 <- dbPool(drv = SQLite(), dbname = "./www/2017/eyeIntegration_human_2017_01.sqlite", idleTimeout = 3600000)
 gene_pool_2019 <- dbPool(drv = SQLite(), dbname = "./www/2019/EiaD_human_expression_2019_04.sqlite", idleTimeout = 3600000)
-DNTx_pool_2019 <- dbPool(drv = SQLite(), dbname = "./www/2019/EiaD_human_expression_2020_02.DNTx01.sqlite", idleTimeout = 3600000)
+DNTx_pool_2019 <- dbPool(drv = SQLite(), dbname = "./www/2019/DNTx_EiaD_human_expression_2019_00.sqlite", idleTimeout = 3600000)
 SC_pool <- dbPool(drv = SQLite(), dbname = "./www/single_cell_retina_info_04.sqlite", idleTimeout = 3600000)
 scEiaD_pool <- dbPool(drv = SQLite(), dbname = ("./www/2022/scEiaD.2023_03_02.sqlite"), idleTimeout = 3600000)
 
@@ -130,6 +130,7 @@ shinyServer(function(input, output, session) {
     } else if (db == 'Gene 2022'){ID_names = gene_names_2022 %>% sort()
     } else if (db == 'DNTx v01'){ID_names = geneTX_names_2019_DNTx %>% sort()
     } else if (db == 'scEiaD_pool'){ID_names = Gene %>% sort()
+
     } else {ID_names = geneTX_names_2019 %>% sort()}
     # gene / tx lists
     if (is.null(query[['scmaturity']])){
@@ -203,7 +204,7 @@ shinyServer(function(input, output, session) {
     } else if (db == 'Transcript 2019'){
       pool <- 'gene_pool_2019'
       ids <- 'tx_ids'
-    } else if (db == 'DNTx v01'){
+    } else if (db == 'DNTx v00'){
       pool <- 'DNTx_pool_2019'
       ids <- 'tx_ids'
     } else if (db == 'scEiaD_pool'){
@@ -712,6 +713,7 @@ shinyServer(function(input, output, session) {
       plot_data <- p %>%
         filter(Sub_Tissue %in% tissue) 
     }
+
     
     # fix tissue <-> color
     tissue_val <- tissue_val[plot_data$Tissue %>% unique()]
@@ -813,7 +815,7 @@ shinyServer(function(input, output, session) {
       if (input$points){
         p <- p + geom_point_interactive(size=0.4, position = 'jitter', alpha=0.15, stroke = 3, aes(tooltip=htmlEscape(Info, TRUE), shape = Type)) 
       }
-      
+
     }
     output <- list()
     if (!grepl('2022',db)){
@@ -877,7 +879,7 @@ shinyServer(function(input, output, session) {
       meta <- 'core_tight_2019'
       table <- 'mean_rank_decile_tx'
       label_size = 0.8
-    } else if (db == 'DNTx v01'){
+    } else if (db == 'DNTx v00'){
       tissue <- trimws(tissue)
       pool <- 'DNTx_pool_2019'
       meta <- 'core_tight_2019'
@@ -1033,7 +1035,7 @@ shinyServer(function(input, output, session) {
       tissue <- trimws(tissue)
       pool <- 'gene_pool_2019'
       table <- 'mean_rank_decile_tx'
-    } else if (db == 'DNTx v01'){
+    } else if (db == 'DNTx v00'){
       tissue <- trimws(tissue)
       pool <- 'DNTx_pool_2019'
       table <- 'mean_rank_decile_tx'
@@ -1084,6 +1086,7 @@ shinyServer(function(input, output, session) {
     } else if (db == 'Transcript 2019'){
       query = paste0('select * from lsTPM_tx where ID in ("',paste(gene, collapse='","'),'")')
       plot_data <- dbGetQuery(gene_pool_2019,  query) %>%
+
         left_join(.,core_tight_2019)
     } else if (db == 'DNTx v01'){
       query = paste0('select * from lsTPM_tx where ID in ("',paste(gene, collapse='","'),'")')
@@ -1677,7 +1680,7 @@ shinyServer(function(input, output, session) {
         left_join(., gene_pool_2019 %>% tbl('gene_IDs') %>% as_tibble())  %>%
         filter(gene_type %in% input$gene_tx_type) %>%
         rename(Class = gene_type)
-    } else if (input$diff_database == 'DNTx v01'){
+    } else if (input$diff_database == 'DNTx v00'){
       de_data <- DNTx_pool_2019 %>%
         tbl('limma_DE_tx') %>%
         filter(Comparison == local(input$de_comparison)) %>%
