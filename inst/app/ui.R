@@ -249,10 +249,15 @@ shinyUI(fluidPage(
                           # Data Download ---------------
                           tabPanel('Data Download',
                                    fluidPage(
+                                     br(),
+                                     fluidRow(h2('As of 2023-04-21, we are do no yet have public facing download links for the new 2023 data. We will rectify this soon. Please email if you need
+                                                 more immediate access to this data.')),
+                                     br(),
                                      fluidRow(h3('References')),
                                      fluidRow(tags$a(href='ftp://ftp.ebi.ac.uk/pub/databases/gencode/Gencode_human/release_29/gencode.v29.transcripts.fa.gz', 'gencode.v29.transcripts.fa.gz')),
                                      fluidRow(tags$a(href='ftp://ftp.ebi.ac.uk/pub/databases/gencode/Gencode_human/release_29/gencode.v29.annotation.gtf.gz', 'gencode.v29.annotation.gtf.gz')),
                                      fluidRow(h3('Bulk Tissue Gene (or transcript(tx)) Raw Count Matrices')),
+
                                      fluidRow('Rows are genes, columns are samples, values are
                            raw counts as calculated by salmon.'),
                                      fluidRow(tags$a(href='https://hpc.nih.gov/~mcgaugheyd/eyeIntegration/2019_12_gene_counts_04.csv.gz',
