@@ -42,7 +42,9 @@ Imports:
     pals,
     colorspace,
     shadowtext,
-    htmltools
+    htmltools,
+    svglite,
+    colorspace
 Suggests:
     readr
 RoxygenNote: 6.1.1
