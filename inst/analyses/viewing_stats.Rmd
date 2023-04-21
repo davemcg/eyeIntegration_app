@@ -12,13 +12,41 @@ Pull in IP addresses, filter to only keep IP addresses over 11 views (I think an
 3. Run `cat *eml | grep "^[[:digit:]]" > eyeIntegration.stats`
 
 ```{r}
+
 library(tidyverse)
 library(rworldmap)
 library(ipstack)
- ipaddresses <- read_delim('~/Desktop/eml/eyeIntegration.stats', col_names = F, delim = '\\s+') %>% 
-  separate(col = X1, into = c('IP Address', 'Page Views'), sep='\\s+') %>% 
+library(lubridate)
+library(patchwork)
+
+eml_files <- list.files('~/data/eyeIntegration_eml_emails_up_to_2021_12_24/test', full.names = TRUE, pattern = '*eml', recursive = TRUE)
+eml_reader <- function(eml){
+  raw <- read_lines(eml)
+  
+  tsv <- read_delim(eml, col_names = c('ip','Page Views'), delim = ' ')
+  tsv <- tsv %>% filter(grepl('^\\d', ip)) %>% mutate(`Page Views` = trimws(`Page Views`) %>% as.integer())
+  tsv$`Page Views` <- gsub('<br>', '', tsv$`Page Views`)
+  
+  chunk <- grep('Date', raw,value = TRUE) %>% substr(., 12,22) %>% str_split(., ' ', simplify = TRUE)
+  date <- lubridate::mdy(paste(chunk[2], chunk[1], chunk[3]))
+  
+  tsv$date <- date
+  
+  tsv 
+  
+}
+
+eml_list <- list()
+for (i in eml_files){
+  eml_list[[i]] <- eml_reader(i)
+}
+
+ipaddresses <- eml_list %>% bind_rows() %>% 
   mutate(`Page Views` = as.numeric(`Page Views`)) %>%  
   filter(`Page Views` > 11)
+
+# if loading previous work
+load('visitor_stats_2021_12.Rdata')
 ```
 
 Total page view from May 2017 to Present
@@ -27,43 +55,46 @@ sum(ipaddresses$`Page Views`)
 ```
 
 Chart of page views increasing over time
-```{r}
-ipaddresses
-```
+```{r, fig.width=2.5}
+a <- ipaddresses %>% 
+  filter(`Page Views` > 11, date < as.Date('2021-12-01')) %>% 
+  group_by(date) %>% 
+  summarise(`Visitor Count` = length(unique(ip))) %>% 
+  mutate(`Visitor Count` = cumsum(`Visitor Count`)) %>% 
+  ggplot(aes(x=date,y=`Visitor Count`)) + 
+  geom_line() +
+  cowplot::theme_cowplot() +
+  xlab('Date') + ylab('eyeIntegration\nCumulative\nVisitor Count') +
+  expand_limits(x = as.Date(c("2017-05-01", "2022-01-01"))) +
+  theme(text = element_text(size = 25))    
+
+a
+```   
 
 Get latitude and longitude for all unique IPs (takes a few minutes to query)
 ```{r}
-unique_IP <- ipaddresses$`IP Address` %>% unique()
-ip_info <- list()
-for (i in unique_IP){
-  ip_info[[i]] <- ip_lookup(i, ipstack_api_key = '7d06f26c4f0f61bd9edd20df0219f874', hostname = T)
-}
+unique_IP <- ipaddresses$ip %>% unique()
+#ip_info <- list()
 
-```
+# ipstack (useful, but no ISP info)
+# for (i in unique_IP){
+#   ip_info[[i]] <- ip_lookup(i, ipstack_api_key = '7d06f26c4f0f61bd9edd20df0219f874', hostname = T)
+# }
 
-Process and clean up
-```{r}
-ips <- ''
-latitudes <- ''
-longitudes <- ''
-cities <- ''
-countries <- ''
 for (i in unique_IP){
-  if (!is.null(ip_info[[i]]$country_name)){
-  ips <- c(ips, ip_info[[i]]$ip)
-  latitudes <- c(latitudes, ip_info[[i]]$latitude)
-  longitudes <- c(longitudes, ip_info[[i]]$longitude)
-  cities <- c(cities, ip_info[[i]]$city)
-  countries <- c(countries, ip_info[[i]]$country_name)
+  if (!(i %in% names(ip_info))){
+    print(i)
+    ip_info[[i]] <- ipapi::geolocate(i, .progress = FALSE)
+    Sys.sleep(2)
   }
 }
 
-geo_locate <- cbind(latitudes, longitudes, countries) %>% 
-  data.frame() %>% 
-  mutate(latitudes = as.numeric(as.character(latitudes)), longitudes = as.numeric(as.character(longitudes))) %>% 
-  filter(abs(latitudes) > 0) #remove empty coordinates
+ip_tibble <- ip_info %>% bind_rows()
+```
 
-save(cities, geo_locate, file = '../data/visitor_stats.Rdata')
+Save
+```{r}
+save(ip_tibble, ip_tibble, ipaddresses, ip_info, file = '~/git/eyeIntegration_app/visitor_stats_2021_12.Rdata')
 ```
 
 Interactive Map
@@ -84,7 +115,7 @@ Regular Map
 ```{r, fig.width = 6, fig.height=2}
 world <- map_data("world")
 world <- world[world$region != "Antarctica",]
-ggplot(data = geo_locate, aes(x = longitudes, y = latitudes, colour = countries)) + 
+ggplot(data = ip_tibble, aes(x = lon, y = lat, colour = country)) + 
   geom_map(data=world, map=world,
            aes(x=long, y=lat, map_id=region),
            color="#090D2A", fill="lightgray", size=0.05, alpha=1/4) + 
@@ -92,4 +123,51 @@ ggplot(data = geo_locate, aes(x = longitudes, y = latitudes, colour = countries)
   theme_void() +
   scale_color_viridis_d()
 
+```
+
+# Figure
+```{r, fig.width = 7, fig.height=6}
+isp_location <- ipaddresses %>% left_join(ip_tibble, by = c('ip' = 'query')) %>% group_by(isp) %>% summarise(Usage = sum(`Page Views`), lat = mean(lat), lon = mean(lon))
+
+isp_location_academic <- isp_location %>%
+  filter(grepl('Agency|Acad|Scie|Centr|Center|Schoo|Univ|Hosp|Stat|Colle|Resea|Publ|Nation|Instit|Medici', isp), 
+         !grepl('BT Public', isp)) %>% 
+  arrange(-Usage)
+
+c <- isp_location_academic %>% 
+  head(25) %>%
+  mutate(isp = factor(isp, levels = rev(isp_location_academic$isp))) %>%  
+  ggplot(aes(x=isp, y = Usage)) + 
+  geom_bar(stat = 'identity', fill = 'darkblue') +  
+  ggbreak::scale_y_break(c(35000, 240000)) +
+  scale_y_continuous(breaks = c(5000, 15000, 25000, 240000)) +
+  coord_flip() +
+  cowplot::theme_cowplot() +
+  xlab('Top 25\nResearch Users') +
+  ylab('Page Views') +
+  theme(text = element_text(size = 20)) 
+
+
+
+b <- ggplot(data = isp_location, aes(x = lon, y = lat) ) + 
+  geom_map(data=world, map=world,
+           aes(x=long, y=lat, map_id=region),
+           color="#090D2A", fill="lightgray", size=0.05, alpha=1/4) + 
+  geom_point(color = 'black', size = 4, alpha = 0.5) + 
+  geom_point(data = isp_location_academic, color = 'darkblue', size = 5, alpha = 0.7) +
+  theme_void() +
+  scale_color_viridis_c()
+
+first <- (a + c)  + 
+  plot_layout(widths = c(1, 2)) +
+  plot_annotation(theme = theme(text = element_text(size = 25)))
+
+first / b +
+  plot_layout(heights = c(1, 1.4))  +
+  plot_annotation(
+    title = 'eyeIntegration Worldwide Usage',
+    subtitle = glue::glue('Users from {ip_tibble$country %>% unique() %>% length()} countries, {ip_tibble$city %>% unique() %>% length()} cities, and {isp_location_academic %>% nrow} research institutions.'),
+    caption = 'Blue points are research instituations',
+    theme = theme(text = element_text(size = 25))
+  )
 ```
