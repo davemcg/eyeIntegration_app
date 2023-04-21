@@ -19,14 +19,13 @@ load('./www/2017/rpe_colors.Rdata')
 
 # Define UI for application that draws a histogram
 shinyUI(fluidPage(
-  
+
   useShinyjs(),
   div(
     id = "app-content",
     navbarPage(title = div(img(src = "eye.png", height = "43px", 
                                style = "position: relative; top: -10px; left: 5px")),
                windowTitle = 'eyeIntegration',
-               
                theme = shinytheme('cosmo'),
                selected = 'Overview',
                # Expression ---------------
@@ -86,7 +85,7 @@ shinyUI(fluidPage(
                                        column(3,
                                               div(DT::dataTableOutput('gene_info'),style='font-size:75%')
                                        )
-                                     ),
+                                     )
                                    ), br(), br(),
                                    fluidRow(includeHTML("www/footer.html"))
                           ),
@@ -123,7 +122,7 @@ shinyUI(fluidPage(
                                                                It may take a few seconds for the plot to appear."),
                                               conditionalPanel(condition = "input.scplot_type_gene == 'Box Plot'",
                                                                girafeOutput('scboxPlot_gene', height = '100%', width='100%')
-                                              ),
+                                              )
                                        )
                                      )
                                    ), br(), br(),
@@ -175,7 +174,7 @@ shinyUI(fluidPage(
                                                                               style='background-color: #3399ff; color: #ffffff')),
                                               conditionalPanel(condition = "input.pca_visualization == 'Upload your own data'",
                                                                downloadButton('PCA_ei_user_combined_data','Download Plot Data',
-                                                                              style='background-color: #3399ff; color: #ffffff')),
+                                                                              style='background-color: #3399ff; color: #ffffff'))
                                        ),
                                        column(10,
                                               conditionalPanel(condition = "input.pca_button == 0 & input.pca_visualization == 'eyeIntegration PCA Plot'", 
@@ -185,13 +184,13 @@ shinyUI(fluidPage(
                                                                "Select a first and second PCA component then click the (RE)Draw PCA Plot! button. 
                                                                It may take a few seconds for the plot to appear."),
                                               conditionalPanel(condition = "input.pca_button != 0 & input.pca_visualization == 'eyeIntegration PCA Plot'",
-                                                               plotlyOutput("eyeIntegration_pca_plot", height = "1080", width = "100%"),
+                                                               plotlyOutput("eyeIntegration_pca_plot", height = "1080", width = "100%")
                                               ),
                                               conditionalPanel(condition = "input.user_generated_pca_button != 0 & input.pca_visualization == 'Upload your own data'",
-                                                               plotlyOutput("user_pca_plot", height = "1080", width = "100%"),
-                                              ),
-                                       ),
-                                     ),
+                                                               plotlyOutput("user_pca_plot", height = "1080", width = "100%")
+                                              )
+                                       )
+                                     )
                                    ), br(), br(),
                                    fluidRow(includeHTML("www/footer.html"))
                           ),
@@ -201,7 +200,7 @@ shinyUI(fluidPage(
                                      fluidRow(column(width = 8, offset = 1, h2('UCSC Track for Base Pair Level Expression Coverage'))),
                                      fluidRow(column(width = 8, offset = 1, 'All links are external')),
                                      fluidRow(column(width = 8, offset = 1, img(src='ucsc_tracks_screenshot.png',width = '900px'))),
-                                     fluidRow(column(width = 8, offset = 1, includeHTML("www/ucsc_tracks.html"))),
+                                     fluidRow(column(width = 8, offset = 1, includeHTML("www/ucsc_tracks.html")))
                                    ))
                ),
                # navbarMenu("Find a Friend",
@@ -257,7 +256,7 @@ shinyUI(fluidPage(
                                      fluidRow(tags$a(href='ftp://ftp.ebi.ac.uk/pub/databases/gencode/Gencode_human/release_29/gencode.v29.transcripts.fa.gz', 'gencode.v29.transcripts.fa.gz')),
                                      fluidRow(tags$a(href='ftp://ftp.ebi.ac.uk/pub/databases/gencode/Gencode_human/release_29/gencode.v29.annotation.gtf.gz', 'gencode.v29.annotation.gtf.gz')),
                                      fluidRow(h3('Bulk Tissue Gene (or transcript(tx)) Raw Count Matrices')),
-
+                                     
                                      fluidRow('Rows are genes, columns are samples, values are
                            raw counts as calculated by salmon.'),
                                      fluidRow(tags$a(href='https://hpc.nih.gov/~mcgaugheyd/eyeIntegration/2019_12_gene_counts_04.csv.gz',
