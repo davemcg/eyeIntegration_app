@@ -19,7 +19,8 @@ Updated PCA Files (03-28-23)
 https://hpc.nih.gov/~parikhpp/eyeIntegration_app_v2/EiaD_pca_analysis.Rdata.gz
 https://hpc.nih.gov/~parikhpp/eyeIntegration_app_v2/eyeIntegration_2023_pca.RData.gz
 
-# All below is defunct right now
+# All below relates to the 2019 and earlier data
+We plan on updating the data pulling to put everything in the same place
 
 # Install locally and run in three steps:
 Warning! `get_eyeIntegration_datasets()` currently downloads ~20 GB of data and requires ~65 GB of space, uncompressed. 
