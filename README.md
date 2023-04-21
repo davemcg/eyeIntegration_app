@@ -1,6 +1,6 @@
 # Human eyeIntegration >= v2.0 Shiny App
 
-# Updated to serve the 2022 data update. New samples. Metadata cleaning. Recount3-based quantification
+# Updated to serve the 2023 data update. New samples. Metadata cleaning. Recount3-based quantification
 
 # Web app
 [https://eyeIntegration.nei.nih.gov](https://eyeIntegration.nei.nih.gov)
