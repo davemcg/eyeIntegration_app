@@ -106,12 +106,12 @@ shinyUI(fluidPage(
                                                              choices=NULL,multiple=TRUE),
                                               conditionalPanel(condition = "scplot_type_gene != 'Heatmap'",
                                                                radioButtons('sc_rotation', strong('Plot Orientation:'),
-                                                           choices = list("Cells as rows" = 1, "Cells as columns" = 2), 
-                                                           selected = 1)), 
+                                                                            choices = list("Cells as rows" = 1, "Cells as columns" = 2), 
+                                                                            selected = 1)), 
                                               conditionalPanel(condition = "scplot_type_gene != 'Heatmap'",
                                                                checkboxInput('sc_points', 
-                                                            label = strong('Display Individual Sample Values'),
-                                                            value = FALSE)),
+                                                                             label = strong('Display Individual Sample Values'),
+                                                                             value = FALSE)),
                                               actionButton('scpan_button_gene','(Re)Draw Plot!', 
                                                            style='background-color: #3399ff; color: #ffffff'), br(), br(), 
                                               actionButton('scbuild_pan_url','Build URL Shortcut', 
@@ -195,6 +195,14 @@ shinyUI(fluidPage(
                                    ), br(), br(),
                                    fluidRow(includeHTML("www/footer.html"))
                           ),
+                          tabPanel('BP Level Expression', 
+                                   
+                                   fluidPage(
+                                     fluidRow(column(width = 8, offset = 1, h2('UCSC Track for Base Pair Level Expression Coverage'))),
+                                     fluidRow(column(width = 8, offset = 1, 'All links are external')),
+                                     fluidRow(column(width = 8, offset = 1, img(src='ucsc_tracks_screenshot.png',width = '900px'))),
+                                     fluidRow(column(width = 8, offset = 1, includeHTML("www/ucsc_tracks.html"))),
+                                   ))
                ),
                # navbarMenu("Find a Friend",
                #            tabPanel("Gene - Gene Euclidean Distance",
@@ -305,9 +313,9 @@ shinyUI(fluidPage(
                                   all of these samples in a consistent bioinformatic workflow. We use this fully integrated dataset to build informative visualizations, novel PCA tool, and UCSC genome browser to provide the ophthalmic community with a powerful and quick means to formulate and test hypotheses on human 
                                   gene and transcript expression.", br(), br(),
                                                      
-                                                     h2("Basic Statistics"),
-                                                     fluidRow(column(6, img(src='sample_count_2022.svg', align='middle', width = 1000))),
-                                                     tableOutput('basic_stats'),
+                                                     # h2("Basic Statistics"),
+                                                     # fluidRow(column(6, img(src='sample_count_2022.svg', align='middle', width = 1000))),
+                                                     # tableOutput('basic_stats'),
                                                      "We make these data, analyses, and visualizations available here with a powerful interactive web application.")),
                                      fluidRow(column(width = 8, offset = 1, h2('Attribution'))),
                                      fluidRow(column(width = 8, offset = 1, 'This project was conceived and implemented by',
@@ -315,15 +323,17 @@ shinyUI(fluidPage(
                                                      'in ', tags$a(href='https://nei.nih.gov/intramural/ogcsb','OGVFB'), '/',
                                                      tags$a(href='https://nei.nih.gov','NEI'), '/',
                                                      tags$a(href='https://www.nih.gov','NIH'), '. ',
-                                                     'The retina and RPE gene networks along with their accompanying web pages were constructed by ',
+                                                     ' in 2017. The retina and RPE gene networks along with their accompanying web pages were constructed by ',
                                                      tags$a(href='mailto:john.bryan@nih.gov', 'John Bryan.'), br(), br(),
                                                      'The 2019 automated pipeline datasets were built by ',
                                                      tags$a(href='mailto:vinay.swamy@nih.gov', 'Vinay Swamy.'), br(), br(),
-                                                     'The PCA analysis tool, its accompanying web page, and the ', tags$a(href="https://genome.ucsc.edu/s/parikhpp/Tissue%20Level%20BigWig%20Data", "tissue"),
+                                                     'The 2023 update with the PCA analysis tool, its accompanying web page, and the ', tags$a(href="https://genome.ucsc.edu/s/parikhpp/Tissue%20Level%20BigWig%20Data", "tissue"),
                                                      '/', tags$a(href="https://genome.ucsc.edu/s/parikhpp/Sample%20Level%20BigWig%20Data", "sample"), 'level UCSC genome browser were built by ',
-                                                     tags$a(href='mailto:prashit.parikh@nih.gov', 'Prashit Parikh.'), br(), br(),
+                                                     tags$a(href='mailto:prashit.parikh@nih.gov', 'Prashit Parikh'),' The new metadata curation schema along with the new samples is thanks to collaborative
+                                                            work with ', tags$a(href = "https://jasonmiller.lab.medicine.umich.edu/", "Jason Miller"), ' and ', 
+                                                     tags$a(href = 'https://prasov.lab.medicine.umich.edu', 'Lev Prasov'), br(), br(),
                                                      
-                                                     'Our analysis of the data in eyeIntegration has been published in Human Molecular Genetics. The manuscript is available ',
+                                                     'Our analysis of the 2017 data in eyeIntegration has been published in Human Molecular Genetics. The manuscript is available ',
                                                      tags$a(href="https://academic.oup.com/hmg/article/27/19/3325/5042913",
                                                             "here"), '.
                                   If you use this resource in your research we would appreciate a citation.',
@@ -344,11 +354,18 @@ shinyUI(fluidPage(
                                      fluidRow(includeHTML("www/footer.html")),
                                      br(), br()
                                    )),
+                          # analysis -----------
+                          tabPanel("Analysis and Extension", 
+                                   fluidRow(column(width = 8, offset = 1, h2('Advanced Analysis'))),
+                                   fluidRow(column(width = 8, offset = 1, "All links external. Here we present a tutorial on how to use the data in EiaD 
+                                   and recount3 to do custom differential testing. We also provide some brief guidance on how to use your own private data 
+                                                   to run custom diff testing.")),
+                                   fluidRow(column(width = 8, offset = 1, includeHTML("www/analyses.html")))),
                           # News ---------------
                           tabPanel('News',
                                    fluidPage(
                                      fluidRow(column(width = 8, offset = 1, h2('2022-04-19 | v2.00'))),
-                                     fluidRow(column(width = 8, offset = 1, 'Version 2.0! We introduce another huge set of updates, including a new 2023 dataset with 287 new eye samples, three new tissue categories, cell type level expression data, updated bulk RNA-seq expression boxplots, new PCA tool with user-inputted data compatibility, and a UCSC genome browser for visualization of base-pair level expression counts. Click', tags$a(href="https://genome.ucsc.edu/s/parikhpp/Tissue%20Level%20BigWig%20Data", "here"), 'to view the tissue-level genome browser and', tags$a(href="https://genome.ucsc.edu/s/parikhpp/Sample%20Level%20BigWig%20Data", "here"), 'for the sample-level genome browser.')),
+                                     fluidRow(column(width = 8, offset = 1, 'Version 2.0! We introduce another huge set of updates, including a new 2023 dataset with 287 new eye samples, three new tissue categories, cell type level expression data, bulk RNA-seq expression boxplots to better express our new metadata, and new PCA tool with user-inputted data compatibility, and a UCSC genome browser for visualization of base-pair level expression counts. Click', tags$a(href="https://genome.ucsc.edu/s/parikhpp/Tissue%20Level%20BigWig%20Data", "here"), 'to view the tissue-level genome browser and', tags$a(href="https://genome.ucsc.edu/s/parikhpp/Sample%20Level%20BigWig%20Data", "here"), 'for the sample-level genome browser.')),
                                      fluidRow(column(width = 8, offset = 1, h2('2020-02-14 | v1.05'))),
                                      fluidRow(column(width = 8, offset = 1, 'Updated DNTx to v01. Removed v00 as we have made SUBSTANTIAL improvements to the precision and reliability of the results. We do not recommend v00 be used.')),
                                      fluidRow(column(width = 8, offset = 1, h2('2020-01-31 | v1.04'))),
@@ -405,7 +422,7 @@ shinyUI(fluidPage(
                                                   "We will upload a finalized 2022 data workflow soon.")),
                             navlistPanel("Pan-Tissue Expression FAQs",
                                          # How to use the boxplot split by iteration of EiaD
-                                         tabPanel("How do I use the Pan-Tissue Expression section for data after 2019?",
+                                         tabPanel("How do I use the Pan-Tissue Expression section for the 2022 data?",
                                                   "First you select the 2022 dataset [2]. Then you can tweak the 'Genes' [3] and 'Tissues' [4] by clicking in them and starting to type (allowed values will auto-fill). You can also delete values by clicking on them and hitting the 'delete' key on your keyboard. You can tweak the display of the box plots a bit by orienting the plot according to whether you want your samples to be displayed as rows or columns [5]. When you are done tweaking those parameters, click the big blue '(Re)Draw Plot!' button [6] and wait a few seconds.", br(), br(), 'If you mouse over a data point [8], you will get metadata about that particular sample. If you would like to turn this feature off, you can uncheck the "Display Individual Sample Values" checkbox under the plot orientation.', br(), br(), img(src='pantissue_screenshot_2022.png', width = 900), br(), br()),
                                          tabPanel("How do I use the Pan-Tissue Expression section for data from 2019 and prior?",
                                                   "First you pick the dataset (2017 or 2019) [2]. Then you can tweak the 'Genes' [3] and 'Tissues' [4] by clicking in them and starting to type (allowed values will auto-fill). You can also delete values by clicking on them and hitting the 'delete' key on your keyboard. You can tweak the display of the box plots a bit by changing the 'Number of columns' field [5]. A higher number will squeeze more plots in each column. When you are done tweaking those parameters, click the big blue '(Re)Draw Plot!' button [6] and wait a few seconds.", br(), br(), 'If you mouse over a data point [8], you will get metadata about that particular sample.', br(), br(), img(src='pantissue_screenshot_pre_2022.png', width = 900), br(), br()),
@@ -477,7 +494,7 @@ shinyUI(fluidPage(
                                                   br(), br(), br()),
                                          tabPanel('What is the edge table showing?',
                                                   "The edge table allows you to search for a gene and it returns all significant (edge length > 0.01) correlated genes ACROSS the entire network. Using the 'Connections to show' radio button, you can control whether only extramodular or intramodular (or both) connections are included in the table."))))),
-                          
+               
                # Deprecated -----
                navbarMenu('Deprecated',
                           # Differential --------
