@@ -110,7 +110,7 @@ shinyUI(fluidPage(
                                                            selected = 1)), 
                                               conditionalPanel(condition = "scplot_type_gene != 'Heatmap'",
                                                                checkboxInput('sc_points', 
-                                                            label = strong('Display individual sample values'),
+                                                            label = strong('Display Individual Sample Values'),
                                                             value = FALSE)),
                                               actionButton('scpan_button_gene','(Re)Draw Plot!', 
                                                            style='background-color: #3399ff; color: #ffffff'), br(), br(), 
