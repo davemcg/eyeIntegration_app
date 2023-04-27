@@ -1,0 +1,104 @@
+<body>
+
+
+<div class="container-fluid main-container">
+
+
+
+
+<div id="header">
+
+
+
+
+</div>
+
+
+<!---
+<<<<<<< HEAD
+NOTE WHEN KNITTING/WHATEVER INTO HTML HAND DELETE EVERYTHING EXCEPT UP TO AND BEYOND <body> /<body> 
+
+PASTE BELOW AT THE TOP
+
+<style>
+      th, td {
+         padding-top: 5px;
+         padding-bottom: 5px;
+         padding-left: 20px;
+         padding-right: 20px;
+      }
+</style>
+
+=======
+NOTE WHEN KNITTING/WHATEVER INTO HTML HAND DELETE EVERYTHING OUTSIDE OF <body> /<body> and ALSO REMOVE ANY <script> sections
+>>>>>>> 675e20d3e348613d9becc8ab03b7b5a8c92859a4
+-->
+<table>
+<colgroup>
+<col width="52%" />
+<col width="47%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th>Data</th>
+<th>Link</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>UCSC Tissue Level Tracks</td>
+<td><a href="https://genome.ucsc.edu/cgi-bin/hgTracks?hgS_doOtherUser=submit&amp;hgS_otherUserName=parikhpp&amp;hgS_otherUserSessionName=Tissue+Level+BigWig+Data">Go</a></td>
+</tr>
+<tr class="even">
+<td>UCSC Sample Level Tracks</td>
+<td><a href="https://genome.ucsc.edu/cgi-bin/hgTracks?hgS_doOtherUser=submit&amp;hgS_otherUserName=parikhpp&amp;hgS_otherUserSessionName=Sample+Level+BigWig+Data">Go</a></td>
+</tr>
+</tbody>
+</table>
+
+
+
+
+</div>
+
+<script>
+
+// add bootstrap table styles to pandoc tables
+function bootstrapStylePandocTables() {
+  $('tr.odd').parent('tbody').parent('table').addClass('table table-condensed');
+}
+$(document).ready(function () {
+  bootstrapStylePandocTables();
+});
+
+
+</script>
+
+<!-- tabsets -->
+
+<script>
+$(document).ready(function () {
+  window.buildTabsets("TOC");
+});
+
+$(document).ready(function () {
+  $('.tabset-dropdown > .nav-tabs > li').click(function () {
+    $(this).parent().toggleClass('nav-tabs-open');
+  });
+});
+</script>
+
+<!-- code folding -->
+
+
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+  (function () {
+    var script = document.createElement("script");
+    script.type = "text/javascript";
+    script.src  = "https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML";
+    document.getElementsByTagName("head")[0].appendChild(script);
+  })();
+</script>
+
+</body>
