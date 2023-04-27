@@ -19,7 +19,7 @@ library(ipstack)
 library(lubridate)
 library(patchwork)
 
-eml_files <- list.files('~/data/eyeIntegration_eml_emails_up_to_2021_12_24/test', full.names = TRUE, pattern = '*eml', recursive = TRUE)
+eml_files <- list.files('~/data/eyeIntegration_eml_emails/x/', full.names = TRUE, pattern = '*eml', recursive = TRUE)
 eml_reader <- function(eml){
   raw <- read_lines(eml)
   
@@ -42,31 +42,45 @@ for (i in eml_files){
 }
 
 ipaddresses <- eml_list %>% bind_rows() %>% 
-  mutate(`Page Views` = as.numeric(`Page Views`)) %>%  
+  unique() %>% 
+  mutate(`Page Views` = case_when(!is.na(`Page Views`) ~ `Page Views`,
+                                  !is.na(X3) ~ X3,
+                                  !is.na(X4) ~ X4,
+                                  !is.na(X5) ~ X5,
+                                  !is.na(X6) ~ X6),
+         `Page Views` = as.numeric(`Page Views`)) %>% 
   filter(`Page Views` > 11)
 
+# find missing dates
+date_span <- Sys.Date() - (ipaddresses$date %>% sort() %>% head(1) )
+
+date_tib <- ((ipaddresses$date %>% sort() %>% head(1)) + days(0:date_span)) %>%  tibble::enframe() %>% transmute(date = value)
+
 # if loading previous work
-load('visitor_stats_2021_12.Rdata')
+#load('visitor_stats_2021_12.Rdata')
+
+#save(ipaddresses, eml_list, file = 'visitor_stats_2023_04.Rdata')
 ```
 
 Total page view from May 2017 to Present
 ```{r}
 sum(ipaddresses$`Page Views`)
+#1718117
 ```
 
+
 Chart of page views increasing over time
-```{r, fig.width=2.5}
+```{r, fig.width=3}
 a <- ipaddresses %>% 
-  filter(`Page Views` > 11, date < as.Date('2021-12-01')) %>% 
+  filter(`Page Views` > 11) %>% 
   group_by(date) %>% 
   summarise(`Visitor Count` = length(unique(ip))) %>% 
   mutate(`Visitor Count` = cumsum(`Visitor Count`)) %>% 
   ggplot(aes(x=date,y=`Visitor Count`)) + 
   geom_line() +
   cowplot::theme_cowplot() +
-  xlab('Date') + ylab('eyeIntegration\nCumulative\nVisitor Count') +
-  expand_limits(x = as.Date(c("2017-05-01", "2022-01-01"))) +
-  theme(text = element_text(size = 25))    
+  xlab('Date') + ylab('eyeIntegration\nCumulative\nVisits') +
+  expand_limits(x = as.Date(c("2017-05-01", "2023-05-01")))
 
 a
 ```   
@@ -74,27 +88,55 @@ a
 Get latitude and longitude for all unique IPs (takes a few minutes to query)
 ```{r}
 unique_IP <- ipaddresses$ip %>% unique()
-#ip_info <- list()
+ip_info <- list()
 
 # ipstack (useful, but no ISP info)
-# for (i in unique_IP){
-#   ip_info[[i]] <- ip_lookup(i, ipstack_api_key = '7d06f26c4f0f61bd9edd20df0219f874', hostname = T)
-# }
-
 for (i in unique_IP){
-  if (!(i %in% names(ip_info))){
-    print(i)
-    ip_info[[i]] <- ipapi::geolocate(i, .progress = FALSE)
-    Sys.sleep(2)
-  }
+  ip_info[[i]] <- ip_lookup(i, ipstack_api_key = '7d06f26c4f0f61bd9edd20df0219f874', hostname = TRUE)
 }
 
-ip_tibble <- ip_info %>% bind_rows()
+# ip_info_ipapi <- list()
+# for (i in unique_IP){
+#   if (!(i %in% names(ip_info_ipapi))){
+#     print(i)
+#     ip_info_ipapi[[i]] <- ipapi::geolocate(i, .progress = FALSE)
+#     Sys.sleep(2)
+#   }
+# }
+
+processed_ip <- list()
+for (i in names(ip_info)){
+  ip <- ip_info[[1]]$ip
+  isp <- ip_info[[i]]$connection$isp %>% as.character()
+  lat <- ip_info[[i]]$latitude %>% as.character()
+  lon <- ip_info[[i]]$longitude %>% as.character()
+  city <- ip_info[[i]]$city %>% as.character()
+  country <- ip_info[[i]]$country_name
+  processed_ip[[i]] <- cbind(ip, isp, lat, lon, country, city) %>% as_tibble()
+}
+
+ip_tibble <- processed_ip %>% bind_rows()
+
+ip_tibble %>% 
+  filter(grepl('Insti|Univ|Hosp|Med|Scie|Tech|Coll|Health|Verein|State|Labora|State|Riken|Biome|Agenc|China Educa|Merck', isp))
 ```
 
+```{r}
+usage_by_academia_pharma <- ipaddresses %>% left_join(ip_tibble) %>% 
+  group_by(isp) %>% 
+  summarise(Usage = sum(`Page Views`)) %>% 
+  arrange(-Usage) %>% 
+  filter(grepl('Insti|Univ|Hosp|Med|Scie|Tech|Coll|Health|Verein|State|Labora|State|Riken|Biome|Agenc|China Educa|Merck', isp),
+         isp != 'Nus Information Technology',
+         isp != 'Virgin Media Limited') %>% 
+  mutate(isp = case_when(grepl("Verein", isp)  ~ 'German National\nResearch and Education Network',
+                   TRUE ~ isp)) %>% data.frame() 
+
+top15 <- usage_by_academia_pharma %>% head(15) %>% pull(isp)
+```
 Save
 ```{r}
-save(ip_tibble, ip_tibble, ipaddresses, ip_info, file = '~/git/eyeIntegration_app/visitor_stats_2021_12.Rdata')
+save(ip_tibble, ipaddresses, ip_info, file = '~/git/eyeIntegration_app/visitor_stats_2021_12.Rdata')
 ```
 
 Interactive Map
@@ -112,17 +154,44 @@ Interactive Map
 ```
 
 Regular Map
-```{r, fig.width = 6, fig.height=2}
+```{r, fig.width = 5, fig.height=2.5}
+
+top15_coords <- ip_tibble %>% filter(isp %in% top15) %>% 
+  group_by(isp) %>% 
+  summarise(lon = mean(as.numeric(lon)),
+            lat = mean(as.numeric(lat)))
 world <- map_data("world")
 world <- world[world$region != "Antarctica",]
-ggplot(data = ip_tibble, aes(x = lon, y = lat, colour = country)) + 
+
+ggplot(data = ip_tibble, 
+       aes(x = as.numeric(lon), y = as.numeric(lat))) + 
+  geom_point(color = 'black', size = 0.4) + 
+  geom_point(data = ip_tibble %>% filter(grepl('Insti|Univ|Hosp|Med|Scie|Tech|Coll|Health|Verein|State|Labora|State|Riken|Biome|Agenc|China Educa|Merck', isp)), color = 'Red', size = 0.5) +
+  theme_void() +
+  ggsci::scale_color_aaas() +
+  geom_map(data=world %>% mutate(Institution = 'placeholder'), map=world,
+           aes(x=long, y=lat, map_id=region),
+           color="#090D2A", fill="lightgray", size=0.05, alpha=1/4) +
+  ggtitle('eyeIntegration has been used across 84 countries,\n250 research institutions, and 1465 cities')
+
+
+
+```
+
+
+```{r, fig.width=8, fig.height=4}
+ggplot(data = ip_tibble, 
+       aes(x = as.numeric(lon), y = as.numeric(lat))) + 
+  geom_point(color = 'black', size = 0.4) + 
+  theme_void() +
+  scale_color_viridis_d() +
   geom_map(data=world, map=world,
            aes(x=long, y=lat, map_id=region),
-           color="#090D2A", fill="lightgray", size=0.05, alpha=1/4) + 
-  geom_point() + 
-  theme_void() +
-  scale_color_viridis_d()
-
+           color="#090D2A", fill="lightgray", size=0.05, alpha=1/4) +
+  
+  ggrepel::geom_label_repel(data = top15_coords, aes(x=lon,y=lat,label = isp), 
+                            max.overlaps = Inf, force = 15, force_pull = 0.2) +
+  ggtitle("Top 15 Research Institution Users of eyeIntegration")
 ```
 
 # Figure
