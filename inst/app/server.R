@@ -30,18 +30,15 @@ library(RSQLite)
 library(ggtext)
 library(stringr)
 
-# base directory for files not held in ./www
-base_dir <- "/Volumes/Thunder/eyeIntegration_app/inst/app/www/2022/"
-#base_dir <- "~/data/EiaD/data_temp/"
+
 # pools for sqlite DBs ------------
 gene_pool_2022 <- dbPool(drv = SQLite(), dbname = ("./www/2022/eyeIntegration_2022_human.sqlite"), idleTimeout = 3600000)
 gene_pool_2017 <- dbPool(drv = SQLite(), dbname = "./www/2017/eyeIntegration_human_2017_01.sqlite", idleTimeout = 3600000)
 gene_pool_2019 <- dbPool(drv = SQLite(), dbname = "./www/2019/EiaD_human_expression_2019_04.sqlite", idleTimeout = 3600000)
 DNTx_pool_2019 <- dbPool(drv = SQLite(), dbname = "./www/2019/DNTx_EiaD_human_expression_2019_00.sqlite", idleTimeout = 3600000)
-SC_pool <- dbPool(drv = SQLite(), dbname = "./www/single_cell_retina_info_04.sqlite", idleTimeout = 3600000)
+SC_pool <- dbPool(drv = SQLite(), dbname = "./www/2019/single_cell_retina_info_04.sqlite", idleTimeout = 3600000)
 scEiaD_pool <- dbPool(drv = SQLite(), dbname = ("./www/2022/scEiaD.2023_03_02.sqlite"), idleTimeout = 3600000)
 
-#source('./www/cowplot::theme_cowplot.R')
 gene_names_2022 <- gene_pool_2022 %>% tbl('gene_IDs') %>% pull(ID) %>% unique()
 gene_names_2017 <- gene_pool_2017 %>% tbl('gene_IDs') %>% pull(ID)
 gene_names_2019 <- gene_pool_2019 %>% tbl('gene_IDs') %>% pull(ID)
@@ -407,14 +404,15 @@ shinyServer(function(input, output, session) {
                        server = TRUE)
   
   # Observe: GENE update tissues for fold change -----
-  observe({
-    selected_tissue <- input$plot_tissue_gene
-    updateSelectizeInput(session, 'Bench_gene',
-                         choices= selected_tissue,
-                         selected = selected_tissue,
-                         server = TRUE)
-    
-  })
+  # currently disable
+  # observe({
+  #   selected_tissue <- input$plot_tissue_gene
+  #   updateSelectizeInput(session, 'Bench_gene',
+  #                        choices= selected_tissue,
+  #                        selected = selected_tissue,
+  #                        server = TRUE)
+  #   
+  # })
   
   # Pan - Eye and Body PCA -------
   visualize_pca_function <- eventReactive(input$pca_button, {
@@ -1059,66 +1057,67 @@ shinyServer(function(input, output, session) {
   })
   
   # FC table stats ----------
-  output$basicStats_gene <- DT::renderDataTable(server = TRUE, {
-    input$pan_button_gene
-    isolate({
-      db <- input$Database
-      gene <- input$ID
-      tissue <- input$plot_tissue_gene
-      bench <- input$Bench_gene
-    })
-    if (db == 'Gene 2017'){
-      query = paste0('select * from lsTPM_gene where ID in ("',paste(gene, collapse='","'),'")')
-      plot_data <- dbGetQuery(gene_pool_2017,  query) %>%
-        left_join(.,core_tight_2017)
-    } else if (db == 'Transcript 2017'){
-      query = paste0('select * from lsTPM_tx where ID in ("',paste(gene, collapse='","'),'")')
-      plot_data <- dbGetQuery(gene_pool_2017,  query) %>%
-        left_join(.,core_tight_2017)
-    } else if (db == 'Gene 2022'){
-      query = paste0('select * from lsTPM_gene where ID in ("',paste(gene, collapse='","'),'")')
-      plot_data <- dbGetQuery(gene_pool_2022,  query) %>%
-        left_join(.,core_tight_2022)
-    } else if (db == 'Gene 2019'){
-      query = paste0('select * from lsTPM_gene where ID in ("',paste(gene, collapse='","'),'")')
-      plot_data <- dbGetQuery(gene_pool_2019,  query) %>%
-        left_join(.,core_tight_2019)
-    } else if (db == 'Transcript 2019'){
-      query = paste0('select * from lsTPM_tx where ID in ("',paste(gene, collapse='","'),'")')
-      plot_data <- dbGetQuery(gene_pool_2019,  query) %>%
-
-        left_join(.,core_tight_2019)
-    } else if (db == 'DNTx v01'){
-      query = paste0('select * from lsTPM_tx where ID in ("',paste(gene, collapse='","'),'")')
-      plot_data <- dbGetQuery(DNTx_pool_2019,  query) %>%
-        left_join(.,core_tight_2019)
-    }
-    base_stats <- plot_data %>%
-      filter(Sub_Tissue %in% tissue) %>%
-      group_by(ID) %>%
-      mutate(Bench=ifelse(Sub_Tissue %in% bench, 1, 0), BenchValue=mean(log2(value[Bench==1]+1))) %>%
-      group_by(ID, Sub_Tissue) %>%
-      summarise(log2DeltaFC=mean(log2(value+1)) - mean(BenchValue), mean=mean(log2(value+1)))
-    
-    # does t.test against a user-defined reference
-    # corrects for number of tests
-    tissue_subset <- plot_data %>% filter(Sub_Tissue %in% bench)
-    pvals <- plot_data %>%
-      group_by(Sub_Tissue, ID) %>%
-      do(broom::tidy(t.test(.$value, tissue_subset$value))) %>%
-      # multiple test correction
-      mutate(`t test p` = signif(min(1,p.value * length(unique(plot_data$Sub_Tissue)))),3) %>%
-      dplyr::select(ID, Sub_Tissue, `t test p`)
-    stat_join <- left_join(base_stats, pvals) %>%
-      mutate(`Gene Name` = ID, Tissue = `Sub_Tissue`, `log2 Fold Change` = log2DeltaFC, `Fold Change` = 2^log2DeltaFC, `Mean Expression` = mean) %>%
-      ungroup() %>%
-      dplyr::select(`Gene Name`, Tissue, `log2 Fold Change`, `Fold Change`, `Mean Expression`, `t test p`) %>%
-      arrange(`Gene Name`, Tissue) %>%
-      DT::datatable(rownames = F, options = list(pageLength = 20))  %>%
-      DT::formatRound(c('log2 Fold Change','Mean Expression'), digits=2) %>%
-      DT::formatRound('Fold Change', digits=6)
-    stat_join
-  })
+  # currently disabled
+  # output$basicStats_gene <- DT::renderDataTable(server = TRUE, {
+  #   input$pan_button_gene
+  #   isolate({
+  #     db <- input$Database
+  #     gene <- input$ID
+  #     tissue <- input$plot_tissue_gene
+  #     bench <- input$Bench_gene
+  #   })
+  #   if (db == 'Gene 2017'){
+  #     query = paste0('select * from lsTPM_gene where ID in ("',paste(gene, collapse='","'),'")')
+  #     plot_data <- dbGetQuery(gene_pool_2017,  query) %>%
+  #       left_join(.,core_tight_2017)
+  #   } else if (db == 'Transcript 2017'){
+  #     query = paste0('select * from lsTPM_tx where ID in ("',paste(gene, collapse='","'),'")')
+  #     plot_data <- dbGetQuery(gene_pool_2017,  query) %>%
+  #       left_join(.,core_tight_2017)
+  #   } else if (db == 'Gene 2022'){
+  #     query = paste0('select * from lsTPM_gene where ID in ("',paste(gene, collapse='","'),'")')
+  #     plot_data <- dbGetQuery(gene_pool_2022,  query) %>%
+  #       left_join(.,core_tight_2022)
+  #   } else if (db == 'Gene 2019'){
+  #     query = paste0('select * from lsTPM_gene where ID in ("',paste(gene, collapse='","'),'")')
+  #     plot_data <- dbGetQuery(gene_pool_2019,  query) %>%
+  #       left_join(.,core_tight_2019)
+  #   } else if (db == 'Transcript 2019'){
+  #     query = paste0('select * from lsTPM_tx where ID in ("',paste(gene, collapse='","'),'")')
+  #     plot_data <- dbGetQuery(gene_pool_2019,  query) %>%
+  # 
+  #       left_join(.,core_tight_2019)
+  #   } else if (db == 'DNTx v01'){
+  #     query = paste0('select * from lsTPM_tx where ID in ("',paste(gene, collapse='","'),'")')
+  #     plot_data <- dbGetQuery(DNTx_pool_2019,  query) %>%
+  #       left_join(.,core_tight_2019)
+  #   }
+  #   base_stats <- plot_data %>%
+  #     filter(Sub_Tissue %in% tissue) %>%
+  #     group_by(ID) %>%
+  #     mutate(Bench=ifelse(Sub_Tissue %in% bench, 1, 0), BenchValue=mean(log2(value[Bench==1]+1))) %>%
+  #     group_by(ID, Sub_Tissue) %>%
+  #     summarise(log2DeltaFC=mean(log2(value+1)) - mean(BenchValue), mean=mean(log2(value+1)))
+  #   
+  #   # does t.test against a user-defined reference
+  #   # corrects for number of tests
+  #   tissue_subset <- plot_data %>% filter(Sub_Tissue %in% bench)
+  #   pvals <- plot_data %>%
+  #     group_by(Sub_Tissue, ID) %>%
+  #     do(broom::tidy(t.test(.$value, tissue_subset$value))) %>%
+  #     # multiple test correction
+  #     mutate(`t test p` = signif(min(1,p.value * length(unique(plot_data$Sub_Tissue)))),3) %>%
+  #     dplyr::select(ID, Sub_Tissue, `t test p`)
+  #   stat_join <- left_join(base_stats, pvals) %>%
+  #     mutate(`Gene Name` = ID, Tissue = `Sub_Tissue`, `log2 Fold Change` = log2DeltaFC, `Fold Change` = 2^log2DeltaFC, `Mean Expression` = mean) %>%
+  #     ungroup() %>%
+  #     dplyr::select(`Gene Name`, Tissue, `log2 Fold Change`, `Fold Change`, `Mean Expression`, `t test p`) %>%
+  #     arrange(`Gene Name`, Tissue) %>%
+  #     DT::datatable(rownames = F, options = list(pageLength = 20))  %>%
+  #     DT::formatRound(c('log2 Fold Change','Mean Expression'), digits=2) %>%
+  #     DT::formatRound('Fold Change', digits=6)
+  #   stat_join
+  # })
   
   # temporal retina heatmap -------
   temporal_retina_heatmap_func <- eventReactive(input$pan_button_temporal_heatmap, {
