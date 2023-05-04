@@ -57,7 +57,7 @@ date_span <- Sys.Date() - (ipaddresses$date %>% sort() %>% head(1) )
 date_tib <- ((ipaddresses$date %>% sort() %>% head(1)) + days(0:date_span)) %>%  tibble::enframe() %>% transmute(date = value)
 
 # if loading previous work
-#load('visitor_stats_2021_12.Rdata')
+#load('visitor_stats_2023_04.Rdata')
 
 #save(ipaddresses, eml_list, file = 'visitor_stats_2023_04.Rdata')
 ```
@@ -90,9 +90,11 @@ Get latitude and longitude for all unique IPs (takes a few minutes to query)
 unique_IP <- ipaddresses$ip %>% unique()
 ip_info <- list()
 
-# ipstack (useful, but no ISP info)
+# ipstack 
 for (i in unique_IP){
-  ip_info[[i]] <- ip_lookup(i, ipstack_api_key = '7d06f26c4f0f61bd9edd20df0219f874', hostname = TRUE)
+  if (!(i %in% names(ip_info))){
+    ip_info[[i]] <- ip_lookup(i, ipstack_api_key = '7d06f26c4f0f61bd9edd20df0219f874', hostname = TRUE)
+  }
 }
 
 # ip_info_ipapi <- list()
@@ -106,7 +108,7 @@ for (i in unique_IP){
 
 processed_ip <- list()
 for (i in names(ip_info)){
-  ip <- ip_info[[1]]$ip
+  ip <- ip_info[[i]]$ip
   isp <- ip_info[[i]]$connection$isp %>% as.character()
   lat <- ip_info[[i]]$latitude %>% as.character()
   lon <- ip_info[[i]]$longitude %>% as.character()
@@ -124,19 +126,43 @@ ip_tibble %>%
 ```{r}
 usage_by_academia_pharma <- ipaddresses %>% left_join(ip_tibble) %>% 
   group_by(isp) %>% 
-  summarise(Usage = sum(`Page Views`)) %>% 
+  summarise(Usage = sum(`Page Views`), Visits = n()) %>% 
   arrange(-Usage) %>% 
   filter(grepl('Insti|Univ|Hosp|Med|Scie|Tech|Coll|Health|Verein|State|Labora|State|Riken|Biome|Agenc|China Educa|Merck', isp),
          isp != 'Nus Information Technology',
          isp != 'Virgin Media Limited') %>% 
   mutate(isp = case_when(grepl("Verein", isp)  ~ 'German National\nResearch and Education Network',
-                   TRUE ~ isp)) %>% data.frame() 
+                         TRUE ~ isp)) %>% data.frame() 
 
 top15 <- usage_by_academia_pharma %>% head(15) %>% pull(isp)
+
+top25 <- ipaddresses %>% left_join(ip_tibble) %>% 
+  group_by(isp) %>% 
+  summarise(Usage = sum(`Page Views`)) %>% 
+  arrange(-Usage) %>% 
+  filter(grepl('Insti|Univ|Hosp|Med|Scie|Tech|Coll|Health|Verein|State|Labora|State|Riken|Biome|Agenc|China Educa|Merck', isp),
+         isp != 'Nus Information Technology',
+         isp != 'Virgin Media Limited') %>% 
+  head(25) %>% pull(isp)
+```
+
+
+```{r, fig.width=15, fig.height=13}
+ipaddresses %>% left_join(ip_tibble %>% group_by(ip, isp) %>% summarise(Count = n())) %>% 
+    filter(`Page Views` > 11) %>%  filter(isp %in% top25) %>% 
+    group_by(isp, date) %>% 
+    summarise(`Usage` = sum(`Page Views`)) %>% 
+    mutate(`Usage` = cumsum(`Usage`)) %>%   mutate(isp = case_when(grepl("Verein", isp)  ~ 'German National\nResearch and Education Network',
+                                                                   TRUE ~ isp)) %>% 
+    ggplot(aes(x=date,y=Usage)) + 
+    geom_line() +
+    cowplot::theme_cowplot() +
+    xlab('Date') + ylab('eyeIntegration\nCumulative\nVisits') +
+    expand_limits(x = as.Date(c("2017-05-01", "2023-05-01"))) + facet_wrap(~isp, scales = 'free', labeller = label_wrap_gen(20))
 ```
 Save
 ```{r}
-save(ip_tibble, ipaddresses, ip_info, file = '~/git/eyeIntegration_app/visitor_stats_2021_12.Rdata')
+save(ip_tibble, ipaddresses, ip_info, file = '~/git/eyeIntegration_app/visitor_stats_2023_04.Rdata')
 ```
 
 Interactive Map
