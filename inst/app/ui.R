@@ -41,7 +41,7 @@ shinyUI(fluidPage(
                                                                checkboxGroupInput('heatmap_clustering_checkbox', strong('Clustering:'),
                                                                                   choices = list("Rows" = 1, "Columns" = 2))), br(), 
                                               selectizeInput('Database', strong('Dataset:'),
-                                                             choices = c("Gene 2017", "Transcript 2017", "Gene 2019", "Transcript 2019", "DNTx v01", "Gene 2022"), 
+                                                             choices = c("Gene 2017", "Transcript 2017", "Gene 2019", "Transcript 2019", "DNTx v01", "Gene 2022", "Transcript 2022"), 
                                                              multiple = FALSE, selected = "Gene 2022"),
                                               selectizeInput('ID', strong('ID:'),
                                                              choices=NULL, multiple=TRUE),
@@ -368,6 +368,8 @@ shinyUI(fluidPage(
                           # News ---------------
                           tabPanel('News',
                                    fluidPage(
+                                     fluidRow(column(width = 8, offset = 1, h2('2023-05-22 | v2.01'))),
+                                     fluidRow(column(width = 8, offset = 1, 'Swap out the recount3-based quant to a \"vanilla\" salmon quant. Has little effect on the data, but enables more straightforward outside comparison brings back transcript level quant.')),
                                      fluidRow(column(width = 8, offset = 1, h2('2022-04-19 | v2.00'))),
                                      fluidRow(column(width = 8, offset = 1, 'Version 2.0! We introduce another huge set of updates, including a new 2023 dataset with 287 new eye samples, three new tissue categories, cell type level expression data, bulk RNA-seq expression boxplots to better express our new metadata, and new PCA tool with user-inputted data compatibility, and a UCSC genome browser for visualization of base-pair level expression counts. Click', tags$a(href="https://genome.ucsc.edu/s/parikhpp/Tissue%20Level%20BigWig%20Data", "here"), 'to view the tissue-level genome browser and', tags$a(href="https://genome.ucsc.edu/s/parikhpp/Sample%20Level%20BigWig%20Data", "here"), 'for the sample-level genome browser.')),
                                      fluidRow(column(width = 8, offset = 1, h2('2020-02-14 | v1.05'))),

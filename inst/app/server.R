@@ -32,7 +32,7 @@ library(stringr)
 
 
 # pools for sqlite DBs ------------
-gene_pool_2022 <- dbPool(drv = SQLite(), dbname = ("./www/2022/eyeIntegration_2022_human.sqlite"), idleTimeout = 3600000)
+gene_pool_2022 <- dbPool(drv = SQLite(), dbname = ("./www/2022/eyeIntegration_2023_human.sqlite"), idleTimeout = 3600000)
 gene_pool_2017 <- dbPool(drv = SQLite(), dbname = "./www/2017/eyeIntegration_human_2017_01.sqlite", idleTimeout = 3600000)
 gene_pool_2019 <- dbPool(drv = SQLite(), dbname = "./www/2019/EiaD_human_expression_2019_04.sqlite", idleTimeout = 3600000)
 DNTx_pool_2019 <- dbPool(drv = SQLite(), dbname = "./www/2019/DNTx_EiaD_human_expression_2019_00.sqlite", idleTimeout = 3600000)
@@ -45,8 +45,9 @@ gene_names_2019 <- gene_pool_2019 %>% tbl('gene_IDs') %>% pull(ID)
 #geneTX_names_2022 <- gene_pool_2022 %>% tbl('tx_IDs') %>% pull(ID) %>% unique()
 geneTX_names_2017 <- gene_pool_2017 %>% tbl('tx_IDs') %>% pull(ID)
 geneTX_names_2019 <- gene_pool_2019 %>% tbl('tx_IDs') %>% pull(ID)
+geneTX_names_2022 <- gene_pool_2022 %>% tbl('tx_IDs') %>% pull(ID)
 geneTX_names_2019_DNTx <- DNTx_pool_2019 %>% tbl('tx_IDs') %>% pull(ID)
-core_tight_2022 <- gene_pool_2022 %>% tbl('metadata') %>% as_tibble() %>% select(sample_accession:sample_attribute, region:Comment, Sample_comment, Perturbation)
+core_tight_2022 <- gene_pool_2022 %>% tbl('metadata') %>% as_tibble() #%>% select(sample_accession:sample_attribute, region:Comment, Sample_comment, Perturbation)
 core_tight_2017 <- gene_pool_2017 %>% tbl('metadata') %>% as_tibble()
 core_tight_2019 <- gene_pool_2019 %>% tbl('metadata') %>% as_tibble()
 
@@ -120,14 +121,14 @@ shinyServer(function(input, output, session) {
     if (!is.null(query[['Dataset']])) {
       updateTextInput(session, "Database", value = gsub('_', ' ', as.character(query['Dataset'])))
     }
-    db = input$Database # c("Gene 2017", "Gene 2019", "Transcript 2017", "Transcript 2019", "Gene 2022")
+    db = input$Database # c("Gene 2017", "Gene 2019", "Transcript 2017", "Transcript 2019", "Gene 2022", "Transcript 2022")
     if (db == 'Gene 2017'){ID_names = gene_names_2017 %>% sort()
     } else if (db == 'Gene 2019'){ID_names = gene_names_2019 %>% sort()
     } else if (db == 'Transcript 2017'){ID_names = geneTX_names_2017 %>% sort()
     } else if (db == 'Gene 2022'){ID_names = gene_names_2022 %>% sort()
     } else if (db == 'DNTx v01'){ID_names = geneTX_names_2019_DNTx %>% sort()
     } else if (db == 'scEiaD_pool'){ID_names = Gene %>% sort()
-
+    } else if (db == 'Transcript 2022'){ID_names = geneTX_names_2022 %>% sort() 
     } else {ID_names = geneTX_names_2019 %>% sort()}
     # gene / tx lists
     if (is.null(query[['scmaturity']])){
@@ -700,6 +701,11 @@ shinyServer(function(input, output, session) {
       query = paste0('select * from lsTPM_gene where ID in ("',paste(gene, collapse='","'),'")')
       p <- dbGetQuery(gene_pool_2022, query) %>% left_join(.,core_tight_2022) %>%
         left_join(., gene_pool_2022 %>% tbl('gene_IDs') %>% as_tibble()) %>%
+        as_tibble()
+    } else if (db == 'Transcript 2022'){
+      query = paste0('select * from lsTPM_tx where ID in ("',paste(gene, collapse='","'),'")')
+      p <- dbGetQuery(gene_pool_2022, query) %>% left_join(.,core_tight_2022) %>%
+        left_join(., gene_pool_2022 %>% tbl('tx_IDs') %>% as_tibble()) %>%
         as_tibble()
     }
     p$Type <- p %>% select(contains('type')) %>% pull(1)
