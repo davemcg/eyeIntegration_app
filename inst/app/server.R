@@ -238,7 +238,7 @@ shinyServer(function(input, output, session) {
     mouse_gene_names <- dbGetQuery(SC_pool, paste('SELECT * FROM ', table_name)) %>% pull(Gene)
     SC_cell_types <- dbGetQuery(SC_pool, paste('SELECT * from ', metadata_name)) %>% pull(`Cell Type`) %>% unique() %>% sort()
     SC_cell_types <- SC_cell_types[!grepl('Red|Doub', SC_cell_types)]
-    
+
     updateSelectizeInput(session, 'mGene',
                          choices = sort(mouse_gene_names),
                          selected = c(mouse_gene_names[grepl('nrl', mouse_gene_names, ignore.case = T)],
@@ -249,7 +249,7 @@ shinyServer(function(input, output, session) {
                          selected = c(SC_cell_types[1], SC_cell_types[3]),
                          server = TRUE)
   })
-  
+
   # Observe: 2D clustering -> Mouse SC observe -----
   # like just above, change mouse gene name list depending on what dataset is selected (Clark or Macosko)
   # also change the ages displayed (if multiple available)
@@ -263,7 +263,7 @@ shinyServer(function(input, output, session) {
     } else {
       tsne_age <- dbGetQuery(SC_pool, paste('SELECT * from ', metadata_name)) %>% pull(Age) %>% unique() %>% sort()
     }
-    
+
     updateSelectizeInput(session, 'mGene_tsne',
                          choices = sort(mouse_gene_names),
                          selected = c(mouse_gene_names[grepl('abca4$', mouse_gene_names, ignore.case = T)],
@@ -274,7 +274,7 @@ shinyServer(function(input, output, session) {
                          selected = c(tsne_age[3]),
                          server = TRUE)
   })
-  
+
   # Observe: update SC datatable  -------
   # sort of like above, change tissue list depending on what dataset is selected (Clark or Macosko)
   observe({
@@ -283,7 +283,7 @@ shinyServer(function(input, output, session) {
     metadata_name <- paste(SC_dataset, 'SC_metadata_long', sep = '__')
     SC_cell_types <- dbGetQuery(SC_pool, paste('SELECT * from ', metadata_name)) %>% pull(`Cell Type`) %>% unique() %>% sort()
     SC_cell_types <- SC_cell_types[!grepl('Red|Doub', SC_cell_types)]
-    
+
     updateSelectizeInput(session, 'sc_datatable_tissue',
                          choices = SC_cell_types,
                          selected = c(SC_cell_types[grepl('Rod',SC_cell_types, ignore.case = T)],
@@ -952,6 +952,7 @@ shinyServer(function(input, output, session) {
                                             trimws() %>%
                                             enframe(),
                                           by = c('Sub_Tissue' = 'value')) %>%
+                               arrange(name) %>% 
                                pull(Tissue),
                              col = list(Tissue = tissue_val),
                              show_annotation_name = TRUE,
