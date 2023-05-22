@@ -32,7 +32,7 @@ library(stringr)
 
 
 # pools for sqlite DBs ------------
-gene_pool_2022 <- dbPool(drv = SQLite(), dbname = ("./www/2022/eyeIntegration_2023_human.sqlite"), idleTimeout = 3600000)
+gene_pool_2022 <- dbPool(drv = SQLite(), dbname = ("./www/2022/eyeIntegration_2023_human_counts.sqlite"), idleTimeout = 3600000)
 gene_pool_2017 <- dbPool(drv = SQLite(), dbname = "./www/2017/eyeIntegration_human_2017_01.sqlite", idleTimeout = 3600000)
 gene_pool_2019 <- dbPool(drv = SQLite(), dbname = "./www/2019/EiaD_human_expression_2019_04.sqlite", idleTimeout = 3600000)
 DNTx_pool_2019 <- dbPool(drv = SQLite(), dbname = "./www/2019/DNTx_EiaD_human_expression_2019_00.sqlite", idleTimeout = 3600000)
@@ -110,7 +110,7 @@ tissues_heatmap_2022 <- data.frame(combined_tissue_name = tissues_heatmap_2022,
 tissues_heatmap_2022 <- tissues_heatmap_2022 %>% left_join(data.frame(Tissue = tissue_val %>% names(),
                                                                       color = tissue_val), by = "Tissue") %>% select(combined_tissue_name, color)
 tissue_val_heatmap_2022 <- tissues_heatmap_2022$color
-names(tissue_val_heatmap_2022) <- tissues_heatmap_2022$combined_tissue_name
+names(tissue_val_heatmap_2022) <- tissues_heatmap_2022$combined_tissue_name %>% sort()
 
 # site begins! ---------
 shinyServer(function(input, output, session) {
@@ -894,9 +894,14 @@ shinyServer(function(input, output, session) {
       table <- 'mean_rank_decile_gene'
       meta <- 'core_tight_2022'
       label_size = 0.8
+    } else if (db == 'Transcript 2022'){
+      pool <- 'gene_pool_2022'
+      table <- 'mean_rank_decile_tx'
+      meta <- 'core_tight_2022'
+      label_size = 0.8
     }
     
-    if (db == "Gene 2022") {
+    if (db %in% c("Gene 2022", "Transcript 2022")) {
       heatmap_data_2022 <- get(pool) %>%
         tbl(table) %>%
         filter(ID %in% gene, Tissue %in% tissue) %>%
@@ -941,6 +946,7 @@ shinyServer(function(input, output, session) {
                                                                     heatmap_data_2022$Source, " | ", heatmap_data_2022$Perturbation, " | ", 
                                                                     heatmap_data_2022$Age)) %>%
                                select(Tissue, combined_tissue_name) %>% 
+                               arrange(Tissue) %>% 
                                unique() %>%
                                right_join(colnames(id_matrix) %>% 
                                             enframe(),
@@ -958,13 +964,14 @@ shinyServer(function(input, output, session) {
                                             trimws() %>%
                                             enframe(),
                                           by = c('Sub_Tissue' = 'value')) %>%
+                               arrange(name) %>% 
                                pull(Tissue),
                              col = list(Tissue = tissue_val),
                              show_annotation_name = TRUE,
                              which = 'column')
     }
-    
-    breaks = c(0,5,10)
+    max_hm <- id_matrix %>% max() %>% round(., digits = 1)
+    breaks = c(0,max_hm/2,max_hm)
     show_row_names = TRUE
     if (1 %in% input$heatmap_clustering_checkbox){
       cluster_rows = TRUE
@@ -1031,6 +1038,9 @@ shinyServer(function(input, output, session) {
     } else if (db == 'Gene 2022'){
       pool <- 'gene_pool_2022'
       table <- 'mean_rank_decile_gene'
+    } else if (db == 'Transcript 2022'){
+      pool <- 'gene_pool_2022'
+      table <- 'mean_rank_decile_tx'
     } else if (db == 'Gene 2019'){
       tissue <- trimws(tissue)
       pool <- 'gene_pool_2019'
@@ -1985,6 +1995,9 @@ shinyServer(function(input, output, session) {
           left_join(.,core_tight_2019)
       } else if (db == 'Gene 2022'){
         table <- dbGetQuery(gene_pool_2022,  paste0('select * from lsTPM_gene where ID in ("',paste(input$table_gene, collapse='","'),'")') ) %>%
+          left_join(.,core_tight_2022)
+      } else if (db == 'Transcript 2022'){
+        table <- dbGetQuery(gene_pool_2022,  paste0('select * from lsTPM_tx where ID in ("',paste(input$table_gene, collapse='","'),'")') ) %>%
           left_join(.,core_tight_2022)
       }
       table %>% filter(Tissue == local(input$table_tissue)) %>%
