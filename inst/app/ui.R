@@ -54,7 +54,7 @@ shinyUI(fluidPage(
                                                                radioButtons('rotation', strong('Plot Orientation:'),
                                                                             choices = list("Samples as rows" = 1, "Samples as columns" = 2), 
                                                                             selected = 1)), br(), 
-                                              conditionalPanel(condition = "input.plot_type_gene != 'Heatmap' & input.Database == 'Gene 2022'",
+                                              conditionalPanel(condition = "input.plot_type_gene != 'Heatmap' & input.plot_type_gene != 'Table' & input.Database == 'Gene 2022'",
                                                                checkboxInput('points', 
                                                                              label = strong('Display Individual Sample Values'),
                                                                              value = FALSE)), br(), 
@@ -311,10 +311,10 @@ shinyUI(fluidPage(
                                      fluidRow(column(width = 8, offset = 1,
                                                      "The human eye has several specialized tissues which direct, capture, and pre-process information to provide vision.
                                   RNA-seq gene expression analyses have been used extensively, for example, to profile specific eye tissues and in large consortium studies, like the GTEx project,
-                                  to study tissue-specific gene expression patterning", br(), br(), "However, there has not been an integrated study of multiple eye tissues expression patterning with other human
+                                  to study tissue-specific gene expression patterning.", br(), br(), "However, there has not been an integrated study of multiple eye tissues expression patterning with other human
                                   body tissues.", br(), br(),
-                                                     "We have collated publicly available (January 1st, 2019 and November 1st, 2022) healthy human RNA-seq datasets and a substantial subset of the GTEx project RNA-seq datasets and processed
-                                  all of these samples in a consistent bioinformatic workflow. We use this fully integrated dataset to build informative visualizations, novel PCA tool, and UCSC genome browser to provide the ophthalmic community with a powerful and quick means to formulate and test hypotheses on human 
+                                                     "We have collated publicly available (deposited between January 1st, 2019 and November 1st, 2022) healthy human RNA-seq datasets and a substantial subset of the GTEx project RNA-seq datasets and processed
+                                  all of these samples in a consistent bioinformatic workflow. We use this fully integrated dataset to build informative visualizations, a novel PCA tool, and UCSC genome browser to provide the ophthalmic community with a powerful and quick means to formulate and test hypotheses on human 
                                   gene and transcript expression.", br(), br(),
                                                      
                                                      # h2("Basic Statistics"),
@@ -326,16 +326,16 @@ shinyUI(fluidPage(
                                                      tags$a(href = "mailto:mcgaugheyd@mail.nih.gov?Subject=eyeIntegration%20Comment", "David McGaughey"),
                                                      'in ', tags$a(href='https://nei.nih.gov/intramural/ogcsb','OGVFB'), '/',
                                                      tags$a(href='https://nei.nih.gov','NEI'), '/',
-                                                     tags$a(href='https://www.nih.gov','NIH'), '. ',
+                                                     tags$a(href='https://www.nih.gov','NIH'), ', ',
                                                      ' in 2017. The retina and RPE gene networks along with their accompanying web pages were constructed by ',
-                                                     tags$a(href='mailto:john.bryan@nih.gov', 'John Bryan.'), br(), br(),
+                                                     tags$a(href='mailto:john.bryan@nih.gov', 'John Bryan'), '.', br(), br(),
                                                      'The 2019 automated pipeline datasets were built by ',
-                                                     tags$a(href='mailto:vinay.swamy@nih.gov', 'Vinay Swamy.'), br(), br(),
+                                                     tags$a(href='mailto:vinay.swamy@nih.gov', 'Vinay Swamy'), '.', br(), br(),
                                                      'The 2023 update with the PCA analysis tool, its accompanying web page, and the ', tags$a(href="https://genome.ucsc.edu/s/parikhpp/Tissue%20Level%20BigWig%20Data", "tissue"),
                                                      '/', tags$a(href="https://genome.ucsc.edu/s/parikhpp/Sample%20Level%20BigWig%20Data", "sample"), 'level UCSC genome browser were built by ',
-                                                     tags$a(href='mailto:prashit.parikh@nih.gov', 'Prashit Parikh'),' The new metadata curation schema along with the new samples is thanks to collaborative
+                                                     tags$a(href='mailto:pparikh1020@gmail.com', 'Prashit Parikh'),'. The new metadata curation schema along with the new samples is thanks to collaborative
                                                             work with ', tags$a(href = "https://jasonmiller.lab.medicine.umich.edu/", "Jason Miller"), ' and ', 
-                                                     tags$a(href = 'https://prasov.lab.medicine.umich.edu', 'Lev Prasov'), br(), br(),
+                                                     tags$a(href = 'https://prasov.lab.medicine.umich.edu', 'Lev Prasov'), '.', br(), br(),
                                                      
                                                      'Our analysis of the 2017 data in eyeIntegration has been published in Human Molecular Genetics. The manuscript is available ',
                                                      tags$a(href="https://academic.oup.com/hmg/article/27/19/3325/5042913",
@@ -345,15 +345,15 @@ shinyUI(fluidPage(
                                                      'We also strongly encourage citation of the publications
                                   behind the datasets used in this resource. A full list can be found ',
                                                      tags$a(href="https://github.com/davemcg/eyeIntegration_app/blob/master/inst/citations.md",
-                                                            "here."))),
+                                                            "here"), ".")),
                                      
                                      fluidRow(column(width = 8, offset = 1, h2('Source Code'))),
                                      fluidRow(column(width = 8, offset = 1,
-                                                     'The source code and data for this web application is available ', tags$a(href='https://gitlab.com/davemcg/Human_eyeIntegration_App', 'here.'))),
+                                                     'The source code and data for this web application are available ', tags$a(href='https://gitlab.com/davemcg/Human_eyeIntegration_App', 'here'), '.')),
                                      fluidRow(column(width = 8, offset = 1, h2('Problems?'))),
                                      fluidRow(column(width = 8, offset = 1,
-                                                     'First check the FAQ by clicking on ', strong('Information'), 'in the above header, then on ', strong('FAQs'), br(), br(), 'Other issues can be reported two ways: ',
-                                                     tags$a(href = "mailto:mcgaugheyd@mail.nih.gov?Subject=eyeIntegration%20Issue", "email"), 'or ',
+                                                     'First check the FAQ by clicking on ', strong('Information'), 'in the above header, then on ', strong('FAQs'), '.', br(), br(), 'Other issues can be reported two ways: ',
+                                                     tags$a(href = "mailto:mcgaugheyd@mail.nih.gov?Subject=eyeIntegration%20Issue", "Email"), 'or ',
                                                      tags$a(href ='https://github.com/davemcg/eyeintegration_app/issues', 'GitHub Issue Tracker'))),br(), br(),
                                      fluidRow(includeHTML("www/footer.html")),
                                      br(), br()
@@ -361,7 +361,7 @@ shinyUI(fluidPage(
                           # analysis -----------
                           tabPanel("Analysis and Extension", 
                                    fluidRow(column(width = 8, offset = 1, h2('Advanced Analysis'))),
-                                   fluidRow(column(width = 8, offset = 1, "All links external. Here we present a tutorial on how to use the data in EiaD 
+                                   fluidRow(column(width = 8, offset = 1, "All links are external. Here we present a tutorial on how to use the data in EiaD 
                                    and recount3 to do custom differential testing. We also provide some brief guidance on how to use your own private data 
                                                    to run custom diff testing.")),
                                    fluidRow(column(width = 8, offset = 1, includeHTML("www/analyses.html")))),
@@ -369,9 +369,9 @@ shinyUI(fluidPage(
                           tabPanel('News',
                                    fluidPage(
                                      fluidRow(column(width = 8, offset = 1, h2('2023-05-22 | v2.01'))),
-                                     fluidRow(column(width = 8, offset = 1, 'Swap out the recount3-based quant to a \"vanilla\" salmon quant. Has little effect on the data, but enables more straightforward outside comparison brings back transcript level quant.')),
-                                     fluidRow(column(width = 8, offset = 1, h2('2022-04-19 | v2.00'))),
-                                     fluidRow(column(width = 8, offset = 1, 'Version 2.0! We introduce another huge set of updates, including a new 2023 dataset with 287 new eye samples, three new tissue categories, cell type level expression data, bulk RNA-seq expression boxplots to better express our new metadata, and new PCA tool with user-inputted data compatibility, and a UCSC genome browser for visualization of base-pair level expression counts. Click', tags$a(href="https://genome.ucsc.edu/s/parikhpp/Tissue%20Level%20BigWig%20Data", "here"), 'to view the tissue-level genome browser and', tags$a(href="https://genome.ucsc.edu/s/parikhpp/Sample%20Level%20BigWig%20Data", "here"), 'for the sample-level genome browser.')),
+                                     fluidRow(column(width = 8, offset = 1, 'Swap out the recount3-based quant to a \"vanilla\" salmon quant. Has little effect on the data, but enables more straightforward outside comparison and brings back transcript level quant.')),
+                                     fluidRow(column(width = 8, offset = 1, h2('2023-04-19 | v2.00'))),
+                                     fluidRow(column(width = 8, offset = 1, 'Version 2.0! We introduce another huge set of updates, including a new 2023 dataset with 287 new eye samples, three new tissue categories, cell type level expression data, bulk RNA-seq expression boxplots to better express our new metadata, a new PCA tool with user-inputted data compatibility, and a UCSC genome browser for visualization of base-pair level expression counts. Click', tags$a(href="https://genome.ucsc.edu/s/parikhpp/Tissue%20Level%20BigWig%20Data", "here"), 'to view the tissue-level genome browser and', tags$a(href="https://genome.ucsc.edu/s/parikhpp/Sample%20Level%20BigWig%20Data", "here"), 'for the sample-level genome browser.')),
                                      fluidRow(column(width = 8, offset = 1, h2('2020-02-14 | v1.05'))),
                                      fluidRow(column(width = 8, offset = 1, 'Updated DNTx to v01. Removed v00 as we have made SUBSTANTIAL improvements to the precision and reliability of the results. We do not recommend v00 be used.')),
                                      fluidRow(column(width = 8, offset = 1, h2('2020-01-31 | v1.04'))),
