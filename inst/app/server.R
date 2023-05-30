@@ -52,8 +52,6 @@ core_tight_2019 <- gene_pool_2019 %>% tbl('metadata') %>% as_tibble()
 
 # Data for PCA Visualization - created by the EiaD_build/scripts/pca_workup_for_eyeIntegration_app.Rmd script
 load('./www/2022/eyeIntegration_2023_pca.Rdata')
-# created by the EiaD_build/scripts/pca_workup_data_prep.R script
-load('./www/2022/EiaD_pca_analysis.Rdata')
 
 load('./www/2017/retina_module_network_lists.Rdata') # NOTE THESE ARE PRECOMPUTED htmlwidgets 
 load('./www/2017/rpe_module_network_lists.Rdata') # NOTE THESE ARE PRECOMPUTED htmlwidgets 

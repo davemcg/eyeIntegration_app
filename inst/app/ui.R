@@ -627,7 +627,7 @@ shinyUI(fluidPage(
                                        column(4, numericInput('perplexity','Perplexity (5 - 50):', value=50, min=5, max=50, step = 5)
                                        ),
                                        column(10,
-                                              ggiraphOutput('tsne', height = '1200px', width = '100%')))
+                                              girafeOutput('tsne', height = '1200px', width = '100%')))
                                    ), br(), br(),
                                    fluidRow(includeHTML("www/footer.html"))
                           ),
