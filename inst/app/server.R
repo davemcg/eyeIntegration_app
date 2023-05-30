@@ -25,7 +25,6 @@ library(circlize)
 library(viridis)
 library(shadowtext)
 library(htmltools)
-library(pool)
 library(RSQLite)
 library(ggtext)
 library(stringr)
@@ -95,6 +94,10 @@ CellType_predict_fill <- scale_fill_manual(values = CellType_predict_val)
 # make global tissue vals
 tissues <- c(core_tight_2017$Tissue, core_tight_2019$Tissue, core_tight_2022$Tissue)%>% unique() %>% sort() 
 tissue_val <- setNames(c(pals::polychrome()[3:36],  pals::kelly()[c(3:7,10:21)])[1:length(tissues)], tissues %>% sort())
+
+# fix tissue <-> color
+tissue_col <- scale_colour_manual(values = tissue_val)
+tissue_fill <- scale_fill_manual(values = tissue_val)
 
 # make 2022 heatmap tissue vals
 heatmap_data_2022 <- core_tight_2022 %>% select(Tissue, Sub_Tissue, Source, Perturbation, Age)
@@ -202,7 +205,7 @@ shinyServer(function(input, output, session) {
     } else if (db == 'Transcript 2019'){
       pool <- 'gene_pool_2019'
       ids <- 'tx_ids'
-    } else if (db == 'DNTx v00'){
+    } else if (db == 'DNTx v01'){
       pool <- 'DNTx_pool_2019'
       ids <- 'tx_ids'
     } else if (db == 'scEiaD_pool'){
@@ -272,7 +275,7 @@ shinyServer(function(input, output, session) {
                          server = TRUE)
     updateSelectizeInput(session, 'age_tsne',
                          choices = tsne_age,
-                         selected = c(tsne_age[3]),
+                         selected = ifelse(SC_dataset == 'macosko', c('P14'), c(tsne_age[3])),
                          server = TRUE)
   })
   
@@ -717,12 +720,6 @@ shinyServer(function(input, output, session) {
       plot_data <- p %>%
         filter(Sub_Tissue %in% tissue) 
     }
-
-    
-    # fix tissue <-> color
-    tissue_val <- tissue_val[plot_data$Tissue %>% unique()]
-    tissue_col <- scale_colour_manual(values = tissue_val)
-    tissue_fill <- scale_fill_manual(values = tissue_val)
     
     if (!grepl('2022', db)){
       p <- plot_data %>%
@@ -883,7 +880,7 @@ shinyServer(function(input, output, session) {
       meta <- 'core_tight_2019'
       table <- 'mean_rank_decile_tx'
       label_size = 0.8
-    } else if (db == 'DNTx v00'){
+    } else if (db == 'DNTx v01'){
       tissue <- trimws(tissue)
       pool <- 'DNTx_pool_2019'
       meta <- 'core_tight_2019'
@@ -1049,7 +1046,7 @@ shinyServer(function(input, output, session) {
       tissue <- trimws(tissue)
       pool <- 'gene_pool_2019'
       table <- 'mean_rank_decile_tx'
-    } else if (db == 'DNTx v00'){
+    } else if (db == 'DNTx v01'){
       tissue <- trimws(tissue)
       pool <- 'DNTx_pool_2019'
       table <- 'mean_rank_decile_tx'
@@ -1625,12 +1622,15 @@ shinyServer(function(input, output, session) {
     if (dataSET == '2017'){
       load('./www/all_tsne_plot_prepped__2017_02.Rdata') # tsne 5->50 perplexity for bulk RNA. script to create called 'dbscan_interactive_page_calculate.R'
       perplexity_level <- perp
-      tsne_plot<- all_tsne_plot_prepped %>% filter(perplexity==perplexity_level)
+      tsne_plot <- all_tsne_plot_prepped %>% 
+        mutate(Label = gsub("<br>", "\n", all_tsne_plot_prepped$Label)) %>% 
+        filter(perplexity==perplexity_level)
       
       p <- ggplot(tsne_plot) +
         ggtitle('Pan tissue t-SNE') +
-        geom_point_interactive(size=20, alpha=0.2, aes(x=X1,y=X2,colour=Cluster, tooltip=htmlEscape(Label, TRUE))) +
+        geom_point_interactive(size=20, alpha=0.1, aes(x=X1,y=X2,colour=Tissue, tooltip=Label)) +
         geom_point(data=tsne_plot %>% dplyr::select(X1,X2), size=5, alpha=0.2, colour='black', aes(x=X1,y=X2)) +
+        tissue_col +
         xlab('t-SNE 1') + ylab('t-SNE 2') +
         theme_minimal() +
         guides(colour = guide_legend(ncol = 3,
@@ -1652,16 +1652,16 @@ shinyServer(function(input, output, session) {
         scale_shape_manual(values=c(0:2,5,6,15:20)) +
         ggtitle('Pan tissue t-SNE') +
         geom_point(size=20, alpha=0.1, aes(colour=Tissue)) +
-        geom_point_interactive(size=5, alpha=0.6, aes(shape=Origin, tooltip = htmlEscape(Info, TRUE))) +
+        geom_point_interactive(size=5, alpha=0.6, aes(shape=Origin, tooltip = Info)) +
         geom_label_repel(aes(label=Label), alpha=0.8, size=4, box.padding = unit(0.3, "lines")) +
         theme_minimal() +
         xlab('t-SNE 1') +
         ylab('t-SNE 2') +
-        tissue_col +
+        tissue_col+
         guides(colour = guide_legend(ncol = 3,
                                      override.aes = list(size=10, alpha = 1)))
     }
-    ggiraph(code = print(p),selection_type = 'none', zoom_max=3, width_svg = 14, height_svg = 10)
+    girafe(code = print(p), width_svg = 14, height_svg = 10)
     
   })
   output$tsne <- renderGirafe({
@@ -1695,7 +1695,7 @@ shinyServer(function(input, output, session) {
         left_join(., gene_pool_2019 %>% tbl('gene_IDs') %>% as_tibble())  %>%
         filter(gene_type %in% input$gene_tx_type) %>%
         rename(Class = gene_type)
-    } else if (input$diff_database == 'DNTx v00'){
+    } else if (input$diff_database == 'DNTx v01'){
       de_data <- DNTx_pool_2019 %>%
         tbl('limma_DE_tx') %>%
         filter(Comparison == local(input$de_comparison)) %>%
