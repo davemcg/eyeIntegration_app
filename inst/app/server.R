@@ -967,7 +967,7 @@ shinyServer(function(input, output, session) {
                              show_annotation_name = TRUE,
                              which = 'column')
     }
-    max_hm <- id_matrix %>% max() %>% round(., digits = 1)
+    max_hm <- max(1,id_matrix %>% max() %>% round(., digits = 1))
     breaks = c(0,max_hm/2,max_hm)
     show_row_names = TRUE
     if (1 %in% input$heatmap_clustering_checkbox){
