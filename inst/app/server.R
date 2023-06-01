@@ -52,6 +52,8 @@ core_tight_2019 <- gene_pool_2019 %>% tbl('metadata') %>% as_tibble()
 
 # Data for PCA Visualization - created by the EiaD_build/scripts/pca_workup_for_eyeIntegration_app.Rmd script
 load('./www/2022/eyeIntegration_2023_pca.Rdata')
+# Data for Gene Tables used in PCA Visualization - created by the EiaD_build/scripts/pca_workup_data_prep.R script
+load('./www/2022/EiaD_pca_analysis_2023.Rdata')
 
 load('./www/2017/retina_module_network_lists.Rdata') # NOTE THESE ARE PRECOMPUTED htmlwidgets 
 load('./www/2017/rpe_module_network_lists.Rdata') # NOTE THESE ARE PRECOMPUTED htmlwidgets 
@@ -542,7 +544,7 @@ shinyServer(function(input, output, session) {
     }
     
     # scale
-    scaled <- scale(raw_matrix)
+    scaled <- scale(raw_matrix) %>% log1p()
     row.names(scaled) <- row_genes
     # Only genes that match our internal genes used
     gene_universe <- gene_id_table %>% pull(column_val)
@@ -1049,18 +1051,36 @@ shinyServer(function(input, output, session) {
       pool <- 'DNTx_pool_2019'
       table <- 'mean_rank_decile_tx'
     }
-    get(pool) %>% tbl(table) %>%
-      filter(ID %in% gene, Sub_Tissue %in% tissue) %>%
-      mutate(ID, Tissue = `Sub_Tissue`) %>%
-      ungroup() %>%
-      dplyr::select(ID, Tissue, meanlsTPM, Rank, Decile) %>%
-      arrange(ID, Tissue) %>%
-      as_tibble() %>%
-      mutate(`log2(TPM + 1)` = log2(meanlsTPM + 1)) %>%
-      dplyr::select(-meanlsTPM) %>%
-      DT::datatable(extensions = 'Buttons', rownames = F, options = list(
-        pageLength = 20, dom = 'frtBip', buttons = c('pageLength','copy', 'csv'))) %>%
-      DT::formatRound(c('log2(TPM + 1)'), digits=2)
+    if (grepl("2022", db)){
+      decile_df <- get(pool) %>% tbl(table) %>% 
+        filter(ID %in% gene, Tissue %in% tissue) %>% as.data.frame()
+      decile_df[is.na(decile_df)] <- ""
+      
+      decile_df %>% 
+        mutate(ID, Tissue = paste(`Tissue`, `Sub_Tissue`, `Source`, `Age`, `Perturbation`, sep = " | ")) %>%
+        ungroup() %>%
+        dplyr::select(ID, Tissue, meanlsTPM, Rank, Decile) %>%
+        arrange(ID, Tissue) %>%
+        as_tibble() %>%
+        mutate(`log1p(Z-Counts)` = log2(meanlsTPM + 1)) %>%
+        dplyr::select(-meanlsTPM) %>%
+        DT::datatable(extensions = 'Buttons', rownames = F, options = list(
+          pageLength = 20, dom = 'frtBip', buttons = c('pageLength','copy', 'csv'))) %>%
+        DT::formatRound(c('log1p(Z-Counts)'), digits=2)
+    } else {
+      get(pool) %>% tbl(table) %>%
+        filter(ID %in% gene, Sub_Tissue %in% tissue) %>%
+        mutate(ID, Tissue = `Sub_Tissue`) %>%
+        ungroup() %>%
+        dplyr::select(ID, Tissue, meanlsTPM, Rank, Decile) %>%
+        arrange(ID, Tissue) %>%
+        as_tibble() %>%
+        mutate(`log2(TPM + 1)` = log2(meanlsTPM + 1)) %>%
+        dplyr::select(-meanlsTPM) %>%
+        DT::datatable(extensions = 'Buttons', rownames = F, options = list(
+          pageLength = 20, dom = 'frtBip', buttons = c('pageLength','copy', 'csv'))) %>%
+        DT::formatRound(c('log2(TPM + 1)'), digits=2)
+    }
   })
   
   output$rankStats_gene <- DT::renderDataTable(server = TRUE, {

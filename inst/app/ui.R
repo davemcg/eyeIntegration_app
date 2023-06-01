@@ -47,8 +47,8 @@ shinyUI(fluidPage(
                                                              choices=NULL, multiple=TRUE),
                                               selectizeInput('plot_tissue_gene',strong('Tissues:'),
                                                              choices=NULL,multiple=TRUE),
-                                              conditionalPanel(condition = "input.plot_type_gene != 'Heatmap' & input.Database != 'Gene 2022'",
-                                                               numericInput('num_gene', strong('Number of columns:'),
+                                              conditionalPanel(condition = "input.plot_type_gene != 'Heatmap' & input.Database != 'Gene 2022' & input.Database != 'Transcript 2022'",
+                                                               numericInput('num_gene', strong('Number of Columns:'),
                                                                             value = 2, min = 1, max = 50)), br(), 
                                               conditionalPanel(condition = "input.plot_type_gene != 'Heatmap' & input.plot_type_gene != 'Table' & input.Database == 'Gene 2022'",
                                                                radioButtons('rotation', strong('Plot Orientation:'),
@@ -57,7 +57,15 @@ shinyUI(fluidPage(
                                               conditionalPanel(condition = "input.plot_type_gene != 'Heatmap' & input.plot_type_gene != 'Table' & input.Database == 'Gene 2022'",
                                                                checkboxInput('points', 
                                                                              label = strong('Display Individual Sample Values'),
-                                                                             value = FALSE)), br(), 
+                                                                             value = FALSE)), br(),
+                                              conditionalPanel(condition = "input.plot_type_gene != 'Heatmap' & input.plot_type_gene != 'Table' & input.Database == 'Transcript 2022'",
+                                                               radioButtons('rotation', strong('Plot Orientation:'),
+                                                                            choices = list("Samples as rows" = 1, "Samples as columns" = 2), 
+                                                                            selected = 1)), br(), 
+                                              conditionalPanel(condition = "input.plot_type_gene != 'Heatmap' & input.plot_type_gene != 'Table' & input.Database == 'Transcript 2022'",
+                                                               checkboxInput('points', 
+                                                                             label = strong('Display Individual Sample Values'),
+                                                                             value = FALSE)), br(),
                                               actionButton('pan_button_gene','(Re)Draw Plot!', 
                                                            style='background-color: #3399ff; color: #ffffff'), br(), br(), 
                                               actionButton('build_pan_url','Build URL Shortcut', 
@@ -83,7 +91,9 @@ shinyUI(fluidPage(
                                               )
                                        ),
                                        column(3,
-                                              div(DT::dataTableOutput('gene_info'),style='font-size:75%')
+                                              div(DT::dataTableOutput('gene_info'),style='font-size:75%'), br(), br(),
+                                              conditionalPanel(condition = "input.plot_type_gene == 'Box Plot'",
+                                                               div(DT::dataTableOutput('rankStats_gene'),style='font-size:75%'))
                                        )
                                      )
                                    ), br(), br(),
@@ -431,7 +441,7 @@ shinyUI(fluidPage(
                                          tabPanel("How do I use the Pan-Tissue Expression section for the 2022 data?",
                                                   "First you select the 2022 dataset [2]. Then you can tweak the 'Genes' [3] and 'Tissues' [4] by clicking in them and starting to type (allowed values will auto-fill). You can also delete values by clicking on them and hitting the 'delete' key on your keyboard. You can tweak the display of the box plots a bit by orienting the plot according to whether you want your samples to be displayed as rows or columns [5]. When you are done tweaking those parameters, click the big blue '(Re)Draw Plot!' button [6] and wait a few seconds.", br(), br(), 'If you mouse over a data point [8], you will get metadata about that particular sample. If you would like to turn this feature off, you can uncheck the "Display Individual Sample Values" checkbox under the plot orientation.', br(), br(), img(src='pantissue_screenshot_2022.png', width = 900), br(), br()),
                                          tabPanel("How do I use the Pan-Tissue Expression section for data from 2019 and prior?",
-                                                  "First you pick the dataset (2017 or 2019) [2]. Then you can tweak the 'Genes' [3] and 'Tissues' [4] by clicking in them and starting to type (allowed values will auto-fill). You can also delete values by clicking on them and hitting the 'delete' key on your keyboard. You can tweak the display of the box plots a bit by changing the 'Number of columns' field [5]. A higher number will squeeze more plots in each column. When you are done tweaking those parameters, click the big blue '(Re)Draw Plot!' button [6] and wait a few seconds.", br(), br(), 'If you mouse over a data point [8], you will get metadata about that particular sample.', br(), br(), img(src='pantissue_screenshot_pre_2022.png', width = 900), br(), br()),
+                                                  "First you pick the dataset (2017 or 2019) [2]. Then you can tweak the 'Genes' [3] and 'Tissues' [4] by clicking in them and starting to type (allowed values will auto-fill). You can also delete values by clicking on them and hitting the 'delete' key on your keyboard. You can tweak the display of the box plots a bit by changing the 'Number of Columns' field [5]. A higher number will squeeze more plots in each column. When you are done tweaking those parameters, click the big blue '(Re)Draw Plot!' button [6] and wait a few seconds.", br(), br(), 'If you mouse over a data point [8], you will get metadata about that particular sample.', br(), br(), img(src='pantissue_screenshot_pre_2022.png', width = 900), br(), br()),
                                          # What the boxplot shows split by iteration of EiaD
                                          tabPanel("What Pan-Tissue Expression data is displayed for data after 2019?",
                                                   "Each gene and tissue combination gets its own box. Depending on how the plot is oriented, one axis is length scaled TPM (log2 transformed). The other axis contains the samples, colored by tissue. The right panel is a table with external links to gene info [9].", br(), br(), img(src='pantissue_screenshot_2022.png', width = 900), br(), br()),
