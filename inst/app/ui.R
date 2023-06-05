@@ -12,7 +12,7 @@ library(plotly)
 # Data for PCA Visualization - created by the EiaD_build/scripts/pca_workup_for_eyeIntegration_app.Rmd script
 load('./www/2022/eyeIntegration_2023_pca.Rdata')
 # created by the EiaD_build/scripts/pca_workup_data_prep.R script
-load('./www/2022/EiaD_pca_analysis.Rdata')
+load('./www/2022/EiaD_pca_analysis_2023.Rdata')
 
 load('./www/2017/retina_colors.Rdata')
 load('./www/2017/rpe_colors.Rdata')

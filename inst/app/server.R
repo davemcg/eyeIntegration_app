@@ -37,6 +37,8 @@ gene_pool_2019 <- dbPool(drv = SQLite(), dbname = "./www/2019/EiaD_human_express
 DNTx_pool_2019 <- dbPool(drv = SQLite(), dbname = "./www/2019/DNTx_EiaD_human_expression_2019_00.sqlite", idleTimeout = 3600000)
 SC_pool <- dbPool(drv = SQLite(), dbname = "./www/2019/single_cell_retina_info_04.sqlite", idleTimeout = 3600000)
 scEiaD_pool <- dbPool(drv = SQLite(), dbname = ("./www/2022/scEiaD.2023_03_02.sqlite"), idleTimeout = 3600000)
+# Load in file containing samples to remove from web application
+excluded_samples <- scan("./www/2022/excluded_samples.txt", what = "character")
 
 gene_names_2022 <- gene_pool_2022 %>% tbl('gene_IDs') %>% pull(ID) %>% unique()
 gene_names_2017 <- gene_pool_2017 %>% tbl('gene_IDs') %>% pull(ID)
@@ -46,7 +48,8 @@ geneTX_names_2017 <- gene_pool_2017 %>% tbl('tx_IDs') %>% pull(ID)
 geneTX_names_2019 <- gene_pool_2019 %>% tbl('tx_IDs') %>% pull(ID)
 geneTX_names_2022 <- gene_pool_2022 %>% tbl('tx_IDs') %>% pull(ID)
 geneTX_names_2019_DNTx <- DNTx_pool_2019 %>% tbl('tx_IDs') %>% pull(ID)
-core_tight_2022 <- gene_pool_2022 %>% tbl('metadata') %>% as_tibble() #%>% select(sample_accession:sample_attribute, region:Comment, Sample_comment, Perturbation)
+core_tight_2022 <- gene_pool_2022 %>% tbl('metadata') %>% 
+  filter(!sample_accession %in% excluded_samples) %>% as_tibble() #%>% select(sample_accession:sample_attribute, region:Comment, Sample_comment, Perturbation)
 core_tight_2017 <- gene_pool_2017 %>% tbl('metadata') %>% as_tibble()
 core_tight_2019 <- gene_pool_2019 %>% tbl('metadata') %>% as_tibble()
 
