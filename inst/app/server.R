@@ -980,6 +980,8 @@ shinyServer(function(input, output, session) {
       cluster_cols = TRUE
     } else {cluster_cols = FALSE}
     
+    name <- ifelse(grepl("2022", db), 'log2(zCount+1)', 'log2(TPM+1)')
+    
     Heatmap(id_matrix,
             top_annotation = ha,
             cluster_columns = cluster_cols,
@@ -988,7 +990,7 @@ shinyServer(function(input, output, session) {
             col = colorRamp2(breaks = breaks, colors = viridis(length(breaks))),
             rect_gp = gpar(col= "white"),
             show_row_names = show_row_names,
-            name = 'log2(TPM+1)',
+            name = name,
             #show_heatmap_legend = show_heatmap_legend,
             column_names_max_height = unit(12, "cm"),
             row_names_max_width = unit(8, "cm"),
