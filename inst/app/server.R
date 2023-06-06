@@ -946,11 +946,11 @@ shinyServer(function(input, output, session) {
                                                                     heatmap_data_2022$Source, " | ", heatmap_data_2022$Perturbation, " | ", 
                                                                     heatmap_data_2022$Age)) %>%
                                select(Tissue, combined_tissue_name) %>% 
-                               arrange(Tissue) %>% 
                                unique() %>%
                                right_join(colnames(id_matrix) %>% 
                                             enframe(),
                                           by = c('combined_tissue_name' = 'value')) %>%
+                               arrange(name) %>% 
                                pull(combined_tissue_name),
                              col = list(Tissue = tissue_val_heatmap_2022),
                              show_annotation_name = TRUE,
