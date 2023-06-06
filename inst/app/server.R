@@ -777,7 +777,7 @@ shinyServer(function(input, output, session) {
         geom_boxplot(alpha=0.7, outlier.shape = NA, width = 0.6, fill = 'black') +
         cowplot::theme_cowplot(font_size = 15) + theme(axis.text.x = element_text(angle = 90, hjust=1, vjust = 0.2)) +
         ggtitle('Box Plot of Pan-Human Gene Expression') +
-        ylab("log2(TPM + 1)") +
+        ylab("log2(zCount+1)") +
         scale_shape_manual(values=c(0:2,5,6,15:50)) +
         theme(strip.background = element_rect(fill = 'black'),
               strip.text = element_text(color = 'white'),
@@ -1065,11 +1065,11 @@ shinyServer(function(input, output, session) {
         dplyr::select(ID, Tissue, meanlsTPM, Rank, Decile) %>%
         arrange(ID, Tissue) %>%
         as_tibble() %>%
-        mutate(`log1p(Z-Counts)` = log2(meanlsTPM + 1)) %>%
+        mutate(`log1p(zCount)` = log2(meanlsTPM + 1)) %>%
         dplyr::select(-meanlsTPM) %>%
         DT::datatable(extensions = 'Buttons', rownames = F, options = list(
           pageLength = 20, dom = 'frtBip', buttons = c('pageLength','copy', 'csv'))) %>%
-        DT::formatRound(c('log1p(Z-Counts)'), digits=2)
+        DT::formatRound(c('log1p(zCount)'), digits=2)
     } else {
       get(pool) %>% tbl(table) %>%
         filter(ID %in% gene, Sub_Tissue %in% tissue) %>%
