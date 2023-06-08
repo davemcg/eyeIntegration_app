@@ -438,40 +438,101 @@ shinyUI(fluidPage(
                                                   "We will upload a finalized 2022 data workflow soon.")),
                             navlistPanel("Pan-Tissue Expression FAQs",
                                          # How to use the boxplot split by iteration of EiaD
-                                         tabPanel("How do I use the Pan-Tissue Expression section for the 2022 data?",
-                                                  "First you select the 2022 dataset [2]. Then you can tweak the 'Genes' [3] and 'Tissues' [4] by clicking in them and starting to type (allowed values will auto-fill). You can also delete values by clicking on them and hitting the 'delete' key on your keyboard. You can tweak the display of the box plots a bit by orienting the plot according to whether you want your samples to be displayed as rows or columns [5]. When you are done tweaking those parameters, click the big blue '(Re)Draw Plot!' button [6] and wait a few seconds.", br(), br(), 'If you mouse over a data point [8], you will get metadata about that particular sample. If you would like to turn this feature off, you can uncheck the "Display Individual Sample Values" checkbox under the plot orientation.', br(), br(), img(src='pantissue_screenshot_2022.png', width = 900), br(), br()),
-                                         tabPanel("How do I use the Pan-Tissue Expression section for data from 2019 and prior?",
-                                                  "First you pick the dataset (2017 or 2019) [2]. Then you can tweak the 'Genes' [3] and 'Tissues' [4] by clicking in them and starting to type (allowed values will auto-fill). You can also delete values by clicking on them and hitting the 'delete' key on your keyboard. You can tweak the display of the box plots a bit by changing the 'Number of Columns' field [5]. A higher number will squeeze more plots in each column. When you are done tweaking those parameters, click the big blue '(Re)Draw Plot!' button [6] and wait a few seconds.", br(), br(), 'If you mouse over a data point [8], you will get metadata about that particular sample.', br(), br(), img(src='pantissue_screenshot_pre_2022.png', width = 900), br(), br()),
+                                         tabPanel("How do I use the Pan-Tissue Expression 'Box Plot' section for data after 2019?",
+                                                  "After selecting the 'Box Plot' radio button [1], you can choose a 2022 dataset [2]. 
+                                                  Then, you can tweak which 'IDs' [3] and 'Tissues' [4] you would like to display by 
+                                                  clicking in the respective boxes and starting to type (allowed values will auto-fill). 
+                                                  You can also delete values by clicking on them and hitting the 'delete' key on your keyboard. 
+                                                  The display of the box plot can be changed depending on whether you want your samples to be 
+                                                  displayed as rows or columns [5]. Furthermore, the 'Display Individual Sample Values' checkbox [6] 
+                                                  will enable you to hover your mouse over a data point and show the metadata for that particular sample [8]. 
+                                                  When you are done tweaking these parameters, you can click the big blue '(Re)Draw Plot!' button [7] 
+                                                  and wait a few seconds for the plot to appear.", br(), br(), 
+                                                  img(src='pantissue_boxplot_2022.png', width = 900), br(), br()),
+                                         tabPanel("How do I use the Pan-Tissue Expression ‘Box Plot' section for data from 2019 and prior?",
+                                                  "After selecting the ‘Box Plot' radio button [1], you can choose a 2017, 2019, or DNTx dataset [2]. 
+                                                  Then, you can tweak which ‘IDs' [3] and ‘Tissues' [4] you would like to display by clicking in the 
+                                                  respective boxes and starting to type (allowed values will auto-fill). You can also delete values by 
+                                                  clicking on them and hitting the ‘delete' key on your keyboard. You can change the display of the box 
+                                                  plots by selecting a different value for the 'Number of Columns' field [5]. A lower number will squeeze 
+                                                  more plots in each column. When you are done tweaking these parameters, you can click the big blue 
+                                                  '(Re)Draw Plot!' button [6] and wait a few seconds for the plot to appear.", br(), br(), 
+                                                  'If you mouse over a data point, you will get metadata about that particular sample [7].',
+                                                  br(), br(), img(src='pantissue_boxplot_pre_2022.png', width = 900), br(), br()),
                                          # What the boxplot shows split by iteration of EiaD
-                                         tabPanel("What Pan-Tissue Expression data is displayed for data after 2019?",
-                                                  "Each gene and tissue combination gets its own box. Depending on how the plot is oriented, one axis is length scaled TPM (log2 transformed). The other axis contains the samples, colored by tissue. The right panel is a table with external links to gene info [9].", br(), br(), img(src='pantissue_screenshot_2022.png', width = 900), br(), br()),
-                                         tabPanel("What Pan-Tissue Expression data is displayed for data from 2019 and prior?",
-                                                  "Each gene gets its own box. The y-axis is length scaled TPM (log2 transformed). The x axis is samples, colored by tissue. The right panel is a table with external links to gene info [9].", br(), br(), img(src='pantissue_screenshot_pre_2022.png', width = 900), br(), br()),
+                                         tabPanel("What data is displayed in the Pan-Tissue 'Box Plot' for data after 2019?",
+                                                  "Each gene and tissue combination is given its own box. Depending on how the plot is oriented, 
+                                                  one axis is log1p transformed z-counts, and the other axis contains the samples, colored by tissue. 
+                                                  The right panel contains tables with external links to gene info [9], as well as the zCount values and 
+                                                  rank of each gene in the chosen tissues (lower is more highly expressed).",
+                                                  br(), br(), img(src='pantissue_boxplot_2022.png', width = 900), br(), br()),
+                                         tabPanel("What Pan-Tissue Expression data is displayed in the ‘Box Plot' for data from 2019 and prior?",
+                                                  "Each gene gets its own box. The y-axis is length scaled TPM (log2 transformed), and the x-axis is samples, 
+                                                  colored by tissue. The right panel contains tables with external links to gene info [8], 
+                                                  as well as the absolute TPM values and rank of each gene in the chosen tissues (lower is more highly expressed).", 
+                                                  br(), br(), img(src='pantissue_boxplot_pre_2022.png', width = 900), br(), br()),
                                          # Other features which are uniform for data before and after 2019
-                                         tabPanel("What is the 'Heatmap' radio button?",
-                                                  "This produces a 2D visualization, with each gene as a row and each tissue as a column. More yellow is more expressed. It is a efficient way to display the expression of many genes and tissues.", br(), br(), img(src='pantissue_heatmap_pre_2022.png', width = 900), br(), br()),
-                                         tabPanel("Why does the 2022 Heatmap look different?",
-                                                  "The 2022 heatmap operates at the tissue level, which results in more samples being present.", br(), br(), img(src='pantissue_heatmap_2022.png', width = 900), br(), br()),
+                                         tabPanel("How do I use the Pan-Tissue Expression 'Heatmap' radio button?",
+                                                  "After selecting the ‘Heatmap’ radio button [1], you can choose a 2017, 2019, or DNTx dataset [3]. 
+                                                  Then, you can tweak which ‘IDs’ [4] and ‘Tissues’ [5] you would like to display by clicking in the respective boxes 
+                                                  and starting to type (allowed values will auto-fill). You can also delete values by clicking on them and hitting the 
+                                                  ‘delete’ key on your keyboard. The display of the heatmap can be changed depending on whether you want to cluster 
+                                                  your samples by rows or columns by clicking the appropriate checkboxes [2]. When you are done tweaking these parameters, 
+                                                  you can click the big blue '(Re)Draw Plot!' button [6] and wait a few seconds for the plot to appear", 
+                                                  br(), br(), 
+                                                  "The heatmap is an efficient way to display the expression of many genes and tissues. More yellow indicates higher expression, 
+                                                  and further information about each chosen gene can be found by following the external links in the table to the right [7].", br(), br(),
+                                                  img(src='pantissue_heatmap_pre_2022.png', width = 900), br(), br()),
+                                         tabPanel("Why does the Heatmap for the 2022 datasets look different?",
+                                                  "The 2022 heatmap operates at the tissue level, which results in more samples being present.", 
+                                                  br(), br(), img(src='pantissue_heatmap_2022.png', width = 900), br(), br()),
                                          tabPanel("What is the 'Table' radio button?",
                                                   "This produces a table containing metadata for the gene and tissue combo selected by the user.", br(), br()),
-                                         tabPanel("Custom Gene / Tissue combination via the URL",
-                                                  "If you use the Pan-Tissue Boxplot or Single-Cell Boxplot feature a lot, you may find it frustrating to have to input in your favorite genes and tissues. We have added the ability to use a custom url to load in the genes and tissues of your choice. Previously you had to build this link youself - but now there's a handy button [7] you can click that will re-create the parameters. 
-                                                  One downside is that the web app is continually using the URL dataset, which makes it impossible for you to change it. You can simply reload the web page with the custom bits.", br(), br(), img(src='pantissue_screenshot_2022.png', width = 900), br(), br()),
-                                         tabPanel("How do I use the Single-Cell Expression section?",
-                                                  "First you select the genes [1], stages of development [2], and cell types [3] you would like to view by clicking in their respective boxes and starting to type (allowed values will auto-fill). 
-                                                  Next, select whether you would like to view your cell types as rows or columns in the 'Plot Orientation' section [4]. You can also delete values by clicking on them and hitting the 'delete' key on your keyboard. You can tweak the display of the box plots a bit by orienting the plot according to whether you want your samples to be displayed as rows or columns [4]. 
-                                                  When you are done tweaking those parameters, click the big blue '(Re)Draw Plot!' button [6] and wait a few seconds. If you mouse over a data point [8], you will get metadata about that particular sample (this feature is off by default). 
-                                                  If you would like to turn on this feature off, you can check the 'Display Individual Sample Values' checkbox under 'Plot Orientation' [5].", br(), br(), img(src='single_cell_screenshot_2022.png', width = 900), br(), br()),
+                                          tabPanel("How do I use the Single-Cell Expression section?",
+                                                  "First you select the genes [1], stages of development [2], and cell types [3] you would like to view by clicking in their respective boxes 
+                                                  and starting to type (allowed values will auto-fill). You can delete values by clicking on them and hitting the 'delete' key on your keyboard. 
+                                                  Next, select whether you would like to view your cell types as rows or columns in the 'Plot Orientation' section [4]. 
+                                                  Furthermore, the ‘Display Individual Sample Values’ checkbox [5] will enable you to hover your mouse over a data point and show the metadata 
+                                                  for that particular sample [7]. When you are done tweaking those parameters, click the big blue '(Re)Draw Plot!' button [6] and wait a few seconds.", 
+                                                  br(), br(), img(src='singlecell_boxplot_2022.png', width = 900), br(), br()),
                                          tabPanel("What data is displayed in the Single-Cell Expression section?", 
-                                                  "Each gene and developmental stage combination gets its own box. These features are further faceted by the back and remainder of the eye. Depending on how the plot is oriented, one axis is length scaled count value (log2 transformed). The other axis contains the cell types. If hover data is toggled on, then each point is colored by an independent study and the size of the point is a log2 scaled percentage of cells that have detected expression of the gene.", br(), br(), img(src='single_cell_screenshot_2022.png', width = 900), br(), br()),
-                                         tabPanel("How do I use the PCA Analysis Plotting tool using eyeIntegration's built-in database?",
-                                                  "This tool produces a plot of principal components from PCA (principal component analysis) conducted on our eyeIntegration 2.0 database. To begin, the user can select to view the eyeIntegration 2.0 database ('eyeIntegration PCA Plot') [1]. Then, you can select and unselect various checkboxes to include or exclude GTEx and single-cell RNA-seq data, as well as the visualization for which genes contribute most to your chosen principal components of interest [2]. Once you have decided which data you would like to visualize, you can select two principal components to plot [3]. When you are done tweaking those parameters, click the big blue '(Re)Draw Plot!' button [4] and wait a few seconds for the plot to appear. Since this plot was built using the ggplotly R package, you can hover your mouse over a point to see that sample’s metadata [6], and adjust the plot window using various scaling parameters provided on the top right of the plot [7]. Tissue types can be included and excluded by clicking directly on the name of the tissue within the legend on the right side of the plot. Finally, if you would like to export the data used to make this plot, you can click the big blue 'Download Plot Data' button and download a CSV containing the data [5].", br(), br(), img(src='ei_pca_visualization.png', width = 900), br(), br()),
+                                                  "Each gene and developmental stage combination gets its own box. These features are further faceted between the back and front of the eye. 
+                                                  Depending on how the plot is oriented, one axis is length scaled count value (log2 transformed), and the other axis contains the cell types. 
+                                                  If hover data is toggled on [5], then each point is colored by an independent study and the size of the point is a log2 scaled percentage of cells 
+                                                  that have detected expression of the gene.", br(), br(), img(src='singlecell_boxplot_2022.png', width = 900), br(), br()),
+                                         tabPanel("How do I use the PCA Analysis Plotting tool using eyeIntegration’s built-in database?",
+                                                  "This tool produces a plot of principal components from PCA (principal component analysis) conducted on our eyeIntegration 2.0 database. 
+                                                  To begin, the user must select the 'eyeIntegration PCA Plot' radio button [1]. Then, you can select and unselect various checkboxes to 
+                                                  include or exclude GTEx and single-cell RNA-seq data, as well as the visualization for which genes contribute most to your chosen principal 
+                                                  components of interest [2]. Once you have decided which data you would like to visualize, you can select two principal components to plot [3]. 
+                                                  When you are done tweaking those parameters, click the big blue '(Re)Draw Plot!' button [4] and wait a few seconds for the plot to appear. 
+                                                  Since this plot was built using the ggplotly R package, you can hover your mouse over a point to see that sample’s metadata [6], 
+                                                  and adjust the plot window using various scaling parameters provided on the top right of the plot [7]. Tissue types can be included and excluded 
+                                                  by clicking directly on the name of the tissue within the legend on the right side of the plot [8]. 
+                                                  Finally, if you would like to export the data used to make this plot, you can click the big blue 'Download Plot Data' button and download a CSV 
+                                                  containing the data [5].", br(), br(), img(src='ei_pca_visualization.png', width = 900), br(), br()),
                                          tabPanel("How do I use my own data within the PCA Analysis Plotting tool?",
-                                                  "This tool produces a plot of principal components from PCA (principal component analysis) conducted on our eyeIntegration 2.0 database and projects user-inputted data onto this PCA space. To begin, the user can select to project their own data onto eyeIntegration's PCA data ('Upload your own data') [1]. Then, you can select and unselect checkboxes to include or exclude GTEx and single-cell RNA-seq data [2]. Once you have decided which eyeIntegration samples you would like to include in visualization, you can click the ‘Browse…’ button and search your computer for a dataset to upload for projection [3]. This data should be in one of the following formats: csv, tsv, csv.gz, and tsv.gz. For this tool, the data can be viewed in either a faceted layout (picture here), or an overlayed layout. This can be selected from the dropdown menu under ‘How Would You Like to Display Your Data?’ [4]. Finally, you can type in a name for your dataset to be included within the visualization [5] prior to selecting which principal components to plot [6]. When you are done tweaking those parameters, click the big blue '(Re)Draw Plot!' button [7] and wait a few seconds for the plot to appear. 
-                                                  Since this plot was built using the ggplotly R package, you can hover your mouse over a point to see that sample’s metadata [9], and adjust the plot window using various scaling parameters provided on the top right of the plot [10]. Tissue types can be included and excluded by clicking directly on the name of the tissue within the legend on the right side of the plot. Finally, if you would like to export the data used to make this plot, you can click the big blue 'Download Plot Data' button and download a CSV containing the data [8]. This data will include a scaled version of the original user data to plot alongside the eyeIntegration 2023 dataset.",  br(), br(), img(src='ei_and_user_pca_visualization.png', width = 900), br(), br())),
+                                                  "This tool produces a plot of principal components from PCA (principal component analysis) conducted on our eyeIntegration 2.0 database and 
+                                                  projects user-inputted data onto this PCA space. To begin, the user must select the 'Upload your own data' radio button [1]. 
+                                                  Then, you can select and unselect checkboxes to include or exclude GTEx and single-cell RNA-seq data from eyeIntegration [2]. 
+                                                  Once you have decided which samples you would like to include in visualization, you can click the ‘Browse…’ button and search your computer 
+                                                  for a dataset to upload for projection [3]. This data should be in one of the following formats: csv, tsv, csv.gz, or tsv.gz. 
+                                                  In this tool, the projected data can be either faceted against, or overlayed onto the existing eyeIntegration database. 
+                                                  This can be selected from the dropdown menu under, ‘How Would You Like to Display Your Data?’ [4]. 
+                                                  Finally, you can type in a name for your dataset to be included within the visualization [5], then select which principal components to plot [6]. 
+                                                  When you are done tweaking those parameters, click the big blue '(Re)Draw Plot!' button [7] and wait a few seconds for the plot to appear. 
+                                                  Since this plot was built using the ggplotly R package, you can hover your mouse over a point to see that sample’s metadata [9], 
+                                                  and adjust the plot window using various scaling parameters provided on the top right of the plot [10]. Tissue types can be included and excluded 
+                                                  by clicking directly on the name of the tissue within the legend on the right side of the plot [11]. 
+                                                  Finally, if you would like to export the data used to make this plot, you can click the big blue 'Download Plot Data' button and download a CSV 
+                                                  containing the data [8]. This data will include a scaled version of the original user data to plot alongside the eyeIntegration 2023 dataset.", 
+                                                  br(), br(), strong("Faceted View"), br(), br(), img(src='user_faceted_pca_visualization.png', width = 900), br(), br(), 
+                                                  strong("Overlayed View"), br(), br(), img(src='user_overlayed_pca_visualization.png', width = 900), br(), br())),
+                            
                             navlistPanel("Data Table FAQ",
                                          tabPanel('What is the Pan-Tissue Bulk RNA-seq Data table showing?',
                                                   'The data table shows, for each gene and tissue set the user selects, the most important metadata for each sample.')),
+                            
                             navlistPanel("Deprecated Features FAQ",
                                          tabPanel('What is the Deprecated Section?',
                                                   'These are all features from the 2019 iteration of eyeIntegration which have either been replaced with new features or deprecated due to limited use.'),
