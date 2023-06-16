@@ -10,9 +10,9 @@ library(ggiraph)
 library(shinythemes)
 library(plotly)
 # Data for PCA Visualization - created by the EiaD_build/scripts/pca_workup_for_eyeIntegration_app.Rmd script
-load('./www/2022/eyeIntegration_2023_pca.Rdata')
+load('./www/2023/eyeIntegration_2023_pca.Rdata')
 # created by the EiaD_build/scripts/pca_workup_data_prep.R script
-load('./www/2022/EiaD_pca_analysis_2023.Rdata')
+load('./www/2023/EiaD_pca_analysis_2023.Rdata')
 
 load('./www/2017/retina_colors.Rdata')
 load('./www/2017/rpe_colors.Rdata')
@@ -41,28 +41,28 @@ shinyUI(fluidPage(
                                                                checkboxGroupInput('heatmap_clustering_checkbox', strong('Clustering:'),
                                                                                   choices = list("Rows" = 1, "Columns" = 2))), br(), 
                                               selectizeInput('Database', strong('Dataset:'),
-                                                             choices = c("Gene 2017", "Transcript 2017", "Gene 2019", "Transcript 2019", "DNTx v01", "Gene 2022", "Transcript 2022"), 
-                                                             multiple = FALSE, selected = "Gene 2022"),
+                                                             choices = c("Gene 2017", "Transcript 2017", "Gene 2019", "Transcript 2019", "DNTx v01", "Gene 2023", "Transcript 2023"), 
+                                                             multiple = FALSE, selected = "Gene 2023"),
                                               selectizeInput('ID', strong('ID:'),
                                                              choices=NULL, multiple=TRUE),
                                               selectizeInput('plot_tissue_gene',strong('Tissues:'),
                                                              choices=NULL,multiple=TRUE),
-                                              conditionalPanel(condition = "input.plot_type_gene != 'Heatmap' & input.Database != 'Gene 2022' & input.Database != 'Transcript 2022'",
+                                              conditionalPanel(condition = "input.plot_type_gene != 'Heatmap' & input.Database != 'Gene 2023' & input.Database != 'Transcript 2023'",
                                                                numericInput('num_gene', strong('Number of Columns:'),
                                                                             value = 2, min = 1, max = 50)), br(), 
-                                              conditionalPanel(condition = "input.plot_type_gene != 'Heatmap' & input.plot_type_gene != 'Table' & input.Database == 'Gene 2022'",
+                                              conditionalPanel(condition = "input.plot_type_gene != 'Heatmap' & input.plot_type_gene != 'Table' & input.Database == 'Gene 2023'",
                                                                radioButtons('rotation', strong('Plot Orientation:'),
                                                                             choices = list("Samples as rows" = 1, "Samples as columns" = 2), 
                                                                             selected = 1)), br(), 
-                                              conditionalPanel(condition = "input.plot_type_gene != 'Heatmap' & input.plot_type_gene != 'Table' & input.Database == 'Gene 2022'",
+                                              conditionalPanel(condition = "input.plot_type_gene != 'Heatmap' & input.plot_type_gene != 'Table' & input.Database == 'Gene 2023'",
                                                                checkboxInput('points', 
                                                                              label = strong('Display Individual Sample Values'),
                                                                              value = FALSE)), br(),
-                                              conditionalPanel(condition = "input.plot_type_gene != 'Heatmap' & input.plot_type_gene != 'Table' & input.Database == 'Transcript 2022'",
+                                              conditionalPanel(condition = "input.plot_type_gene != 'Heatmap' & input.plot_type_gene != 'Table' & input.Database == 'Transcript 2023'",
                                                                radioButtons('rotation', strong('Plot Orientation:'),
                                                                             choices = list("Samples as rows" = 1, "Samples as columns" = 2), 
                                                                             selected = 1)), br(), 
-                                              conditionalPanel(condition = "input.plot_type_gene != 'Heatmap' & input.plot_type_gene != 'Table' & input.Database == 'Transcript 2022'",
+                                              conditionalPanel(condition = "input.plot_type_gene != 'Heatmap' & input.plot_type_gene != 'Table' & input.Database == 'Transcript 2023'",
                                                                checkboxInput('points', 
                                                                              label = strong('Display Individual Sample Values'),
                                                                              value = FALSE)), br(),
@@ -233,11 +233,11 @@ shinyUI(fluidPage(
                                        column(2,
                                               selectizeInput('table_db',
                                                              strong('Dataset:'),
-                                                             choices = c("Gene 2022",
+                                                             choices = c("Gene 2023", "Transcript 2023",
                                                                          "Gene 2019", "Transcript 2019",
                                                                          "Gene 2017", "Transcript 2017",
                                                                          "DNTx v01"),
-                                                             selected = 'Gene 2022')),
+                                                             selected = 'Gene 2023')),
                                        column(2,
                                               selectizeInput('table_tissue',
                                                              strong('Tissue: '),
@@ -323,12 +323,12 @@ shinyUI(fluidPage(
                                   RNA-seq gene expression analyses have been used extensively, for example, to profile specific eye tissues and in large consortium studies, like the GTEx project,
                                   to study tissue-specific gene expression patterning.", br(), br(), "However, there has not been an integrated study of multiple eye tissues expression patterning with other human
                                   body tissues.", br(), br(),
-                                                     "We have collated publicly available (deposited between January 1st, 2019 and November 1st, 2022) healthy human RNA-seq datasets and a substantial subset of the GTEx project RNA-seq datasets and processed
+                                                     "We have collated publicly available (deposited between January 1st, 2019 and November 1st, 2023) healthy human RNA-seq datasets and a substantial subset of the GTEx project RNA-seq datasets and processed
                                   all of these samples in a consistent bioinformatic workflow. We use this fully integrated dataset to build informative visualizations, a novel PCA tool, and UCSC genome browser to provide the ophthalmic community with a powerful and quick means to formulate and test hypotheses on human 
                                   gene and transcript expression.", br(), br(),
                                                      
                                                      # h2("Basic Statistics"),
-                                                     # fluidRow(column(6, img(src='sample_count_2022.svg', align='middle', width = 1000))),
+                                                     # fluidRow(column(6, img(src='sample_count_2023.svg', align='middle', width = 1000))),
                                                      # tableOutput('basic_stats'),
                                                      "We make these data, analyses, and visualizations available here with a powerful interactive web application.")),
                                      fluidRow(column(width = 8, offset = 1, h2('Attribution'))),
@@ -432,14 +432,14 @@ shinyUI(fluidPage(
                                                   "We will soon have a pre-print describing the new 2019 automated data analysis workflow. The code-base for the build can be found ", tags$a(href="https://github.com/davemcg/eyeIntegration_data_build", "here.")),
                                          tabPanel("2019 Data Workflow",
                                                   img(src='2019_workflow.svg', width = 900)),
-                                         tabPanel("How was the 2022 data generated, acquired and processed?",
-                                                  "We will soon have a pre-print describing the new 2022 automated data analysis workflow. The code-base for the build can be found ", tags$a(href="https://github.com/davemcg/EiaD_build/tree/recount3", "here.")),
-                                         tabPanel("2022 Data Workflow",
-                                                  "We will upload a finalized 2022 data workflow soon.")),
+                                         tabPanel("How was the 2023 data generated, acquired and processed?",
+                                                  "We will soon have a pre-print describing the new 2023 automated data analysis workflow. The code-base for the build can be found ", tags$a(href="https://github.com/davemcg/EiaD_build/tree/recount3", "here.")),
+                                         tabPanel("2023 Data Workflow",
+                                                  "We will upload a finalized 2023 data workflow soon.")),
                             navlistPanel("Pan-Tissue Expression FAQs",
                                          # How to use the boxplot split by iteration of EiaD
                                          tabPanel("How do I use the Pan-Tissue Expression 'Box Plot' section for data after 2019?",
-                                                  "After selecting the 'Box Plot' radio button [1], you can choose a 2022 dataset [2]. 
+                                                  "After selecting the 'Box Plot' radio button [1], you can choose a 2023 dataset [2]. 
                                                   Then, you can tweak which 'IDs' [3] and 'Tissues' [4] you would like to display by 
                                                   clicking in the respective boxes and starting to type (allowed values will auto-fill). 
                                                   You can also delete values by clicking on them and hitting the 'delete' key on your keyboard. 
@@ -448,7 +448,7 @@ shinyUI(fluidPage(
                                                   will enable you to hover your mouse over a data point and show the metadata for that particular sample [8]. 
                                                   When you are done tweaking these parameters, you can click the big blue '(Re)Draw Plot!' button [7] 
                                                   and wait a few seconds for the plot to appear.", br(), br(), 
-                                                  img(src='pantissue_boxplot_2022.png', width = 900), br(), br()),
+                                                  img(src='pantissue_boxplot_2023.png', width = 900), br(), br()),
                                          tabPanel("How do I use the Pan-Tissue Expression ‘Box Plot' section for data from 2019 and prior?",
                                                   "After selecting the ‘Box Plot' radio button [1], you can choose a 2017, 2019, or DNTx dataset [2]. 
                                                   Then, you can tweak which ‘IDs' [3] and ‘Tissues' [4] you would like to display by clicking in the 
@@ -458,19 +458,19 @@ shinyUI(fluidPage(
                                                   more plots in each column. When you are done tweaking these parameters, you can click the big blue 
                                                   '(Re)Draw Plot!' button [6] and wait a few seconds for the plot to appear.", br(), br(), 
                                                   'If you mouse over a data point, you will get metadata about that particular sample [7].',
-                                                  br(), br(), img(src='pantissue_boxplot_pre_2022.png', width = 900), br(), br()),
+                                                  br(), br(), img(src='pantissue_boxplot_pre_2023.png', width = 900), br(), br()),
                                          # What the boxplot shows split by iteration of EiaD
                                          tabPanel("What data is displayed in the Pan-Tissue 'Box Plot' for data after 2019?",
                                                   "Each gene and tissue combination is given its own box. Depending on how the plot is oriented, 
                                                   one axis is log1p transformed z-counts, and the other axis contains the samples, colored by tissue. 
                                                   The right panel contains tables with external links to gene info [9], as well as the zCount values and 
                                                   rank of each gene in the chosen tissues (lower is more highly expressed).",
-                                                  br(), br(), img(src='pantissue_boxplot_2022.png', width = 900), br(), br()),
+                                                  br(), br(), img(src='pantissue_boxplot_2023.png', width = 900), br(), br()),
                                          tabPanel("What Pan-Tissue Expression data is displayed in the ‘Box Plot' for data from 2019 and prior?",
                                                   "Each gene gets its own box. The y-axis is length scaled TPM (log2 transformed), and the x-axis is samples, 
                                                   colored by tissue. The right panel contains tables with external links to gene info [8], 
                                                   as well as the absolute TPM values and rank of each gene in the chosen tissues (lower is more highly expressed).", 
-                                                  br(), br(), img(src='pantissue_boxplot_pre_2022.png', width = 900), br(), br()),
+                                                  br(), br(), img(src='pantissue_boxplot_pre_2023.png', width = 900), br(), br()),
                                          # Other features which are uniform for data before and after 2019
                                          tabPanel("How do I use the Pan-Tissue Expression 'Heatmap' radio button?",
                                                   "After selecting the ‘Heatmap’ radio button [1], you can choose a 2017, 2019, or DNTx dataset [3]. 
@@ -482,10 +482,10 @@ shinyUI(fluidPage(
                                                   br(), br(), 
                                                   "The heatmap is an efficient way to display the expression of many genes and tissues. More yellow indicates higher expression, 
                                                   and further information about each chosen gene can be found by following the external links in the table to the right [7].", br(), br(),
-                                                  img(src='pantissue_heatmap_pre_2022.png', width = 900), br(), br()),
-                                         tabPanel("Why does the Heatmap for the 2022 datasets look different?",
-                                                  "The 2022 heatmap operates at the tissue level, which results in more samples being present.", 
-                                                  br(), br(), img(src='pantissue_heatmap_2022.png', width = 900), br(), br()),
+                                                  img(src='pantissue_heatmap_pre_2023.png', width = 900), br(), br()),
+                                         tabPanel("Why does the Heatmap for the 2023 datasets look different?",
+                                                  "The 2023 heatmap operates at the tissue level, which results in more samples being present.", 
+                                                  br(), br(), img(src='pantissue_heatmap_2023.png', width = 900), br(), br()),
                                          tabPanel("What is the 'Table' radio button?",
                                                   "This produces a table containing metadata for the gene and tissue combo selected by the user.", br(), br()),
                                           tabPanel("How do I use the Single-Cell Expression section?",
@@ -494,12 +494,12 @@ shinyUI(fluidPage(
                                                   Next, select whether you would like to view your cell types as rows or columns in the 'Plot Orientation' section [4]. 
                                                   Furthermore, the ‘Display Individual Sample Values’ checkbox [5] will enable you to hover your mouse over a data point and show the metadata 
                                                   for that particular sample [7]. When you are done tweaking those parameters, click the big blue '(Re)Draw Plot!' button [6] and wait a few seconds.", 
-                                                  br(), br(), img(src='singlecell_boxplot_2022.png', width = 900), br(), br()),
+                                                  br(), br(), img(src='singlecell_boxplot_2023.png', width = 900), br(), br()),
                                          tabPanel("What data is displayed in the Single-Cell Expression section?", 
                                                   "Each gene and developmental stage combination gets its own box. These features are further faceted between the back and front of the eye. 
                                                   Depending on how the plot is oriented, one axis is length scaled count value (log2 transformed), and the other axis contains the cell types. 
                                                   If hover data is toggled on [5], then each point is colored by an independent study and the size of the point is a log2 scaled percentage of cells 
-                                                  that have detected expression of the gene.", br(), br(), img(src='singlecell_boxplot_2022.png', width = 900), br(), br()),
+                                                  that have detected expression of the gene.", br(), br(), img(src='singlecell_boxplot_2023.png', width = 900), br(), br()),
                                          tabPanel("How do I use the PCA Analysis Plotting tool using eyeIntegration’s built-in database?",
                                                   "This tool produces a plot of principal components from PCA (principal component analysis) conducted on our eyeIntegration 2.0 database. 
                                                   To begin, the user must select the 'eyeIntegration PCA Plot' radio button [1]. Then, you can select and unselect various checkboxes to 

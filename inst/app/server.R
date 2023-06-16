@@ -31,32 +31,32 @@ library(stringr)
 
 
 # pools for sqlite DBs ------------
-gene_pool_2022 <- dbPool(drv = SQLite(), dbname = ("./www/2022/eyeIntegration_2023_human_counts.sqlite"), idleTimeout = 3600000)
+gene_pool_2023 <- dbPool(drv = SQLite(), dbname = ("./www/2023/eyeIntegration_2023_human_counts.sqlite"), idleTimeout = 3600000)
 gene_pool_2017 <- dbPool(drv = SQLite(), dbname = "./www/2017/eyeIntegration_human_2017_01.sqlite", idleTimeout = 3600000)
 gene_pool_2019 <- dbPool(drv = SQLite(), dbname = "./www/2019/EiaD_human_expression_2019_04.sqlite", idleTimeout = 3600000)
 DNTx_pool_2019 <- dbPool(drv = SQLite(), dbname = "./www/2019/DNTx_EiaD_human_expression_2019_00.sqlite", idleTimeout = 3600000)
 SC_pool <- dbPool(drv = SQLite(), dbname = "./www/2019/single_cell_retina_info_04.sqlite", idleTimeout = 3600000)
-scEiaD_pool <- dbPool(drv = SQLite(), dbname = ("./www/2022/scEiaD.2023_03_02.sqlite"), idleTimeout = 3600000)
+scEiaD_pool <- dbPool(drv = SQLite(), dbname = ("./www/2023/scEiaD.2023_03_02.sqlite"), idleTimeout = 3600000)
 # Load in file containing samples to remove from web application
-excluded_samples <- scan("./www/2022/excluded_samples.txt", what = "character")
+excluded_samples <- scan("./www/2023/excluded_samples.txt", what = "character")
 
-gene_names_2022 <- gene_pool_2022 %>% tbl('gene_IDs') %>% pull(ID) %>% unique()
+gene_names_2023 <- gene_pool_2023 %>% tbl('gene_IDs') %>% pull(ID) %>% unique()
 gene_names_2017 <- gene_pool_2017 %>% tbl('gene_IDs') %>% pull(ID)
 gene_names_2019 <- gene_pool_2019 %>% tbl('gene_IDs') %>% pull(ID)
-#geneTX_names_2022 <- gene_pool_2022 %>% tbl('tx_IDs') %>% pull(ID) %>% unique()
+#geneTX_names_2023 <- gene_pool_2023 %>% tbl('tx_IDs') %>% pull(ID) %>% unique()
 geneTX_names_2017 <- gene_pool_2017 %>% tbl('tx_IDs') %>% pull(ID)
 geneTX_names_2019 <- gene_pool_2019 %>% tbl('tx_IDs') %>% pull(ID)
-geneTX_names_2022 <- gene_pool_2022 %>% tbl('tx_IDs') %>% pull(ID)
+geneTX_names_2023 <- gene_pool_2023 %>% tbl('tx_IDs') %>% pull(ID)
 geneTX_names_2019_DNTx <- DNTx_pool_2019 %>% tbl('tx_IDs') %>% pull(ID)
-core_tight_2022 <- gene_pool_2022 %>% tbl('metadata') %>% 
+core_tight_2023 <- gene_pool_2023 %>% tbl('metadata') %>% 
   filter(!sample_accession %in% excluded_samples) %>% as_tibble() #%>% select(sample_accession:sample_attribute, region:Comment, Sample_comment, Perturbation)
 core_tight_2017 <- gene_pool_2017 %>% tbl('metadata') %>% as_tibble()
 core_tight_2019 <- gene_pool_2019 %>% tbl('metadata') %>% as_tibble()
 
 # Data for PCA Visualization - created by the EiaD_build/scripts/pca_workup_for_eyeIntegration_app.Rmd script
-load('./www/2022/eyeIntegration_2023_pca.Rdata')
+load('./www/2023/eyeIntegration_2023_pca.Rdata')
 # Data for Gene Tables used in PCA Visualization - created by the EiaD_build/scripts/pca_workup_data_prep.R script
-load('./www/2022/EiaD_pca_analysis_2023.Rdata')
+load('./www/2023/EiaD_pca_analysis_2023.Rdata')
 
 load('./www/2017/retina_module_network_lists.Rdata') # NOTE THESE ARE PRECOMPUTED htmlwidgets 
 load('./www/2017/rpe_module_network_lists.Rdata') # NOTE THESE ARE PRECOMPUTED htmlwidgets 
@@ -67,7 +67,7 @@ cat(file=stderr(), Sys.time() - time)
 cat(file=stderr(), ' seconds.\n')
 
 onStop(function() {
-  poolClose(gene_pool_2022)
+  poolClose(gene_pool_2023)
 })
 onStop(function() {
   poolClose(gene_pool_2017)
@@ -86,8 +86,8 @@ core_tight_2017$sample_accession<-gsub('E-MTAB-','E.MTAB.',core_tight_2017$sampl
 core_tight_2017$Sub_Tissue <- gsub('_',' - ',core_tight_2017$Sub_Tissue)
 core_tight_2019$sample_accession<-gsub('E-MTAB-','E.MTAB.',core_tight_2019$sample_accession)
 core_tight_2019$Sub_Tissue <- gsub('_',' - ',core_tight_2019$Sub_Tissue)
-core_tight_2022$sample_accession<-gsub('E-MTAB-','E.MTAB.',core_tight_2022$sample_accession)
-core_tight_2022$Sub_Tissue <- gsub('_',' - ',core_tight_2022$Sub_Tissue)
+core_tight_2023$sample_accession<-gsub('E-MTAB-','E.MTAB.',core_tight_2023$sample_accession)
+core_tight_2023$Sub_Tissue <- gsub('_',' - ',core_tight_2023$Sub_Tissue)
 
 metasc <- scEiaD_pool %>% tbl("scEiaD_CT_table_info") %>% select(CellType_predict) %>% as_tibble() %>% unique() %>% arrange(CellType_predict)
 CellType_predict_val <- setNames(c(pals::glasbey(n = 32), pals::kelly(n = scEiaD_pool %>% tbl('cell_types') %>% pull(1) %>% length() - 32)) %>% colorspace::lighten(0.3), metasc %>% pull(CellType_predict) %>% sort())
@@ -95,28 +95,28 @@ CellType_predict_col <- scale_colour_manual(values = CellType_predict_val)
 CellType_predict_fill <- scale_fill_manual(values = CellType_predict_val)
 
 # make global tissue vals
-tissues <- c(core_tight_2017$Tissue, core_tight_2019$Tissue, core_tight_2022$Tissue)%>% unique() %>% sort() 
+tissues <- c(core_tight_2017$Tissue, core_tight_2019$Tissue, core_tight_2023$Tissue)%>% unique() %>% sort() 
 tissue_val <- setNames(c(pals::polychrome()[3:36],  pals::kelly()[c(3:7,10:21)])[1:length(tissues)], tissues %>% sort())
 
 # fix tissue <-> color
 tissue_col <- scale_colour_manual(values = tissue_val)
 tissue_fill <- scale_fill_manual(values = tissue_val)
 
-# make 2022 heatmap tissue vals
-heatmap_data_2022 <- core_tight_2022 %>% select(Tissue, Sub_Tissue, Source, Perturbation, Age)
-heatmap_data_2022[is.na(heatmap_data_2022)] <- ""
-heatmap_data_2022 <- heatmap_data_2022 %>%
-  mutate(combined_tissue_name = paste0(heatmap_data_2022$Tissue, " | ", heatmap_data_2022$Sub_Tissue, " | ",
-                                       heatmap_data_2022$Source, " | ", heatmap_data_2022$Perturbation, " | ",
-                                       heatmap_data_2022$Age)) %>% filter(combined_tissue_name != "NA | NA | NA | NA | NA")
-tissues_heatmap_2022 <- heatmap_data_2022 %>% pull(combined_tissue_name) %>% unique() %>% sort()
-tissues_heatmap_2022 <- data.frame(combined_tissue_name = tissues_heatmap_2022,
-                                   Tissue = str_extract(tissues_heatmap_2022, "^[^|]*") %>% trimws())
+# make 2023 heatmap tissue vals
+heatmap_data_2023 <- core_tight_2023 %>% select(Tissue, Sub_Tissue, Source, Perturbation, Age)
+heatmap_data_2023[is.na(heatmap_data_2023)] <- ""
+heatmap_data_2023 <- heatmap_data_2023 %>%
+  mutate(combined_tissue_name = paste0(heatmap_data_2023$Tissue, " | ", heatmap_data_2023$Sub_Tissue, " | ",
+                                       heatmap_data_2023$Source, " | ", heatmap_data_2023$Perturbation, " | ",
+                                       heatmap_data_2023$Age)) %>% filter(combined_tissue_name != "NA | NA | NA | NA | NA")
+tissues_heatmap_2023 <- heatmap_data_2023 %>% pull(combined_tissue_name) %>% unique() %>% sort()
+tissues_heatmap_2023 <- data.frame(combined_tissue_name = tissues_heatmap_2023,
+                                   Tissue = str_extract(tissues_heatmap_2023, "^[^|]*") %>% trimws())
 # Join the tissue vals colors to our heat map data
-tissues_heatmap_2022 <- tissues_heatmap_2022 %>% left_join(data.frame(Tissue = tissue_val %>% names(),
+tissues_heatmap_2023 <- tissues_heatmap_2023 %>% left_join(data.frame(Tissue = tissue_val %>% names(),
                                                                       color = tissue_val), by = "Tissue") %>% select(combined_tissue_name, color)
-tissue_val_heatmap_2022 <- tissues_heatmap_2022$color
-names(tissue_val_heatmap_2022) <- tissues_heatmap_2022$combined_tissue_name %>% sort()
+tissue_val_heatmap_2023 <- tissues_heatmap_2023$color
+names(tissue_val_heatmap_2023) <- tissues_heatmap_2023$combined_tissue_name %>% sort()
 
 # site begins! ---------
 shinyServer(function(input, output, session) {
@@ -127,14 +127,14 @@ shinyServer(function(input, output, session) {
     if (!is.null(query[['Dataset']])) {
       updateTextInput(session, "Database", value = gsub('_', ' ', as.character(query['Dataset'])))
     }
-    db = input$Database # c("Gene 2017", "Gene 2019", "Transcript 2017", "Transcript 2019", "Gene 2022", "Transcript 2022")
+    db = input$Database # c("Gene 2017", "Gene 2019", "Transcript 2017", "Transcript 2019", "Gene 2023", "Transcript 2023")
     if (db == 'Gene 2017'){ID_names = gene_names_2017 %>% sort()
     } else if (db == 'Gene 2019'){ID_names = gene_names_2019 %>% sort()
     } else if (db == 'Transcript 2017'){ID_names = geneTX_names_2017 %>% sort()
-    } else if (db == 'Gene 2022'){ID_names = gene_names_2022 %>% sort()
+    } else if (db == 'Gene 2023'){ID_names = gene_names_2023 %>% sort()
     } else if (db == 'DNTx v01'){ID_names = geneTX_names_2019_DNTx %>% sort()
     } else if (db == 'scEiaD_pool'){ID_names = Gene %>% sort()
-    } else if (db == 'Transcript 2022'){ID_names = geneTX_names_2022 %>% sort() 
+    } else if (db == 'Transcript 2023'){ID_names = geneTX_names_2023 %>% sort() 
     } else {ID_names = geneTX_names_2019 %>% sort()}
     # gene / tx lists
     if (is.null(query[['scmaturity']])){
@@ -175,7 +175,7 @@ shinyServer(function(input, output, session) {
     if (is.null(query[['Tissue']])){
       # tissue choices
       if (grepl('2017', db)){tissues <- unique(sort(core_tight_2017$Sub_Tissue))}
-      else if (grepl('2022', db)){tissues <- unique(sort(core_tight_2022 %>% filter(Tissue != 'EyeLid') %>% pull(Tissue)))
+      else if (grepl('2023', db)){tissues <- unique(sort(core_tight_2023 %>% filter(Tissue != 'EyeLid') %>% pull(Tissue)))
       } else {tissues <- unique(sort(core_tight_2019 %>% filter(Sub_Tissue != 'Choroid Plexus - Adult Tissue') %>% pull(Sub_Tissue)))}
       updateSelectizeInput(session, 'plot_tissue_gene',
                            choices= tissues,
@@ -187,7 +187,7 @@ shinyServer(function(input, output, session) {
       select_tissue <- strsplit(select_tissue, split = ',')[[1]]
       #select_tissue <- c(select_tissue, input$plot_tissue_gene)
       if (grepl('2017', db)){tissues <- unique(sort(core_tight_2017$Sub_Tissue))}
-      else if (grepl('2022', db)){tissues <- unique(sort(core_tight_2022 %>% filter(Sub_Tissue != 'Choroid Plexus' & Sub_Tissue != 'WIBR3 hESC Choroid plexus Organoids') %>% pull(Sub_Tissue)))
+      else if (grepl('2023', db)){tissues <- unique(sort(core_tight_2023 %>% filter(Sub_Tissue != 'Choroid Plexus' & Sub_Tissue != 'WIBR3 hESC Choroid plexus Organoids') %>% pull(Sub_Tissue)))
       } else {tissues <- unique(sort(core_tight_2019 %>% filter(Sub_Tissue != 'Choroid Plexus - Adult Tissue') %>% pull(Sub_Tissue)))}
       updateSelectizeInput(session, 'plot_tissue_gene',
                            choices= tissues,
@@ -324,25 +324,25 @@ shinyServer(function(input, output, session) {
       }
     }
     
-    else if (grepl('2022', table_db)){
+    else if (grepl('2023', table_db)){
       updateSelectizeInput(session, 'table_tissue',
-                           choices= unique(sort(core_tight_2022$Tissue)),
+                           choices= unique(sort(core_tight_2023$Tissue)),
                            selected= 'Retina',
                            server = TRUE)
       updateSelectizeInput(session, 'table_columns',
-                           choices = sort(colnames(core_tight_2022)),
-                           selected = colnames(core_tight_2022) %>%
+                           choices = sort(colnames(core_tight_2023)),
+                           selected = colnames(core_tight_2023) %>%
                              grep("study_abstract|sample_attribute|Kept", ., value = T, invert = T),
                            server = TRUE)
       if (grepl('Gene', table_db)){
         updateSelectizeInput(session, 'table_gene',
-                             choices = gene_names_2022,
+                             choices = gene_names_2023,
                              selected= 'TYRP1 (ENSG00000107165.12)',
                              server = TRUE)
       } else {
         updateSelectizeInput(session, 'table_gene',
-                             choices = geneTX_names_2022,
-                             selected= 'TYRP1-201 (ENST00000381136.2)',
+                             choices = geneTX_names_2023,
+                             selected= 'TYRP1 (ENST00000381136.2)',
                              server = TRUE)
       }
     }
@@ -703,20 +703,20 @@ shinyServer(function(input, output, session) {
       p <- dbGetQuery(DNTx_pool_2019, query) %>% left_join(.,core_tight_2019) %>%
         left_join(., DNTx_pool_2019 %>% tbl('tx_IDs') %>% as_tibble()) %>%
         as_tibble()
-    } else if (db == 'Gene 2022'){
+    } else if (db == 'Gene 2023'){
       query = paste0('select * from lsTPM_gene where ID in ("',paste(gene, collapse='","'),'")')
-      p <- dbGetQuery(gene_pool_2022, query) %>% left_join(.,core_tight_2022) %>%
-        left_join(., gene_pool_2022 %>% tbl('gene_IDs') %>% as_tibble()) %>%
+      p <- dbGetQuery(gene_pool_2023, query) %>% left_join(.,core_tight_2023) %>%
+        left_join(., gene_pool_2023 %>% tbl('gene_IDs') %>% as_tibble()) %>%
         as_tibble()
-    } else if (db == 'Transcript 2022'){
+    } else if (db == 'Transcript 2023'){
       query = paste0('select * from lsTPM_tx where ID in ("',paste(gene, collapse='","'),'")')
-      p <- dbGetQuery(gene_pool_2022, query) %>% left_join(.,core_tight_2022) %>%
-        left_join(., gene_pool_2022 %>% tbl('tx_IDs') %>% as_tibble()) %>%
+      p <- dbGetQuery(gene_pool_2023, query) %>% left_join(.,core_tight_2023) %>%
+        left_join(., gene_pool_2023 %>% tbl('tx_IDs') %>% as_tibble()) %>%
         as_tibble()
     }
     p$Type <- p %>% select(contains('type')) %>% pull(1)
     
-    if (grepl('2022', db)){
+    if (grepl('2023', db)){
       plot_data <- p %>%
         filter(Tissue %in% tissue) 
     } else {
@@ -724,7 +724,7 @@ shinyServer(function(input, output, session) {
         filter(Sub_Tissue %in% tissue) 
     }
     
-    if (!grepl('2022', db)){
+    if (!grepl('2023', db)){
       p <- plot_data %>%
         mutate(Info = paste('SRA: ',
                             sample_accession,
@@ -822,7 +822,7 @@ shinyServer(function(input, output, session) {
 
     }
     output <- list()
-    if (!grepl('2022',db)){
+    if (!grepl('2023',db)){
       output$plot <- girafe(ggobj = p,
                             width_svg = 14,
                             height_svg= max(12, (6 * (length(gene)/min(col_num,length(gene)))))) %>%
@@ -889,29 +889,29 @@ shinyServer(function(input, output, session) {
       meta <- 'core_tight_2019'
       table <- 'mean_rank_decile_tx'
       label_size = 0.8
-    } else if (db == 'Gene 2022'){
-      pool <- 'gene_pool_2022'
+    } else if (db == 'Gene 2023'){
+      pool <- 'gene_pool_2023'
       table <- 'mean_rank_decile_gene'
-      meta <- 'core_tight_2022'
+      meta <- 'core_tight_2023'
       label_size = 0.8
-    } else if (db == 'Transcript 2022'){
-      pool <- 'gene_pool_2022'
+    } else if (db == 'Transcript 2023'){
+      pool <- 'gene_pool_2023'
       table <- 'mean_rank_decile_tx'
-      meta <- 'core_tight_2022'
+      meta <- 'core_tight_2023'
       label_size = 0.8
     }
     
-    if (db %in% c("Gene 2022", "Transcript 2022")) {
-      heatmap_data_2022 <- get(pool) %>%
+    if (db %in% c("Gene 2023", "Transcript 2023")) {
+      heatmap_data_2023 <- get(pool) %>%
         tbl(table) %>%
         filter(ID %in% gene, Tissue %in% tissue) %>%
         data.frame()
-      heatmap_data_2022[is.na(heatmap_data_2022)] <- ""
+      heatmap_data_2023[is.na(heatmap_data_2023)] <- ""
       
-      id_matrix <- heatmap_data_2022 %>% 
-        mutate(combined_tissue_name = paste0(heatmap_data_2022$Tissue, " | ", heatmap_data_2022$Sub_Tissue, " | ", 
-                                             heatmap_data_2022$Source, " | ", heatmap_data_2022$Perturbation, " | ", 
-                                             heatmap_data_2022$Age)) %>% 
+      id_matrix <- heatmap_data_2023 %>% 
+        mutate(combined_tissue_name = paste0(heatmap_data_2023$Tissue, " | ", heatmap_data_2023$Sub_Tissue, " | ", 
+                                             heatmap_data_2023$Source, " | ", heatmap_data_2023$Perturbation, " | ", 
+                                             heatmap_data_2023$Age)) %>% 
         mutate(lsTPM = log2(meanlsTPM+1)) %>%
         select(-meanlsTPM, -Rank, -Decile, -Tissue, -Sub_Tissue, -Source, -Perturbation, -Age) %>%
         spread(combined_tissue_name, lsTPM)
@@ -933,18 +933,18 @@ shinyServer(function(input, output, session) {
     row.names(id_matrix) <- gene_IDs
     text_col <- NA
     
-    if (grepl("2022", db)){
+    if (grepl("2023", db)){
       
-      heatmap_data_2022 <- get(pool) %>%
+      heatmap_data_2023 <- get(pool) %>%
         tbl(table) %>%
         filter(ID %in% gene, Tissue %in% tissue) %>%
         data.frame()
-      heatmap_data_2022[is.na(heatmap_data_2022)] <- ""
+      heatmap_data_2023[is.na(heatmap_data_2023)] <- ""
       
-      ha = HeatmapAnnotation(Tissue = heatmap_data_2022 %>%
-                               mutate(combined_tissue_name = paste0(heatmap_data_2022$Tissue, " | ", heatmap_data_2022$Sub_Tissue, " | ", 
-                                                                    heatmap_data_2022$Source, " | ", heatmap_data_2022$Perturbation, " | ", 
-                                                                    heatmap_data_2022$Age)) %>%
+      ha = HeatmapAnnotation(Tissue = heatmap_data_2023 %>%
+                               mutate(combined_tissue_name = paste0(heatmap_data_2023$Tissue, " | ", heatmap_data_2023$Sub_Tissue, " | ", 
+                                                                    heatmap_data_2023$Source, " | ", heatmap_data_2023$Perturbation, " | ", 
+                                                                    heatmap_data_2023$Age)) %>%
                                select(Tissue, combined_tissue_name) %>% 
                                unique() %>%
                                right_join(colnames(id_matrix) %>% 
@@ -952,7 +952,7 @@ shinyServer(function(input, output, session) {
                                           by = c('combined_tissue_name' = 'value')) %>%
                                arrange(name) %>% 
                                pull(combined_tissue_name),
-                             col = list(Tissue = tissue_val_heatmap_2022),
+                             col = list(Tissue = tissue_val_heatmap_2023),
                              show_annotation_name = TRUE,
                              which = 'column')
     } else {
@@ -980,7 +980,7 @@ shinyServer(function(input, output, session) {
       cluster_cols = TRUE
     } else {cluster_cols = FALSE}
     
-    name <- ifelse(grepl("2022", db), 'log2(zCount+1)', 'log2(TPM+1)')
+    name <- ifelse(grepl("2023", db), 'log2(zCount+1)', 'log2(TPM+1)')
     
     Heatmap(id_matrix,
             top_annotation = ha,
@@ -1037,11 +1037,11 @@ shinyServer(function(input, output, session) {
     } else if (db == 'Transcript 2017'){
       pool <- 'gene_pool_2017'
       table <- 'mean_rank_decile_tx'
-    } else if (db == 'Gene 2022'){
-      pool <- 'gene_pool_2022'
+    } else if (db == 'Gene 2023'){
+      pool <- 'gene_pool_2023'
       table <- 'mean_rank_decile_gene'
-    } else if (db == 'Transcript 2022'){
-      pool <- 'gene_pool_2022'
+    } else if (db == 'Transcript 2023'){
+      pool <- 'gene_pool_2023'
       table <- 'mean_rank_decile_tx'
     } else if (db == 'Gene 2019'){
       tissue <- trimws(tissue)
@@ -1056,7 +1056,7 @@ shinyServer(function(input, output, session) {
       pool <- 'DNTx_pool_2019'
       table <- 'mean_rank_decile_tx'
     }
-    if (grepl("2022", db)){
+    if (grepl("2023", db)){
       decile_df <- get(pool) %>% tbl(table) %>% 
         filter(ID %in% gene, Tissue %in% tissue) %>% as.data.frame()
       decile_df[is.na(decile_df)] <- ""
@@ -1110,10 +1110,10 @@ shinyServer(function(input, output, session) {
   #     query = paste0('select * from lsTPM_tx where ID in ("',paste(gene, collapse='","'),'")')
   #     plot_data <- dbGetQuery(gene_pool_2017,  query) %>%
   #       left_join(.,core_tight_2017)
-  #   } else if (db == 'Gene 2022'){
+  #   } else if (db == 'Gene 2023'){
   #     query = paste0('select * from lsTPM_gene where ID in ("',paste(gene, collapse='","'),'")')
-  #     plot_data <- dbGetQuery(gene_pool_2022,  query) %>%
-  #       left_join(.,core_tight_2022)
+  #     plot_data <- dbGetQuery(gene_pool_2023,  query) %>%
+  #       left_join(.,core_tight_2023)
   #   } else if (db == 'Gene 2019'){
   #     query = paste0('select * from lsTPM_gene where ID in ("',paste(gene, collapse='","'),'")')
   #     plot_data <- dbGetQuery(gene_pool_2019,  query) %>%
@@ -2016,12 +2016,12 @@ shinyServer(function(input, output, session) {
       } else if (db == 'DNTx v01'){
         table <- dbGetQuery(DNTx_pool_2019,  paste0('select * from lsTPM_tx where ID in ("',paste(input$table_gene, collapse='","'),'")') ) %>%
           left_join(.,core_tight_2019)
-      } else if (db == 'Gene 2022'){
-        table <- dbGetQuery(gene_pool_2022,  paste0('select * from lsTPM_gene where ID in ("',paste(input$table_gene, collapse='","'),'")') ) %>%
-          left_join(.,core_tight_2022)
-      } else if (db == 'Transcript 2022'){
-        table <- dbGetQuery(gene_pool_2022,  paste0('select * from lsTPM_tx where ID in ("',paste(input$table_gene, collapse='","'),'")') ) %>%
-          left_join(.,core_tight_2022)
+      } else if (db == 'Gene 2023'){
+        table <- dbGetQuery(gene_pool_2023,  paste0('select * from lsTPM_gene where ID in ("',paste(input$table_gene, collapse='","'),'")') ) %>%
+          left_join(.,core_tight_2023)
+      } else if (db == 'Transcript 2023'){
+        table <- dbGetQuery(gene_pool_2023,  paste0('select * from lsTPM_tx where ID in ("',paste(input$table_gene, collapse='","'),'")') ) %>%
+          left_join(.,core_tight_2023)
       }
       table %>% filter(Tissue == local(input$table_tissue)) %>%
         dplyr::select(one_of(c(core_cols, input$table_columns))) %>%
