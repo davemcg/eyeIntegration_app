@@ -139,9 +139,6 @@ shinyUI(fluidPage(
                                               checkboxInput('GTEx_pca_data', 
                                                             label = 'Display GTEx Sample Data',
                                                             value = FALSE),
-                                              checkboxInput('scRNA_pca_data', 
-                                                            label = 'Display scRNA Sample Data',
-                                                            value = FALSE),
                                               conditionalPanel(condition = "input.pca_visualization == 'eyeIntegration PCA Plot'",
                                                                checkboxInput('pc_top_genes', 
                                                                              label = 'Overlay top genes contributing to PC',
@@ -305,7 +302,7 @@ shinyUI(fluidPage(
                navbarMenu('Information',
                           tabPanel('Overview',
                                    fluidPage(
-                                     fluidRow(column(width = 8, offset = 1, h2('eyeIntegration v2.00'))),
+                                     fluidRow(column(width = 8, offset = 1, h2('eyeIntegration v2.10'))),
                                      fluidRow(column(width = 8, offset = 1, img(src='2023_eyeIntegration_Overview_drawIO.drawio.svg', width = 300))),
                                      fluidRow(column(width = 8, offset = 1, h2('Mission'))),
                                      fluidRow(column(width = 8, offset = 1,
@@ -317,9 +314,9 @@ shinyUI(fluidPage(
                                   all of these samples in a consistent bioinformatic workflow. We use this fully integrated dataset to build informative visualizations, novel PCA tool, and UCSC genome browser to provide the ophthalmic community with a powerful and quick means to formulate and test hypotheses on human 
                                   gene and transcript expression.", br(), br(),
                                                      
-                                                     # h2("Basic Statistics"),
-                                                     # fluidRow(column(6, img(src='sample_count_2022.svg', align='middle', width = 1000))),
-                                                     # tableOutput('basic_stats'),
+                                                     h2("Ocular Samples"),
+                                                     fluidRow(column(width = 8, offset = 1, img(src='2023/2023_counts.01.svg', width = 800))),
+                                                     #tableOutput('basic_stats'),
                                                      "We make these data, analyses, and visualizations available here with a powerful interactive web application.")),
                                      fluidRow(column(width = 8, offset = 1, h2('Attribution'))),
                                      fluidRow(column(width = 8, offset = 1, 'This project was conceived and implemented by',
@@ -368,6 +365,8 @@ shinyUI(fluidPage(
                           # News ---------------
                           tabPanel('News',
                                    fluidPage(
+                                     fluidRow(column(width = 8, offset = 1, h2('2023-08-18 | v2.10'))),
+                                     fluidRow(column(width = 8, offset = 1, 'Update PCA visualization with projection based approach, add sample count table, and a new analysis guide')),
                                      fluidRow(column(width = 8, offset = 1, h2('2023-05-22 | v2.01'))),
                                      fluidRow(column(width = 8, offset = 1, 'Swap out the recount3-based quant to a \"vanilla\" salmon quant. Has little effect on the data, but enables more straightforward outside comparison brings back transcript level quant.')),
                                      fluidRow(column(width = 8, offset = 1, h2('2022-04-19 | v2.00'))),
