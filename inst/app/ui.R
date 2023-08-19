@@ -1,4 +1,5 @@
 print('UI Start')
+print('UI Start')
 print(Sys.time())
 
 library(shiny)
@@ -9,10 +10,7 @@ library(colourpicker)
 library(ggiraph)
 library(shinythemes)
 library(plotly)
-# Data for PCA Visualization - created by the EiaD_build/scripts/pca_workup_for_eyeIntegration_app.Rmd script
-load('./www/2022/eyeIntegration_2023_pca.Rdata')
-# created by the EiaD_build/scripts/pca_workup_data_prep.R script
-load('./www/2022/EiaD_pca_analysis.Rdata')
+
 
 load('./www/2017/retina_colors.Rdata')
 load('./www/2017/rpe_colors.Rdata')
@@ -41,23 +39,31 @@ shinyUI(fluidPage(
                                                                checkboxGroupInput('heatmap_clustering_checkbox', strong('Clustering:'),
                                                                                   choices = list("Rows" = 1, "Columns" = 2))), br(), 
                                               selectizeInput('Database', strong('Dataset:'),
-                                                             choices = c("Gene 2017", "Transcript 2017", "Gene 2019", "Transcript 2019", "DNTx v01", "Gene 2022", "Transcript 2022"), 
-                                                             multiple = FALSE, selected = "Gene 2022"),
+                                                             choices = c("Gene 2017", "Transcript 2017", "Gene 2019", "Transcript 2019", "DNTx v01", "Gene 2023", "Transcript 2023"), 
+                                                             multiple = FALSE, selected = "Gene 2023"),
                                               selectizeInput('ID', strong('ID:'),
                                                              choices=NULL, multiple=TRUE),
                                               selectizeInput('plot_tissue_gene',strong('Tissues:'),
                                                              choices=NULL,multiple=TRUE),
-                                              conditionalPanel(condition = "input.plot_type_gene != 'Heatmap' & input.Database != 'Gene 2022'",
-                                                               numericInput('num_gene', strong('Number of columns:'),
+                                              conditionalPanel(condition = "input.plot_type_gene != 'Heatmap' & input.Database != 'Gene 2023' & input.Database != 'Transcript 2023'",
+                                                               numericInput('num_gene', strong('Number of Columns:'),
                                                                             value = 2, min = 1, max = 50)), br(), 
-                                              conditionalPanel(condition = "input.plot_type_gene != 'Heatmap' & input.plot_type_gene != 'Table' & input.Database == 'Gene 2022'",
+                                              conditionalPanel(condition = "input.plot_type_gene != 'Heatmap' & input.plot_type_gene != 'Table' & input.Database == 'Gene 2023'",
                                                                radioButtons('rotation', strong('Plot Orientation:'),
                                                                             choices = list("Samples as rows" = 1, "Samples as columns" = 2), 
                                                                             selected = 1)), br(), 
-                                              conditionalPanel(condition = "input.plot_type_gene != 'Heatmap' & input.Database == 'Gene 2022'",
+                                              conditionalPanel(condition = "input.plot_type_gene != 'Heatmap' & input.plot_type_gene != 'Table' & input.Database == 'Gene 2023'",
                                                                checkboxInput('points', 
                                                                              label = strong('Display Individual Sample Values'),
-                                                                             value = FALSE)), br(), 
+                                                                             value = FALSE)), br(),
+                                              conditionalPanel(condition = "input.plot_type_gene != 'Heatmap' & input.plot_type_gene != 'Table' & input.Database == 'Transcript 2023'",
+                                                               radioButtons('rotation', strong('Plot Orientation:'),
+                                                                            choices = list("Samples as rows" = 1, "Samples as columns" = 2), 
+                                                                            selected = 1)), br(), 
+                                              conditionalPanel(condition = "input.plot_type_gene != 'Heatmap' & input.plot_type_gene != 'Table' & input.Database == 'Transcript 2023'",
+                                                               checkboxInput('points', 
+                                                                             label = strong('Display Individual Sample Values'),
+                                                                             value = FALSE)), br(),
                                               actionButton('pan_button_gene','(Re)Draw Plot!', 
                                                            style='background-color: #3399ff; color: #ffffff'), br(), br(), 
                                               actionButton('build_pan_url','Build URL Shortcut', 
@@ -83,14 +89,16 @@ shinyUI(fluidPage(
                                               )
                                        ),
                                        column(3,
-                                              div(DT::dataTableOutput('gene_info'),style='font-size:75%')
+                                              div(DT::dataTableOutput('gene_info'),style='font-size:75%'), br(), br(),
+                                              conditionalPanel(condition = "input.plot_type_gene == 'Box Plot'",
+                                                               div(DT::dataTableOutput('rankStats_gene'),style='font-size:75%'))
                                        )
                                      )
                                    ), br(), br(),
                                    fluidRow(includeHTML("www/footer.html"))
                           ),
                           # Single Cell Expression --------
-                          tabPanel('Single Cell Expression',
+                          tabPanel('Single Cell Plots',
                                    fluidPage(
                                      fluidRow(
                                        column(2,
@@ -129,61 +137,63 @@ shinyUI(fluidPage(
                                    fluidRow(includeHTML("www/footer.html"))
                           ),
                           # Pan - Eye and Body PCA ---------------
-                          tabPanel('PCA Analysis Plotting',
+                          tabPanel('PCA Projection',
                                    fluidPage(
                                      fluidRow(
                                        column(2,
-                                              radioButtons('pca_visualization',strong('Visualization:'),
-                                                           choices = c('eyeIntegration PCA Plot', 'Upload your own data'),
-                                                           selected = 'eyeIntegration PCA Plot'),
-                                              checkboxInput('GTEx_pca_data', 
-                                                            label = 'Display GTEx Sample Data',
-                                                            value = FALSE),
-                                              conditionalPanel(condition = "input.pca_visualization == 'eyeIntegration PCA Plot'",
+
+                                              strong("Overlays:"),
+                                              # checkboxInput('GTEx_pca_data', 
+                                              #               label = 'GTEx Body Samples',
+                                              #               value = TRUE),
+                                              checkboxInput('pca_projection', 
+                                                           label = 'Project Your Data on PCA',
+                                                           value = FALSE),
+                                              conditionalPanel(condition = "input.pca_projection != 'Project Your Data on PCA'",
                                                                checkboxInput('pc_top_genes', 
-                                                                             label = 'Overlay top genes contributing to PC',
+                                                                             label = 'Top genes contributing to PC',
                                                                              value = FALSE)), br(),
-                                              conditionalPanel(condition = "input.pca_visualization == 'Upload your own data'",
+                                              conditionalPanel(condition = "input.pca_projection == 1",
                                                                fileInput("user_samples", "Choose your CSV or TSV file for Upload",
                                                                          multiple = FALSE,
                                                                          accept = c(".csv", ".tsv", ".tsv.gz", ".csv.gz"))),
-                                              conditionalPanel(condition = "input.pca_visualization == 'Upload your own data'",
+                                              conditionalPanel(condition = "input.pca_projection == 1",
                                                                selectizeInput('pca_user_plot_type', strong('How Would You Like to Display Your Data?'),
                                                                               choices = c("Faceted", "Overlayed"), 
                                                                               multiple = FALSE, selected = "Faceted")),
-                                              conditionalPanel(condition = "input.pca_visualization == 'Upload your own data'",
+                                              conditionalPanel(condition = "input.pca_projection == 1",
                                                                textInput("user_given_input_project_name", label = strong("Enter Your Data Project Name:"), value = "User Generated Data"),
                                                                fluidRow(column(2, verbatimTextOutput("value")))), br(),
                                               selectizeInput('pca_component_one', strong('First PCA Component:'),
-                                                             choices = c(eyeIntegration_2023_pca[[2]] %>% names() %>% head(21)), 
+                                                             choices = paste0("PC",seq(1,50)), 
                                                              multiple = FALSE, selected = "PC1"),
                                               selectizeInput('pca_component_two', strong('Second PCA Component:'),
-                                                             choices = c(eyeIntegration_2023_pca[[2]] %>% names() %>% head(21)), 
+                                                             choices = paste0("PC",seq(1,50)), 
                                                              multiple = FALSE, selected = "PC2"),
-                                              conditionalPanel(condition = "input.pca_visualization == 'eyeIntegration PCA Plot'",
+                                              conditionalPanel(condition = "input.pca_projection != 1",
                                                                actionButton('pca_button','(Re)Draw PCA Plot!', 
                                                                             style='background-color: #3399ff; color: #ffffff')),
-                                              conditionalPanel(condition = "input.pca_visualization == 'Upload your own data'",
+                                              conditionalPanel(condition = "input.pca_projection == 1",
                                                                actionButton('user_generated_pca_button','(Re)Draw PCA Plot!', 
                                                                             style='background-color: #3399ff; color: #ffffff')), br(),
-                                              conditionalPanel(condition = "input.pca_visualization == 'eyeIntegration PCA Plot'",
+                                              conditionalPanel(condition = "input.pca_projection != 1",
                                                                downloadButton('PCA_eyeIntegration_data','Download Plot Data',
                                                                               style='background-color: #3399ff; color: #ffffff')),
-                                              conditionalPanel(condition = "input.pca_visualization == 'Upload your own data'",
+                                              conditionalPanel(condition = "input.pca_projection == 1",
                                                                downloadButton('PCA_ei_user_combined_data','Download Plot Data',
                                                                               style='background-color: #3399ff; color: #ffffff'))
                                        ),
                                        column(10,
-                                              conditionalPanel(condition = "input.pca_button == 0 & input.pca_visualization == 'eyeIntegration PCA Plot'", 
+                                              conditionalPanel(condition = "input.pca_button == 0 & input.pca_projection != 1", 
                                                                "Select a first and second PCA component then click the (RE)Draw PCA Plot! button. 
                                                                It may take a few seconds for the plot to appear."),
-                                              conditionalPanel(condition = "input.user_generated_pca_button == 0 & input.pca_visualization == 'Upload your own data'",
+                                              conditionalPanel(condition = "input.user_generated_pca_button == 0 & input.pca_projection == 1",
                                                                "Select a first and second PCA component then click the (RE)Draw PCA Plot! button. 
                                                                It may take a few seconds for the plot to appear."),
-                                              conditionalPanel(condition = "input.pca_button != 0 & input.pca_visualization == 'eyeIntegration PCA Plot'",
+                                              conditionalPanel(condition = "input.pca_button != 0 & input.pca_projection != 1",
                                                                plotlyOutput("eyeIntegration_pca_plot", height = "1080", width = "100%")
                                               ),
-                                              conditionalPanel(condition = "input.user_generated_pca_button != 0 & input.pca_visualization == 'Upload your own data'",
+                                              conditionalPanel(condition = "input.user_generated_pca_button != 0 & input.pca_projection == 1",
                                                                plotlyOutput("user_pca_plot", height = "1080", width = "100%")
                                               )
                                        )
@@ -220,11 +230,11 @@ shinyUI(fluidPage(
                                        column(2,
                                               selectizeInput('table_db',
                                                              strong('Dataset:'),
-                                                             choices = c("Gene 2022",
+                                                             choices = c("Gene 2023", "Transcript 2023",
                                                                          "Gene 2019", "Transcript 2019",
                                                                          "Gene 2017", "Transcript 2017",
                                                                          "DNTx v01"),
-                                                             selected = 'Gene 2022')),
+                                                             selected = 'Gene 2023')),
                                        column(2,
                                               selectizeInput('table_tissue',
                                                              strong('Tissue: '),
@@ -246,54 +256,24 @@ shinyUI(fluidPage(
                           tabPanel('Data Download',
                                    fluidPage(
                                      br(),
-                                     fluidRow(h2('As of 2023-04-21, we are do no yet have public facing download links for the new 2023 data. We will rectify this soon. Please email if you need
-                                                 more immediate access to this data.')),
-                                     br(),
                                      fluidRow(h3('References')),
-                                     fluidRow(tags$a(href='ftp://ftp.ebi.ac.uk/pub/databases/gencode/Gencode_human/release_29/gencode.v29.transcripts.fa.gz', 'gencode.v29.transcripts.fa.gz')),
-                                     fluidRow(tags$a(href='ftp://ftp.ebi.ac.uk/pub/databases/gencode/Gencode_human/release_29/gencode.v29.annotation.gtf.gz', 'gencode.v29.annotation.gtf.gz')),
+                                     fluidRow(tags$a(href='http://refgenomes.databio.org/v3/assets/splash/2230c535660fb4774114bfa966a62f823fdb6d21acf138d4/salmon_partial_sa_index?tag=default', 'Salmon Index')),
+                                     fluidRow(tags$a(href='https://hpc.nih.gov/~mcgaugheyd/eyeIntegration/2023/2230c535660fb4774114bfa966a62f823fdb6d21acf138d4.gtf.gz', '2023_EiaD_RefGenie.gencode.gtf.gz')),
                                      fluidRow(h3('Bulk Tissue Gene (or transcript(tx)) Raw Count Matrices')),
-                                     
                                      fluidRow('Rows are genes, columns are samples, values are
                            raw counts as calculated by salmon.'),
-                                     fluidRow(tags$a(href='https://hpc.nih.gov/~mcgaugheyd/eyeIntegration/2019_12_gene_counts_04.csv.gz',
-                                                     '2019_12_gene_counts_04.csv.gz')),
-                                     fluidRow(tags$a(href='https://hpc.nih.gov/~mcgaugheyd/eyeIntegration/2019_12_transcript_counts_04.csv.gz',
-                                                     '2019_12_transcript_counts_04.csv.gz')),
-                                     fluidRow(h3('Bulk Tissue Gene (or transcript(tx)) Expression Matrices')),
-                                     fluidRow('Rows are genes, columns are samples, values are in
-                           length scaled Transcripts Per Million (TPM) as calculated by ',
-                                              tags$a(href='https://github.com/mikelove/tximport/blob/master/R/tximport.R',
-                                                     'tximport'), '.'),
-                                     withMathJax(),
-                                     fluidRow(column(2, '$$X = \\frac{count\\ of\\ reads\\ mapped\\ to\\ gene *
-                           10^{3}}{gene\\ length\\ in\\ bp}$$')),
-                                     fluidRow(column(2, '$$TPM = X \\ast \\frac{1}{\\sum X} \\ast 10^{6} $$')),
-                                     fluidRow(tags$a(href='https://hpc.nih.gov/~mcgaugheyd/eyeIntegration/2017_metadata_04.tsv.gz',
-                                                     '2017_metadata_04.tsv.gz')),
-                                     fluidRow(tags$a(href='https://hpc.nih.gov/~mcgaugheyd/eyeIntegration/2017_gene_TPM_04.tsv.gz',
-                                                     '2017_gene_TPM_04.tsv.gz')),
-                                     fluidRow(tags$a(href='https://hpc.nih.gov/~mcgaugheyd/eyeIntegration/2017_tx_TPM_04.tsv.gz',
-                                                     '2017_tx_TPM_04.tsv.gz')),
-                                     fluidRow(tags$a(href='https://hpc.nih.gov/~mcgaugheyd/eyeIntegration/2019_metadata_04.tsv.gz',
-                                                     '2019_metadata_04.tsv.gz')),
-                                     fluidRow(tags$a(href='https://hpc.nih.gov/~mcgaugheyd/eyeIntegration/2019_gene_TPM_04.tsv.gz',
-                                                     '2019_gene_TPM_04.tsv.gz')),
-                                     fluidRow(tags$a(href='https://hpc.nih.gov/~mcgaugheyd/eyeIntegration/2019_tx_TPM_04.tsv.gz',
-                                                     '2019_tx_TPM_04.tsv.gz')),
-                                     fluidRow(h3(tags$em('De novo '), 'transcriptome data')),
-                                     fluidRow(tags$a(href='https://hpc.nih.gov/~mcgaugheyd/eyeIntegration/2019_DNTx_tx_TPM_00.tsv.gz',
-                                                     '2019_DNTx_gene_TPM_01.tsv.gz')),
-                                     fluidRow(tags$a(href='https://hpc.nih.gov/~mcgaugheyd/eyeIntegration/2019_DNTx_tx_TPM_00.tsv.gz',
-                                                     '2019_DNTx_tx_TPM_01.tsv.gz')),
-                                     fluidRow(tags$a(href='https://hpc.nih.gov/~mcgaugheyd/eyeIntegration/DNTx_v00.fa.gz',
-                                                     'DNTx_v01.fa.gz')),
-                                     fluidRow(tags$a(href='https://hpc.nih.gov/~mcgaugheyd/eyeIntegration/DNTx_v00.gtf.gz',
-                                                     'DNTx_v01.gtf.gz')),
-                                     fluidRow(h3('Everything')),
-                                     fluidRow('All of the data and code for this entire web application can be
-                           retrieved by following the simple directions ',
-                                              tags$a(href='https://github.com/davemcg/eyeIntegration_app','here'), '.'),
+                                     fluidRow(tags$a(href='https://hpc.nih.gov/~mcgaugheyd/eyeIntegration/2023/gene_counts.csv.gz',
+                                                     '2023_gene_counts.csv.gz')),
+                                     fluidRow(tags$a(href='https://hpc.nih.gov/~mcgaugheyd/eyeIntegration/2023/tx_counts.csv.gz',
+                                                     '2023_tx_counts.csv.gz')),
+                                     fluidRow(h3('Metadata')),
+                                     fluidRow(tags$a(href='https://hpc.nih.gov/~mcgaugheyd/eyeIntegration/2023/eyeIntegration_meta_2023_03_03.csv.gz',
+                                                     'eyeIntegration_meta_2023_03_03.csv.gz')),
+                                     fluidRow(h3('Codebase')),
+                                     fluidRow(tags$a(href='https://www.github.com/davemcg/eyeIntegration_app',
+                                                     'eyeIntegration_app')),
+                                     fluidRow(tags$a(href='https://www.github.com/davemcg/EiaD_build',
+                                                     'Eiad_build')),
                                      fluidRow(h3('Missing anything?')),
                                      fluidRow('If there\'s some data you want for easy download, ',
                                               tags$a(href = "mailto:mcgaugheyd@mail.nih.gov?Subject=eyeIntegration%20Comment",
@@ -303,36 +283,36 @@ shinyUI(fluidPage(
                           tabPanel('Overview',
                                    fluidPage(
                                      fluidRow(column(width = 8, offset = 1, h2('eyeIntegration v2.10'))),
-                                     fluidRow(column(width = 8, offset = 1, img(src='2023_eyeIntegration_Overview_drawIO.drawio.svg', width = 300))),
+                                     fluidRow(column(width = 8, offset = 1, img(src='2023_eyeIntegration_Overview_drawIO.drawio.02.svg', width = 300))),
                                      fluidRow(column(width = 8, offset = 1, h2('Mission'))),
                                      fluidRow(column(width = 8, offset = 1,
                                                      "The human eye has several specialized tissues which direct, capture, and pre-process information to provide vision.
                                   RNA-seq gene expression analyses have been used extensively, for example, to profile specific eye tissues and in large consortium studies, like the GTEx project,
-                                  to study tissue-specific gene expression patterning", br(), br(), "However, there has not been an integrated study of multiple eye tissues expression patterning with other human
+                                  to study tissue-specific gene expression patterning.", br(), br(), "However, there has not been an integrated study of multiple eye tissues expression patterning with other human
                                   body tissues.", br(), br(),
-                                                     "We have collated publicly available (January 1st, 2019 and November 1st, 2022) healthy human RNA-seq datasets and a substantial subset of the GTEx project RNA-seq datasets and processed
-                                  all of these samples in a consistent bioinformatic workflow. We use this fully integrated dataset to build informative visualizations, novel PCA tool, and UCSC genome browser to provide the ophthalmic community with a powerful and quick means to formulate and test hypotheses on human 
+                                                     "We have collated publicly available (deposited between January 1st, 2019 and November 1st, 2023) healthy human RNA-seq datasets and a substantial subset of the GTEx project RNA-seq datasets and processed
+                                  all of these samples in a consistent bioinformatic workflow. We use this fully integrated dataset to build informative visualizations, a novel PCA tool, and UCSC genome browser to provide the ophthalmic community with a powerful and quick means to formulate and test hypotheses on human 
                                   gene and transcript expression.", br(), br(),
-                                                     
                                                      h2("Ocular Samples"),
-                                                     fluidRow(column(width = 8, offset = 1, img(src='2023/2023_counts.01.svg', width = 800))),
+                                                     fluidRow(column(width = 8, offset = 1, img(src='2023/2023_counts.01.svg', width = 700))),
                                                      #tableOutput('basic_stats'),
+
                                                      "We make these data, analyses, and visualizations available here with a powerful interactive web application.")),
                                      fluidRow(column(width = 8, offset = 1, h2('Attribution'))),
                                      fluidRow(column(width = 8, offset = 1, 'This project was conceived and implemented by',
                                                      tags$a(href = "mailto:mcgaugheyd@mail.nih.gov?Subject=eyeIntegration%20Comment", "David McGaughey"),
                                                      'in ', tags$a(href='https://nei.nih.gov/intramural/ogcsb','OGVFB'), '/',
                                                      tags$a(href='https://nei.nih.gov','NEI'), '/',
-                                                     tags$a(href='https://www.nih.gov','NIH'), '. ',
+                                                     tags$a(href='https://www.nih.gov','NIH'), ', ',
                                                      ' in 2017. The retina and RPE gene networks along with their accompanying web pages were constructed by ',
-                                                     tags$a(href='mailto:john.bryan@nih.gov', 'John Bryan.'), br(), br(),
+                                                     tags$a(href='mailto:john.bryan@nih.gov', 'John Bryan'), '.', br(), br(),
                                                      'The 2019 automated pipeline datasets were built by ',
-                                                     tags$a(href='mailto:vinay.swamy@nih.gov', 'Vinay Swamy.'), br(), br(),
+                                                     tags$a(href='mailto:vinay.swamy@nih.gov', 'Vinay Swamy'), '.', br(), br(),
                                                      'The 2023 update with the PCA analysis tool, its accompanying web page, and the ', tags$a(href="https://genome.ucsc.edu/s/parikhpp/Tissue%20Level%20BigWig%20Data", "tissue"),
                                                      '/', tags$a(href="https://genome.ucsc.edu/s/parikhpp/Sample%20Level%20BigWig%20Data", "sample"), 'level UCSC genome browser were built by ',
-                                                     tags$a(href='mailto:prashit.parikh@nih.gov', 'Prashit Parikh'),' The new metadata curation schema along with the new samples is thanks to collaborative
+                                                     tags$a(href='mailto:pparikh1020@gmail.com', 'Prashit Parikh'),'. The new metadata curation schema along with the new samples is thanks to collaborative
                                                             work with ', tags$a(href = "https://jasonmiller.lab.medicine.umich.edu/", "Jason Miller"), ' and ', 
-                                                     tags$a(href = 'https://prasov.lab.medicine.umich.edu', 'Lev Prasov'), br(), br(),
+                                                     tags$a(href = 'https://prasov.lab.medicine.umich.edu', 'Lev Prasov'), '.', br(), br(),
                                                      
                                                      'Our analysis of the 2017 data in eyeIntegration has been published in Human Molecular Genetics. The manuscript is available ',
                                                      tags$a(href="https://academic.oup.com/hmg/article/27/19/3325/5042913",
@@ -342,15 +322,15 @@ shinyUI(fluidPage(
                                                      'We also strongly encourage citation of the publications
                                   behind the datasets used in this resource. A full list can be found ',
                                                      tags$a(href="https://github.com/davemcg/eyeIntegration_app/blob/master/inst/citations.md",
-                                                            "here."))),
+                                                            "here"), ".")),
                                      
                                      fluidRow(column(width = 8, offset = 1, h2('Source Code'))),
                                      fluidRow(column(width = 8, offset = 1,
-                                                     'The source code and data for this web application is available ', tags$a(href='https://gitlab.com/davemcg/Human_eyeIntegration_App', 'here.'))),
+                                                     'The source code and data for this web application are available ', tags$a(href='https://gitlab.com/davemcg/Human_eyeIntegration_App', 'here'), '.')),
                                      fluidRow(column(width = 8, offset = 1, h2('Problems?'))),
                                      fluidRow(column(width = 8, offset = 1,
-                                                     'First check the FAQ by clicking on ', strong('Information'), 'in the above header, then on ', strong('FAQs'), br(), br(), 'Other issues can be reported two ways: ',
-                                                     tags$a(href = "mailto:mcgaugheyd@mail.nih.gov?Subject=eyeIntegration%20Issue", "email"), 'or ',
+                                                     'First check the FAQ by clicking on ', strong('Information'), 'in the above header, then on ', strong('FAQs'), '.', br(), br(), 'Other issues can be reported two ways: ',
+                                                     tags$a(href = "mailto:mcgaugheyd@mail.nih.gov?Subject=eyeIntegration%20Issue", "Email"), 'or ',
                                                      tags$a(href ='https://github.com/davemcg/eyeintegration_app/issues', 'GitHub Issue Tracker'))),br(), br(),
                                      fluidRow(includeHTML("www/footer.html")),
                                      br(), br()
@@ -358,7 +338,7 @@ shinyUI(fluidPage(
                           # analysis -----------
                           tabPanel("Analysis and Extension", 
                                    fluidRow(column(width = 8, offset = 1, h2('Advanced Analysis'))),
-                                   fluidRow(column(width = 8, offset = 1, "All links external. Here we present a tutorial on how to use the data in EiaD 
+                                   fluidRow(column(width = 8, offset = 1, "All links are external. Here we present a tutorial on how to use the data in EiaD 
                                    and recount3 to do custom differential testing. We also provide some brief guidance on how to use your own private data 
                                                    to run custom diff testing.")),
                                    fluidRow(column(width = 8, offset = 1, includeHTML("www/analyses.html")))),
@@ -368,9 +348,9 @@ shinyUI(fluidPage(
                                      fluidRow(column(width = 8, offset = 1, h2('2023-08-18 | v2.10'))),
                                      fluidRow(column(width = 8, offset = 1, 'Update PCA visualization with projection based approach, add sample count table, and a new analysis guide')),
                                      fluidRow(column(width = 8, offset = 1, h2('2023-05-22 | v2.01'))),
-                                     fluidRow(column(width = 8, offset = 1, 'Swap out the recount3-based quant to a \"vanilla\" salmon quant. Has little effect on the data, but enables more straightforward outside comparison brings back transcript level quant.')),
-                                     fluidRow(column(width = 8, offset = 1, h2('2022-04-19 | v2.00'))),
-                                     fluidRow(column(width = 8, offset = 1, 'Version 2.0! We introduce another huge set of updates, including a new 2023 dataset with 287 new eye samples, three new tissue categories, cell type level expression data, bulk RNA-seq expression boxplots to better express our new metadata, and new PCA tool with user-inputted data compatibility, and a UCSC genome browser for visualization of base-pair level expression counts. Click', tags$a(href="https://genome.ucsc.edu/s/parikhpp/Tissue%20Level%20BigWig%20Data", "here"), 'to view the tissue-level genome browser and', tags$a(href="https://genome.ucsc.edu/s/parikhpp/Sample%20Level%20BigWig%20Data", "here"), 'for the sample-level genome browser.')),
+                                     fluidRow(column(width = 8, offset = 1, 'Swap out the recount3-based quant to a \"vanilla\" salmon quant. Has little effect on the data, but enables more straightforward outside comparison and brings back transcript level quant.')),
+                                     fluidRow(column(width = 8, offset = 1, h2('2023-04-19 | v2.00'))),
+                                     fluidRow(column(width = 8, offset = 1, 'Version 2.0! We introduce another huge set of updates, including a new 2023 dataset with 287 new eye samples, three new tissue categories, cell type level expression data, bulk RNA-seq expression boxplots to better express our new metadata, a new PCA tool with user-inputted data compatibility, and a UCSC genome browser for visualization of base-pair level expression counts. Click', tags$a(href="https://genome.ucsc.edu/s/parikhpp/Tissue%20Level%20BigWig%20Data", "here"), 'to view the tissue-level genome browser and', tags$a(href="https://genome.ucsc.edu/s/parikhpp/Sample%20Level%20BigWig%20Data", "here"), 'for the sample-level genome browser.')),
                                      fluidRow(column(width = 8, offset = 1, h2('2020-02-14 | v1.05'))),
                                      fluidRow(column(width = 8, offset = 1, 'Updated DNTx to v01. Removed v00 as we have made SUBSTANTIAL improvements to the precision and reliability of the results. We do not recommend v00 be used.')),
                                      fluidRow(column(width = 8, offset = 1, h2('2020-01-31 | v1.04'))),
@@ -421,46 +401,107 @@ shinyUI(fluidPage(
                                                   "We will soon have a pre-print describing the new 2019 automated data analysis workflow. The code-base for the build can be found ", tags$a(href="https://github.com/davemcg/eyeIntegration_data_build", "here.")),
                                          tabPanel("2019 Data Workflow",
                                                   img(src='2019_workflow.svg', width = 900)),
-                                         tabPanel("How was the 2022 data generated, acquired and processed?",
-                                                  "We will soon have a pre-print describing the new 2022 automated data analysis workflow. The code-base for the build can be found ", tags$a(href="https://github.com/davemcg/EiaD_build/tree/recount3", "here.")),
-                                         tabPanel("2022 Data Workflow",
-                                                  "We will upload a finalized 2022 data workflow soon.")),
+                                         tabPanel("How was the 2023 data generated, acquired and processed?",
+                                                  "We will soon have a pre-print describing the new 2023 automated data analysis workflow. The code-base for the build can be found ", tags$a(href="https://github.com/davemcg/EiaD_build/tree/recount3", "here.")),
+                                         tabPanel("2023 Data Workflow",
+                                                  "We will upload a finalized 2023 data workflow soon.")),
                             navlistPanel("Pan-Tissue Expression FAQs",
                                          # How to use the boxplot split by iteration of EiaD
-                                         tabPanel("How do I use the Pan-Tissue Expression section for the 2022 data?",
-                                                  "First you select the 2022 dataset [2]. Then you can tweak the 'Genes' [3] and 'Tissues' [4] by clicking in them and starting to type (allowed values will auto-fill). You can also delete values by clicking on them and hitting the 'delete' key on your keyboard. You can tweak the display of the box plots a bit by orienting the plot according to whether you want your samples to be displayed as rows or columns [5]. When you are done tweaking those parameters, click the big blue '(Re)Draw Plot!' button [6] and wait a few seconds.", br(), br(), 'If you mouse over a data point [8], you will get metadata about that particular sample. If you would like to turn this feature off, you can uncheck the "Display Individual Sample Values" checkbox under the plot orientation.', br(), br(), img(src='pantissue_screenshot_2022.png', width = 900), br(), br()),
-                                         tabPanel("How do I use the Pan-Tissue Expression section for data from 2019 and prior?",
-                                                  "First you pick the dataset (2017 or 2019) [2]. Then you can tweak the 'Genes' [3] and 'Tissues' [4] by clicking in them and starting to type (allowed values will auto-fill). You can also delete values by clicking on them and hitting the 'delete' key on your keyboard. You can tweak the display of the box plots a bit by changing the 'Number of columns' field [5]. A higher number will squeeze more plots in each column. When you are done tweaking those parameters, click the big blue '(Re)Draw Plot!' button [6] and wait a few seconds.", br(), br(), 'If you mouse over a data point [8], you will get metadata about that particular sample.', br(), br(), img(src='pantissue_screenshot_pre_2022.png', width = 900), br(), br()),
+                                         tabPanel("How do I use the Pan-Tissue Expression 'Box Plot' section for data after 2019?",
+                                                  "After selecting the 'Box Plot' radio button [1], you can choose a 2023 dataset [2]. 
+                                                  Then, you can tweak which 'IDs' [3] and 'Tissues' [4] you would like to display by 
+                                                  clicking in the respective boxes and starting to type (allowed values will auto-fill). 
+                                                  You can also delete values by clicking on them and hitting the 'delete' key on your keyboard. 
+                                                  The display of the box plot can be changed depending on whether you want your samples to be 
+                                                  displayed as rows or columns [5]. Furthermore, the 'Display Individual Sample Values' checkbox [6] 
+                                                  will enable you to hover your mouse over a data point and show the metadata for that particular sample [8]. 
+                                                  When you are done tweaking these parameters, you can click the big blue '(Re)Draw Plot!' button [7] 
+                                                  and wait a few seconds for the plot to appear.", br(), br(), 
+                                                  img(src='pantissue_boxplot_2023.png', width = 900), br(), br()),
+                                         tabPanel("How do I use the Pan-Tissue Expression ‘Box Plot' section for data from 2019 and prior?",
+                                                  "After selecting the ‘Box Plot' radio button [1], you can choose a 2017, 2019, or DNTx dataset [2]. 
+                                                  Then, you can tweak which ‘IDs' [3] and ‘Tissues' [4] you would like to display by clicking in the 
+                                                  respective boxes and starting to type (allowed values will auto-fill). You can also delete values by 
+                                                  clicking on them and hitting the ‘delete' key on your keyboard. You can change the display of the box 
+                                                  plots by selecting a different value for the 'Number of Columns' field [5]. A lower number will squeeze 
+                                                  more plots in each column. When you are done tweaking these parameters, you can click the big blue 
+                                                  '(Re)Draw Plot!' button [6] and wait a few seconds for the plot to appear.", br(), br(), 
+                                                  'If you mouse over a data point, you will get metadata about that particular sample [7].',
+                                                  br(), br(), img(src='pantissue_boxplot_pre_2023.png', width = 900), br(), br()),
                                          # What the boxplot shows split by iteration of EiaD
-                                         tabPanel("What Pan-Tissue Expression data is displayed for data after 2019?",
-                                                  "Each gene and tissue combination gets its own box. Depending on how the plot is oriented, one axis is length scaled TPM (log2 transformed). The other axis contains the samples, colored by tissue. The right panel is a table with external links to gene info [9].", br(), br(), img(src='pantissue_screenshot_2022.png', width = 900), br(), br()),
-                                         tabPanel("What Pan-Tissue Expression data is displayed for data from 2019 and prior?",
-                                                  "Each gene gets its own box. The y-axis is length scaled TPM (log2 transformed). The x axis is samples, colored by tissue. The right panel is a table with external links to gene info [9].", br(), br(), img(src='pantissue_screenshot_pre_2022.png', width = 900), br(), br()),
+                                         tabPanel("What data is displayed in the Pan-Tissue 'Box Plot' for data after 2019?",
+                                                  "Each gene and tissue combination is given its own box. Depending on how the plot is oriented, 
+                                                  one axis is log1p transformed z-counts, and the other axis contains the samples, colored by tissue. 
+                                                  The right panel contains tables with external links to gene info [9], as well as the zCount values and 
+                                                  rank of each gene in the chosen tissues (lower is more highly expressed).",
+                                                  br(), br(), img(src='pantissue_boxplot_2023.png', width = 900), br(), br()),
+                                         tabPanel("What Pan-Tissue Expression data is displayed in the ‘Box Plot' for data from 2019 and prior?",
+                                                  "Each gene gets its own box. The y-axis is length scaled TPM (log2 transformed), and the x-axis is samples, 
+                                                  colored by tissue. The right panel contains tables with external links to gene info [8], 
+                                                  as well as the absolute TPM values and rank of each gene in the chosen tissues (lower is more highly expressed).", 
+                                                  br(), br(), img(src='pantissue_boxplot_pre_2023.png', width = 900), br(), br()),
                                          # Other features which are uniform for data before and after 2019
-                                         tabPanel("What is the 'Heatmap' radio button?",
-                                                  "This produces a 2D visualization, with each gene as a row and each tissue as a column. More yellow is more expressed. It is a efficient way to display the expression of many genes and tissues.", br(), br(), img(src='pantissue_heatmap_pre_2022.png', width = 900), br(), br()),
-                                         tabPanel("Why does the 2022 Heatmap look different?",
-                                                  "The 2022 heatmap operates at the tissue level, which results in more samples being present.", br(), br(), img(src='pantissue_heatmap_2022.png', width = 900), br(), br()),
+                                         tabPanel("How do I use the Pan-Tissue Expression 'Heatmap' radio button?",
+                                                  "After selecting the ‘Heatmap’ radio button [1], you can choose a 2017, 2019, or DNTx dataset [3]. 
+                                                  Then, you can tweak which ‘IDs’ [4] and ‘Tissues’ [5] you would like to display by clicking in the respective boxes 
+                                                  and starting to type (allowed values will auto-fill). You can also delete values by clicking on them and hitting the 
+                                                  ‘delete’ key on your keyboard. The display of the heatmap can be changed depending on whether you want to cluster 
+                                                  your samples by rows or columns by clicking the appropriate checkboxes [2]. When you are done tweaking these parameters, 
+                                                  you can click the big blue '(Re)Draw Plot!' button [6] and wait a few seconds for the plot to appear", 
+                                                  br(), br(), 
+                                                  "The heatmap is an efficient way to display the expression of many genes and tissues. More yellow indicates higher expression, 
+                                                  and further information about each chosen gene can be found by following the external links in the table to the right [7].", br(), br(),
+                                                  img(src='pantissue_heatmap_pre_2023.png', width = 900), br(), br()),
+                                         tabPanel("Why does the Heatmap for the 2023 datasets look different?",
+                                                  "The 2023 heatmap operates at the tissue level, which results in more samples being present.", 
+                                                  br(), br(), img(src='pantissue_heatmap_2023.png', width = 900), br(), br()),
                                          tabPanel("What is the 'Table' radio button?",
                                                   "This produces a table containing metadata for the gene and tissue combo selected by the user.", br(), br()),
-                                         tabPanel("Custom Gene / Tissue combination via the URL",
-                                                  "If you use the Pan-Tissue Boxplot or Single-Cell Boxplot feature a lot, you may find it frustrating to have to input in your favorite genes and tissues. We have added the ability to use a custom url to load in the genes and tissues of your choice. Previously you had to build this link youself - but now there's a handy button [7] you can click that will re-create the parameters. 
-                                                  One downside is that the web app is continually using the URL dataset, which makes it impossible for you to change it. You can simply reload the web page with the custom bits.", br(), br(), img(src='pantissue_screenshot_2022.png', width = 900), br(), br()),
-                                         tabPanel("How do I use the Single-Cell Expression section?",
-                                                  "First you select the genes [1], stages of development [2], and cell types [3] you would like to view by clicking in their respective boxes and starting to type (allowed values will auto-fill). 
-                                                  Next, select whether you would like to view your cell types as rows or columns in the 'Plot Orientation' section [4]. You can also delete values by clicking on them and hitting the 'delete' key on your keyboard. You can tweak the display of the box plots a bit by orienting the plot according to whether you want your samples to be displayed as rows or columns [4]. 
-                                                  When you are done tweaking those parameters, click the big blue '(Re)Draw Plot!' button [6] and wait a few seconds. If you mouse over a data point [8], you will get metadata about that particular sample (this feature is off by default). 
-                                                  If you would like to turn on this feature off, you can check the 'Display Individual Sample Values' checkbox under 'Plot Orientation' [5].", br(), br(), img(src='single_cell_screenshot_2022.png', width = 900), br(), br()),
+                                          tabPanel("How do I use the Single-Cell Expression section?",
+                                                  "First you select the genes [1], stages of development [2], and cell types [3] you would like to view by clicking in their respective boxes 
+                                                  and starting to type (allowed values will auto-fill). You can delete values by clicking on them and hitting the 'delete' key on your keyboard. 
+                                                  Next, select whether you would like to view your cell types as rows or columns in the 'Plot Orientation' section [4]. 
+                                                  Furthermore, the ‘Display Individual Sample Values’ checkbox [5] will enable you to hover your mouse over a data point and show the metadata 
+                                                  for that particular sample [7]. When you are done tweaking those parameters, click the big blue '(Re)Draw Plot!' button [6] and wait a few seconds.", 
+                                                  br(), br(), img(src='singlecell_boxplot_2023.png', width = 900), br(), br()),
                                          tabPanel("What data is displayed in the Single-Cell Expression section?", 
-                                                  "Each gene and developmental stage combination gets its own box. These features are further faceted by the back and remainder of the eye. Depending on how the plot is oriented, one axis is length scaled count value (log2 transformed). The other axis contains the cell types. If hover data is toggled on, then each point is colored by an independent study and the size of the point is a log2 scaled percentage of cells that have detected expression of the gene.", br(), br(), img(src='single_cell_screenshot_2022.png', width = 900), br(), br()),
-                                         tabPanel("How do I use the PCA Analysis Plotting tool using eyeIntegration's built-in database?",
-                                                  "This tool produces a plot of principal components from PCA (principal component analysis) conducted on our eyeIntegration 2.0 database. To begin, the user can select to view the eyeIntegration 2.0 database ('eyeIntegration PCA Plot') [1]. Then, you can select and unselect various checkboxes to include or exclude GTEx and single-cell RNA-seq data, as well as the visualization for which genes contribute most to your chosen principal components of interest [2]. Once you have decided which data you would like to visualize, you can select two principal components to plot [3]. When you are done tweaking those parameters, click the big blue '(Re)Draw Plot!' button [4] and wait a few seconds for the plot to appear. Since this plot was built using the ggplotly R package, you can hover your mouse over a point to see that sample’s metadata [6], and adjust the plot window using various scaling parameters provided on the top right of the plot [7]. Tissue types can be included and excluded by clicking directly on the name of the tissue within the legend on the right side of the plot. Finally, if you would like to export the data used to make this plot, you can click the big blue 'Download Plot Data' button and download a CSV containing the data [5].", br(), br(), img(src='ei_pca_visualization.png', width = 900), br(), br()),
+                                                  "Each gene and developmental stage combination gets its own box. These features are further faceted between the back and front of the eye. 
+                                                  Depending on how the plot is oriented, one axis is length scaled count value (log2 transformed), and the other axis contains the cell types. 
+                                                  If hover data is toggled on [5], then each point is colored by an independent study and the size of the point is a log2 scaled percentage of cells 
+                                                  that have detected expression of the gene.", br(), br(), img(src='singlecell_boxplot_2023.png', width = 900), br(), br()),
+                                         tabPanel("How do I use the PCA Analysis Plotting tool using eyeIntegration’s built-in database?",
+                                                  "This tool produces a plot of principal components from PCA (principal component analysis) conducted on our eyeIntegration 2.0 database. 
+                                                  To begin, the user must select the 'eyeIntegration PCA Plot' radio button [1]. Then, you can select and unselect various checkboxes to 
+                                                  include or exclude GTEx and single-cell RNA-seq data, as well as the visualization for which genes contribute most to your chosen principal 
+                                                  components of interest [2]. Once you have decided which data you would like to visualize, you can select two principal components to plot [3]. 
+                                                  When you are done tweaking those parameters, click the big blue '(Re)Draw Plot!' button [4] and wait a few seconds for the plot to appear. 
+                                                  Since this plot was built using the ggplotly R package, you can hover your mouse over a point to see that sample’s metadata [6], 
+                                                  and adjust the plot window using various scaling parameters provided on the top right of the plot [7]. Tissue types can be included and excluded 
+                                                  by clicking directly on the name of the tissue within the legend on the right side of the plot [8]. 
+                                                  Finally, if you would like to export the data used to make this plot, you can click the big blue 'Download Plot Data' button and download a CSV 
+                                                  containing the data [5].", br(), br(), img(src='ei_pca_projection.png', width = 900), br(), br()),
                                          tabPanel("How do I use my own data within the PCA Analysis Plotting tool?",
-                                                  "This tool produces a plot of principal components from PCA (principal component analysis) conducted on our eyeIntegration 2.0 database and projects user-inputted data onto this PCA space. To begin, the user can select to project their own data onto eyeIntegration's PCA data ('Upload your own data') [1]. Then, you can select and unselect checkboxes to include or exclude GTEx and single-cell RNA-seq data [2]. Once you have decided which eyeIntegration samples you would like to include in visualization, you can click the ‘Browse…’ button and search your computer for a dataset to upload for projection [3]. This data should be in one of the following formats: csv, tsv, csv.gz, and tsv.gz. For this tool, the data can be viewed in either a faceted layout (picture here), or an overlayed layout. This can be selected from the dropdown menu under ‘How Would You Like to Display Your Data?’ [4]. Finally, you can type in a name for your dataset to be included within the visualization [5] prior to selecting which principal components to plot [6]. When you are done tweaking those parameters, click the big blue '(Re)Draw Plot!' button [7] and wait a few seconds for the plot to appear. 
-                                                  Since this plot was built using the ggplotly R package, you can hover your mouse over a point to see that sample’s metadata [9], and adjust the plot window using various scaling parameters provided on the top right of the plot [10]. Tissue types can be included and excluded by clicking directly on the name of the tissue within the legend on the right side of the plot. Finally, if you would like to export the data used to make this plot, you can click the big blue 'Download Plot Data' button and download a CSV containing the data [8]. This data will include a scaled version of the original user data to plot alongside the eyeIntegration 2023 dataset.",  br(), br(), img(src='ei_and_user_pca_visualization.png', width = 900), br(), br())),
+                                                  "This tool produces a plot of principal components from PCA (principal component analysis) conducted on our eyeIntegration 2.0 database and 
+                                                  projects user-inputted data onto this PCA space. To begin, the user must select the 'Project Your Data on PCA' radio button [1]. 
+                                                  Then, you can select and unselect checkboxes to include or exclude GTEx and single-cell RNA-seq data from eyeIntegration [2]. 
+                                                  Once you have decided which samples you would like to include in visualization, you can click the ‘Browse…’ button and search your computer 
+                                                  for a dataset to upload for projection [3]. This data should be in one of the following formats: csv, tsv, csv.gz, or tsv.gz. 
+                                                  In this tool, the projected data can be either faceted against, or overlayed onto the existing eyeIntegration database. 
+                                                  This can be selected from the dropdown menu under, ‘How Would You Like to Display Your Data?’ [4]. 
+                                                  Finally, you can type in a name for your dataset to be included within the visualization [5], then select which principal components to plot [6]. 
+                                                  When you are done tweaking those parameters, click the big blue '(Re)Draw Plot!' button [7] and wait a few seconds for the plot to appear. 
+                                                  Since this plot was built using the ggplotly R package, you can hover your mouse over a point to see that sample’s metadata [9], 
+                                                  and adjust the plot window using various scaling parameters provided on the top right of the plot [10]. Tissue types can be included and excluded 
+                                                  by clicking directly on the name of the tissue within the legend on the right side of the plot [11]. 
+                                                  Finally, if you would like to export the data used to make this plot, you can click the big blue 'Download Plot Data' button and download a CSV 
+                                                  containing the data [8]. This data will include a scaled version of the original user data to plot alongside the eyeIntegration 2023 dataset.", 
+                                                  br(), br(), strong("Faceted View"), br(), br(), img(src='user_faceted_pca_projection.png', width = 900), br(), br(), 
+                                                  strong("Overlayed View"), br(), br(), img(src='user_overlayed_pca_projection.png', width = 900), br(), br())),
+                            
                             navlistPanel("Data Table FAQ",
                                          tabPanel('What is the Pan-Tissue Bulk RNA-seq Data table showing?',
                                                   'The data table shows, for each gene and tissue set the user selects, the most important metadata for each sample.')),
+                            
                             navlistPanel("Deprecated Features FAQ",
                                          tabPanel('What is the Deprecated Section?',
                                                   'These are all features from the 2019 iteration of eyeIntegration which have either been replaced with new features or deprecated due to limited use.'),
@@ -626,7 +667,7 @@ shinyUI(fluidPage(
                                        column(4, numericInput('perplexity','Perplexity (5 - 50):', value=50, min=5, max=50, step = 5)
                                        ),
                                        column(10,
-                                              ggiraphOutput('tsne', height = '1200px', width = '100%')))
+                                              girafeOutput('tsne', height = '1200px', width = '100%')))
                                    ), br(), br(),
                                    fluidRow(includeHTML("www/footer.html"))
                           ),
