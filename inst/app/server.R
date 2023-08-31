@@ -28,7 +28,7 @@ library(htmltools)
 library(RSQLite)
 library(ggtext)
 library(stringr)
-library(metamoRph)
+source('metamoRph_core.R')
 
 # pools for sqlite DBs ------------
 
