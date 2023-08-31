@@ -37,8 +37,14 @@ gene_pool_2017 <- dbPool(drv = SQLite(), dbname = "./www/2017/eyeIntegration_hum
 gene_pool_2019 <- dbPool(drv = SQLite(), dbname = "./www/2019/EiaD_human_expression_2019_04.sqlite", idleTimeout = 3600000)
 DNTx_pool_2019 <- dbPool(drv = SQLite(), dbname = "./www/2019/DNTx_EiaD_human_expression_2019_00.sqlite", idleTimeout = 3600000)
 SC_pool <- dbPool(drv = SQLite(), dbname = "./www/2019/single_cell_retina_info_04.sqlite", idleTimeout = 3600000)
-
 scEiaD_pool <- dbPool(drv = SQLite(), dbname = ("./www/2023/scEiaD.sqlite"), idleTimeout = 3600000)
+# check pools for valid tables
+if (gene_pool_2023 %>% dbListTables() %>% length() == 0){cat("gene_pool_2023 empty")}
+if (gene_pool_2017 %>% dbListTables() %>% length() == 0){cat("gene_pool_2017 empty")}
+if (gene_pool_2019 %>% dbListTables() %>% length() == 0){cat("gene_pool_2019 empty")}
+if (DNTx_pool_2019 %>% dbListTables() %>% length() == 0){cat("DNTx_pool_2019 empty")}
+if (SC_pool %>% dbListTables() %>% length() == 0){cat("SC_pool empty")}
+if (scEiaD_pool %>% dbListTables() %>% length() == 0){cat("scEiaD_pool empty")}
 
 # Load in file containing samples to remove from web application
 excluded_samples <- scan("./www/2023/excluded_samples.txt", what = "character")
