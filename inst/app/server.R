@@ -49,7 +49,6 @@ if (scEiaD_pool %>% dbListTables() %>% length() == 0){cat("scEiaD_pool empty")}
 # Load in file containing samples to remove from web application
 excluded_samples <- scan("./www/2023/excluded_samples.txt", what = "character")
 
-
 gene_names_2023 <- gene_pool_2023 %>% tbl('gene_IDs') %>% pull(ID) %>% unique()
 gene_names_2017 <- gene_pool_2017 %>% tbl('gene_IDs') %>% pull(ID)
 gene_names_2019 <- gene_pool_2019 %>% tbl('gene_IDs') %>% pull(ID)
@@ -58,8 +57,10 @@ geneTX_names_2017 <- gene_pool_2017 %>% tbl('tx_IDs') %>% pull(ID)
 geneTX_names_2019 <- gene_pool_2019 %>% tbl('tx_IDs') %>% pull(ID)
 geneTX_names_2023 <- gene_pool_2023 %>% tbl('tx_IDs') %>% pull(ID)
 geneTX_names_2019_DNTx <- DNTx_pool_2019 %>% tbl('tx_IDs') %>% pull(ID)
+# hand remove miller and scheet internal
 core_tight_2023 <- gene_pool_2023 %>% tbl('metadata') %>% 
-  filter(!sample_accession %in% excluded_samples) %>% as_tibble() #%>% select(sample_accession:sample_attribute, region:Comment, Sample_comment, Perturbation)
+  filter(!sample_accession %in% excluded_samples) %>% as_tibble() %>% #%>% select(sample_accession:sample_attribute, region:Comment, Sample_comment, Perturbation)
+  filter(!grepl("MillerRPE|ScheetzInternal",study_accession))
 core_tight_2017 <- gene_pool_2017 %>% tbl('metadata') %>% as_tibble()
 core_tight_2019 <- gene_pool_2019 %>% tbl('metadata') %>% as_tibble()
 
