@@ -269,7 +269,7 @@ shinyUI(fluidPage(
                navbarMenu('Information',
                           tabPanel('Overview',
                                    fluidPage(
-                                     fluidRow(column(width = 8, offset = 1, h2('eyeIntegration v2.10'))),
+                                     fluidRow(column(width = 8, offset = 1, h2('eyeIntegration v2.20'))),
                                      fluidRow(column(width = 8, offset = 1, img(src='2023_eyeIntegration_Overview_drawIO.drawio.02.svg', width = 300))),
                                      fluidRow(column(width = 8, offset = 1, h2('Mission'))),
                                      fluidRow(column(width = 8, offset = 1,
@@ -281,7 +281,7 @@ shinyUI(fluidPage(
                                   all of these samples in a consistent bioinformatic workflow. We use this fully integrated dataset to build informative visualizations, a novel PCA tool, and UCSC genome browser to provide the ophthalmic community with a powerful and quick means to formulate and test hypotheses on human 
                                   gene and transcript expression.", br(), br(),
                                                      h2("Ocular Samples"),
-                                                     fluidRow(column(width = 8, offset = 1, img(src='2023/2023_counts.02.svg', width = 700))),
+                                                     fluidRow(column(width = 8, offset = 1, img(src='2023/2023_counts.03.svg', width = 700))),
                                                      #tableOutput('basic_stats'),
 
                                                      "We make these data, analyses, and visualizations available here with a powerful interactive web application.")),
@@ -332,6 +332,8 @@ shinyUI(fluidPage(
                           # News ---------------
                           tabPanel('News',
                                    fluidPage(
+                                     fluidRow(column(width = 8, offset = 1, h2('2023-09-02 | v2.11'))),
+                                     fluidRow(column(width = 8, offset = 1, 'Add two studies from Bharti and Stambolian')),
                                      fluidRow(column(width = 8, offset = 1, h2('2023-08-31 | v2.10'))),
                                      fluidRow(column(width = 8, offset = 1, 'Update PCA visualization with projection based approach, add sample count table, a new analysis guide. Count table updated with our own gencode based reference to expand quantified transcripts. ML based sex predictor labels added. Simplified PCA visualization options. Fixed bug in 2023 axis flip option.')),
                                      fluidRow(column(width = 8, offset = 1, h2('2023-05-22 | v2.01'))),
