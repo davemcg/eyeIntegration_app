@@ -244,8 +244,9 @@ shinyUI(fluidPage(
                                    fluidPage(
                                      br(),
                                      fluidRow(h3('References')),
-                                     fluidRow(tags$a(href='http://refgenomes.databio.org/v3/assets/splash/2230c535660fb4774114bfa966a62f823fdb6d21acf138d4/salmon_partial_sa_index?tag=default', 'Salmon Index')),
-                                     fluidRow(tags$a(href='https://hpc.nih.gov/~mcgaugheyd/eyeIntegration/2023/2230c535660fb4774114bfa966a62f823fdb6d21acf138d4.gtf.gz', '2023_EiaD_RefGenie.gencode.gtf.gz')),
+                                     fluidRow(tags$a(href='https://ftp.ebi.ac.uk/pub/databases/gencode/Gencode_human/release_44/gencode.v44.transcripts.fa.gz', 'Human Transcriptome')),
+                                     fluidRow(tags$a(href='https://ftp.ebi.ac.uk/pub/databases/gencode/Gencode_human/release_44/GRCh38.primary_assembly.genome.fa.gz', 'Human Genome (for decoy)')),
+                                     fluidRow(tags$a(href='https://hpc.nih.gov/~mcgaugheyd/eyeIntegration/2023/salmon_index_gencode.v44_salmon.tar', 'Our Salmon Index (warning 17GB)')),
                                      fluidRow(h3('Bulk Tissue Gene (or transcript(tx)) Raw Count Matrices')),
                                      fluidRow('Rows are genes, columns are samples, values are
                            raw counts as calculated by salmon.'),
@@ -254,8 +255,10 @@ shinyUI(fluidPage(
                                      fluidRow(tags$a(href='https://hpc.nih.gov/~mcgaugheyd/eyeIntegration/2023/tx_counts.csv.gz',
                                                      '2023_tx_counts.csv.gz')),
                                      fluidRow(h3('Metadata')),
-                                     fluidRow(tags$a(href='https://hpc.nih.gov/~mcgaugheyd/eyeIntegration/2023/eyeIntegration_meta_2023_03_03.csv.gz',
-                                                     'eyeIntegration_meta_2023_03_03.csv.gz')),
+                                     fluidRow(tags$a(href='https://hpc.nih.gov/~mcgaugheyd/eyeIntegration/2023/eyeIntegration23_meta_2023_09_01.built.csv.gz',
+                                                     'Sample Metadata (csv.gz)')),
+                                     fluidRow(tags$a(href='https://hpc.nih.gov/~mcgaugheyd/eyeIntegration/2023/gene_anno.csv.gz',
+                                                     'Transcript Gene Conversion Table (csv.gz)')),
                                      fluidRow(h3('Codebase')),
                                      fluidRow(tags$a(href='https://www.github.com/davemcg/eyeIntegration_app',
                                                      'eyeIntegration_app')),
@@ -269,7 +272,7 @@ shinyUI(fluidPage(
                navbarMenu('Information',
                           tabPanel('Overview',
                                    fluidPage(
-                                     fluidRow(column(width = 8, offset = 1, h2('eyeIntegration v2.20'))),
+                                     fluidRow(column(width = 8, offset = 1, h2('eyeIntegration v2.12'))),
                                      fluidRow(column(width = 8, offset = 1, img(src='2023_eyeIntegration_Overview_drawIO.drawio.02.svg', width = 300))),
                                      fluidRow(column(width = 8, offset = 1, h2('Mission'))),
                                      fluidRow(column(width = 8, offset = 1,
@@ -332,6 +335,8 @@ shinyUI(fluidPage(
                           # News ---------------
                           tabPanel('News',
                                    fluidPage(
+                                     fluidRow(column(width = 8, offset = 1, h2('2023-09-02 | v2.12'))),
+                                     fluidRow(column(width = 8, offset = 1, 'URL updates for data downloads')),
                                      fluidRow(column(width = 8, offset = 1, h2('2023-09-02 | v2.11'))),
                                      fluidRow(column(width = 8, offset = 1, 'Add two studies from Bharti and Stambolian')),
                                      fluidRow(column(width = 8, offset = 1, h2('2023-08-31 | v2.10'))),
