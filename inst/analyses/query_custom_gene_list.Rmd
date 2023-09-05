@@ -1,0 +1,167 @@
+---
+title: "Query Large Gene List"
+author: David McGaughey
+date: 2023-08-30
+output:  
+  html_notebook:
+    theme: flatly
+    toc: true
+    toc_float: true
+---
+
+# Goals
+
+1. Make a filtered table by Sub Tissue and Gene 
+
+2. Rows are genes
+
+3. Columns are Sub Tissue
+
+4. Export the table to a csv for Excel / etc usage
+
+
+# Load libraries, import count data and metadata
+
+The `counts` import will take some time, as this file is ~150mb
+```{r}
+library(tidyverse)
+library(edgeR)
+# if the above library(tidyverse) step throws an error, you need to install tidyverse as follows:
+# install.packages('tidyverse')
+# https://eyeintegration.nei.nih.gov -> Data -> Data Download for links
+
+# you may want to just paste these links into your browser and download the files
+# you then would have to update the path to find them on your local computer
+# this will save downloading the 150mb file each time you run this
+metadata <- data.table::fread("https://hpc.nih.gov/~mcgaugheyd/eyeIntegration/2023/eyeIntegration23_meta_2023_09_01.built.csv.gz")
+gene_counts <- data.table::fread("https://hpc.nih.gov/~mcgaugheyd/eyeIntegration/2023/gene_counts.csv.gz")
+```
+
+# Let's peek at the two data frames we loaded into R
+```{r}
+metadata %>% sample_n(10)
+
+gene_counts[1:10,c(1,100:110)]
+```
+
+
+# We can aggregate data to the sub_tissue level in a few steps.
+
+
+## First convert to CPM
+These are raw counts. So a sample "A" with twice as many reads as sample "B" will have each gene appear to have about twice the expression. So we will use CPM normalization to normalize the total counts. 
+
+```{r}
+gene_counts_mat <- gene_counts[,2:ncol(gene_counts)]
+gene_cpm_mat <- edgeR::cpm(gene_counts_mat)
+# quick check on first sample
+gene_cpm_mat[,1] %>% sum()
+
+# add back gene names
+row.names(gene_cpm_mat) <- gene_counts$Gene
+```
+
+## Grab human readable gene names conversion table
+```{r}
+gene_tx_table <- data.table::fread("https://hpc.nih.gov/~mcgaugheyd/eyeIntegration/2023/gene_anno.csv.gz")
+gene_tx_table %>% select(-Name) %>% sample_n(10)
+```
+## First make the data *long* with `pivot_longer`
+This is to facilitate adding metadata to the counts
+```{r}
+gene_counts_long <- gene_cpm_mat %>% 
+  as_tibble(rownames = 'Gene') %>% 
+  pivot_longer(cols=2:ncol(gene_counts), names_to = 'sample_accession', values_to = 'CPM')
+
+gene_counts_long %>% sample_n(10)
+```
+
+## Quickly inspect what kind of metadata and sample counts we have
+```{r}
+metadata %>% colnames() %>% sort()
+metadata %>% group_by(Tissue, Sub_Tissue, Source, Age, Perturbation, Sex_ML) %>% summarise(Count = n()) %>% DT::datatable()
+```
+
+## Now `left_join` to label each sample 
+
+We chose to label with the following:
+
+- Tissue (eg. cornea, retina)
+- Sub_Tissue (e.g. macula)
+- Source (e.g. iPSC)
+- Age (e.g. adult)
+- Sex_ML (machine learnt sex labels)
+- study_title
+
+```{r}
+gene_counts_long <- left_join(gene_counts_long, 
+                           metadata %>% 
+                             select(sample_accession, Tissue, Sub_Tissue, 
+                                    Source, Age, Sex_ML, study_title) %>% 
+                             unique(), 
+                           by = 'sample_accession')
+
+gene_counts_long %>% sample_n(10)
+```
+
+## Now we can create a custom expression plot
+
+The eyeIntegration data is presented by the `Tissue` - `Sub_Tissue` - `Source` - `Age` - `Perturbation` grouping
+
+As we are working in R we can do some custom filtering and grouping.
+
+Let's do this:
+1. `Cornea` and `Skin` only
+2. Filter to retain only `Primary culture` or `Native` sources of tissue
+3. Filter `Skin` to remove `Transformed fibroblasts`
+3. Group by `Tissue` - `Source` - `Sex_ML`
+
+Plot LUM, MITF, and DCN expression. We use a fancier "geom_quasirandom" to give the points 
+some shaping. We don't use this on the web app because it is computationally expensive.
+```{r, fig.width=25, fig.height=8}
+gene_counts_long %>% 
+  filter(Tissue %in% c("Cornea","Skin"),
+         !Sub_Tissue %in% 'Transformed fibroblasts',
+         Source %in% c("Native","Primary Culture")) %>% 
+  mutate(ID = paste(Tissue, Source, Age, Sex_ML, sep = ' - ')) %>% 
+  left_join(gene_tx_table %>% select(gene_id, gene_name) %>% unique(), by = c("Gene" = "gene_id")) %>% 
+  filter(gene_name %in% c("LUM","MITF","DCN")) %>% 
+  ggplot(aes(y=ID,x=log2(CPM+1), color = study_title)) +
+  geom_boxplot(color = 'black') +
+  ggbeeswarm::geom_quasirandom() + 
+  facet_wrap(~gene_name) +
+  scale_color_manual(values = pals::alphabet2() %>% unname())
+
+
+```
+
+## Sub Tissue Options
+You can use this to figure out what tissues to show in the next table
+```{r}
+gene_counts_long_by_sub_tissue$Sub_Tissue %>% table()
+```
+
+# Make Mini Table
+Filtered down to a small set of genes. Here is where you would edit the code to put in your list of genes.
+
+If you need help importing in your own gene list, let me know.
+```{r}
+table <- gene_counts_long_by_sub_tissue %>% 
+  filter(ID %in% c('ABCA4','CRX','DCX','NRL','PAX6','RPE65'),
+         Sub_Tissue %in% c('Retina - Adult Tissue', 
+                           'Cornea - Adult Tissue', 
+                           'RPE - Adult Tissue',
+                           'Brain - Caudate (basal ganglia)',
+                           'Adrenal Gland',
+                           'Spleen',
+                           'Stomach')) %>% 
+  mutate(TPM = log2(TPM)) %>% 
+  pivot_wider(values_from = TPM, names_from = Sub_Tissue)
+  
+table
+```
+
+## Output table to csv for excel viewing
+```{r}
+table %>% write_csv(file = 'my_table.eyeIntegration.csv')
+```

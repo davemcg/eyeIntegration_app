@@ -1,0 +1,255 @@
+---
+title: "Processing Your Internal RNAseq Data"
+author: "Prashit Parikh and David McGaughey"
+date: "2023-08-18"
+output:  
+  html_notebook:
+    theme: flatly
+    toc: true
+    toc_float: true
+---
+
+# 1. Overview
+
+This guide will illustrate how you can process your own RNAseq data and utilize it in conjunction with our Eye in a Disk (EiaD) database to conduct differential gene expression analysis.
+
+We will begin by downloading and loading necessary packages for use throughout this tutorial:
+
+Comment out the `install.packages` if you get errors on the `library` loads below
+
+```{r, warning=FALSE, message=FALSE}
+# # The following packages will be used throughout this tutorial for data manipulation
+# install.packages("tidyverse")
+# install.packages("tibble")
+# install.packages("data.table")
+# install.packages("tximport") 
+# Load packages
+library(tidyverse)
+library(tibble)
+library(data.table)
+library(tximport)
+```
+
+# 2. Quick Start
+
+In order to combine your personal RNA-seq dataset with our EiaD database for use in gene expression analysis, it must first be processed using an RNAseq processing tool(kallisto/STAR/etc.). In this tutorial we will be using Salmon. For a a full explanation of how to use Salmon, please visit the [latest salmon documentation here](https://salmon.readthedocs.io/en/latest/){.uri}.
+
+# 2.1 Load EiaD Count Data and Metadata
+
+Importing the EiaD gene counts will take some time, as this file is over 175 MB. If you would like to, you can also swap out gene counts for transcript counts, [which can be found here](https://hpc.nih.gov/~parikhpp/EiaD/tx_counts.csv.gz){.uri}. If you utilize the EiaD transcript counts, your local counts will need to be aggregated to the gene level.
+
+```{r, warning=FALSE, message=FALSE}
+# Retrieve metadata and gene counts for EiaD
+metadata <- read_csv("https://hpc.nih.gov/~mcgaugheyd/eyeIntegration/2023/eyeIntegration22_meta_2023_03_03.csv.gz")
+gene_counts <- read_csv("https://hpc.nih.gov/~mcgaugheyd/eyeIntegration/2023/gene_counts.csv.gz")
+```
+
+We will compare adult human retina tissue against iPSC neuron tissue. The table below shows that `ERP126780` (study_accession column) is a possibility for the retina sample. Note how we also save exactly which `sample_accessions` meet the criteria for our desired sample.
+```{r}
+metadata %>% filter(Tissue == 'Retina', Source == 'Native', Age == 'Adult') 
+
+EiaD_retina_samples <- metadata %>% filter(Tissue == 'Retina', Source == 'Native', Age == 'Adult') %>% 
+  filter(study_accession == 'ERP126780') %>% 
+  pull(sample_accession)
+```
+
+# 2.2 Process and Load YOUR Personal RNA-seq data
+
+After quantifying our RNAseq dataset using Salmon, we must import our transcript-level estimates and aggregate them to the gene level for gene-level differential expression analysis using tximport. [A full guide for the R package can be found here](https://bioconductor.org/packages/release/bioc/vignettes/tximport/inst/doc/tximport.html#Salmon){.uri}.
+
+You can use the following steps to process and load your personal data:
+
+- Step 1: Use [Salmon](http://salmon.readthedocs.io) with the [refgenie prebuilt index](http://refgenomes.databio.org/v3/assets/splash/2230c535660fb4774114bfa966a62f823fdb6d21acf138d4/salmon_partial_sa_index?tag=default)
+- Step 2: Use [tximport](https://bioconductor.org/packages/release/bioc/vignettes/tximport/inst/doc/tximport.html) to load your Salmon data into R
+
+## Using SRA Project `SRP096788` (non-EiaD iPSC neuron data) for thisexample
+Salmon version 1.10.2 was used throughout this guide
+
+The chunk must be run on the (bash) command line (like in "Terminal" on a Mac) NOT in R.
+
+```{bash download, eval = FALSE}
+# https://github.com/ncbi/sra-tools/wiki/HowTo:-fasterq-dump
+fasterq-dump SRR5177944
+fasterq-dump SRR5177946
+fasterq-dump SRR5177947
+```
+
+## Get pre-made reference
+
+This is not the one used in our pipeline, but it is substantially smaller (about 2GB instead of 17GB).
+```{bash refgenie, eval = FALSE}
+wget -O index.tgz http://refgenomes.databio.org/v3/assets/archive/2230c535660fb4774114bfa966a62f823fdb6d21acf138d4/salmon_partial_sa_index?tag=default
+tar -xzvf index.tgz
+rm index.tgz
+```
+
+```{bash, eval = FALSE}
+salmon quant --index ../default --libType A --seqBias --gcBias --validateMappings \
+-p 8 \
+SRR5177944.fastq \
+-o SRR5177944
+
+salmon quant --index ../default --libType A --seqBias --gcBias --validateMappings \
+-p 8 \
+SRR5177946.fastq \
+-o SRR5177946
+
+salmon quant --index ../default --libType A --seqBias --gcBias --validateMappings \
+-p 8 \
+SRR5177947.fastq \
+-o SRR5177947
+```
+
+## Load annotation data and create transcript-to-gene mapping
+
+Since we have counts at the transcript level, we will create a mapping between each transcript and its associated gene so that your locally processed data can be mapped to the gene level:
+```{r}
+# This step may take a while as the file we are downloading from the web is about 44 MB in size
+exon_anno <- rtracklayer::readGFF('https://hpc.nih.gov/~mcgaugheyd/eyeIntegration/2023/2230c535660fb4774114bfa966a62f823fdb6d21acf138d4.gtf.gz')
+tx2gene <- exon_anno %>% filter(!is.na(transcript_id)) %>% 
+  mutate(tx = paste0(transcript_id, '.', transcript_version),
+         gene = paste0(gene_id, '.', gene_version)) %>% dplyr::select(tx, gene) %>% unique()
+```
+
+Now, we can use this mapping to load in our Salmon-quantified transcripts:
+```{r}
+# import with tximport
+txi <- tximport(c('SRR5177944/quant.sf', 'SRR5177946/quant.sf', 'SRR5177947/quant.sf'), 
+                type = 'salmon', countsFromAbundance = 'no', txOut = FALSE, tx2gene = tx2gene)
+```
+
+## Create local metadata
+
+DESeq2 requires metadata for each sample. Some metadata fields we use in EiaD that you can replicate to make your life easier are:
+- Tissue
+- Sub_Tissue
+- Age
+- Perturbation
+
+```{r}
+# Create metadata for your locally processed samples
+local_metadata <- data.frame(sample_accession = c("SRR5177944", "SRR5177946", "SRR5177947"),
+                             Tissue = c("Neuron", "Neuron", "Neuron"),
+                             Sub_Tissue = c(NA, NA, NA),
+                             Age = c(NA, NA, NA),
+                             Source = c("iPSC", "iPSC", "iPSC"),
+                             Perturbation = c("ALS", NA, NA))
+```
+
+# 3. DESeq2 Time: Differential Testing
+
+The example above illustrates how to process your RNAseq data using Salmon and load it into R. If your RNAseq data was processed using a tool other than Salmon, please refer to the [DESeq2 guide](http://bioconductor.org/packages/devel/bioc/vignettes/DESeq2/inst/doc/DESeq2.html#input-data) to learn more about how you can load your data into R for use with DESeq2.
+
+## Combine EiaD data with the `txi` object
+
+```{r}
+# match up row names
+EiaD_data <- data.frame(gene_counts[, c(EiaD_retina_samples)])
+row.names(EiaD_data) <- str_extract(gene_counts$Gene, "(?<=\\().+?(?=\\))")
+# rows to keep
+EiaD_keep <- row.names(EiaD_data) %in% row.names(txi$counts)
+EiaD_data_subset <- EiaD_data[EiaD_keep, c(EiaD_retina_samples)]
+
+# update txi$counts colnames to something informative
+txi$counts <- cbind(txi$counts[EiaD_data_subset %>% row.names,], EiaD_data_subset) %>% as.matrix()
+colnames(txi$counts) <- c('SRR5177944', 'SRR5177946', 'SRR5177947', EiaD_retina_samples)
+
+# copy length data of first to match number of samples you add
+txi$length <- cbind(txi$length, replicate(ncol(EiaD_data_subset), txi$length[,1]))
+
+# confirm it works by looking at a few rows (if you see NA a problem has happened)
+txi$counts %>% as_tibble(rownames = 'ID') %>% sample_n(10)
+
+# Build combined DESeq counts matrix for EiaD and locally processed samples
+DESeq_counts <- txi$counts
+```
+
+## Combine EiaD metadata with local metadata
+
+```{r}
+# Pull EiaD metadata
+EiaD_metadata <- metadata %>% filter(sample_accession %in% c(EiaD_retina_samples))
+# Combine metadata with the metadata we created above for our locally processed iPSC neuron samples
+DESeq_meta <- bind_rows(local_metadata, EiaD_metadata)
+```
+
+## Run DESeq2
+
+```{r, warning=FALSE}
+# install.packages("DESeq2")
+library(DESeq2)
+
+# build dds
+dds_EiaD_iPSC_neuron <-  DESeqDataSetFromMatrix(countData = round(DESeq_counts),
+                                                colData = DESeq_meta,
+                                                design = ~ Tissue)
+
+# build deseq2 table
+DESeq2Table <- DESeq(dds_EiaD_iPSC_neuron)
+```
+
+## Top 100 differentially expressed genes
+```{r}
+top100 <- results(DESeq2Table) %>% as_tibble(rownames = 'ensembl_gene_id') %>% arrange(padj) %>% head(100)
+top100
+```
+
+### Now human readable
+We see how some of the top positive and negative log2FoldChange genes are associated with Retina and iPSC Motor Neurons, respectively.
+
+You can click on the column fields to sort by that column.
+```{r}
+#BiocManager::install('biomaRt')
+library(biomaRt)
+mart <- useEnsembl("ensembl", "hsapiens_gene_ensembl")
+conversion_table <- getBM(c("ensembl_gene_id","hgnc_symbol","description"), mart = mart)
+top100 %>%
+  # ugly code to remove the .digit ending to get aligment of ethe ensembl id
+  mutate(ensembl_gene_id = gsub('\\.\\d+','',ensembl_gene_id)) %>% 
+  left_join(conversion_table, by = join_by(ensembl_gene_id)) %>% 
+  relocate(hgnc_symbol) %>% 
+  arrange(-log2FoldChange) %>% 
+  DT::datatable()
+```
+
+## Diff results
+```{r, warning=FALSE}
+results(DESeq2Table) %>% 
+  as_tibble(rownames = 'ensembl_gene_id') %>% 
+  arrange(padj) %>% head(10) %>% 
+  mutate(ensembl_gene_id = gsub('\\.\\d+','',ensembl_gene_id)) %>% 
+  left_join(conversion_table, by = join_by(ensembl_gene_id)) %>% 
+  relocate(hgnc_symbol) %>% 
+  arrange(log2FoldChange) %>% 
+  DT::datatable()
+```
+
+## PCA to look for patterns across samples
+
+We see that PC1 separates retina and iPSC neuron tissue.
+```{r}
+vst <- varianceStabilizingTransformation(DESeq2Table)
+library(matrixStats)
+ntop = 1000
+Pvars <- rowVars(assay(vst))
+select <- order(Pvars, decreasing = TRUE)[seq_len(min(ntop, 
+                                                      length(Pvars)))]
+PCA <- prcomp(t(assay(vst)[select, ]), scale = F)
+percentVar <- round(100*PCA$sdev^2/sum(PCA$sdev^2),1)
+dataGG = data.frame(PC1 = PCA$x[,1], PC2 = PCA$x[,2], 
+                    PC3 = PCA$x[,3], PC4 = PCA$x[,4], 
+                    Tissue = colData(vst)$Tissue,
+                    Source=colData(vst)$Source)
+ggplot(dataGG, aes(PC1, PC2, color=Tissue, shape=Source)) +
+  geom_point(size=3) +
+  xlab(paste0("PC1: ",percentVar[1],"% variance")) +
+  ylab(paste0("PC2: ",percentVar[2],"% variance")) + 
+  cowplot::theme_cowplot()
+```
+
+# 4. Conclusions
+
+1. We show how to pull the EiaD gene counts and metadata
+2. We show how to process your local RNAseq datasets and create metadata for use in DESeq2
+3. We show how to combine EiaD with your locally processed data for use in DESeq2
+4. We do a very brief analysis in DESeq2
