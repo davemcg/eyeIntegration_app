@@ -761,7 +761,7 @@ shinyServer(function(input, output, session) {
       
       if (input$points){
         p <- p + 
-          geom_point_interactive( size=0.4, position = 'jitter', alpha=0.15, stroke = 3, aes(tooltip=Info, shape = Sex_ML)) +
+          geom_point_interactive( size=0.4, position = 'jitter', alpha=0.30, stroke = 3, aes(tooltip=Info, shape = Sex_ML)) +
           scale_shape_manual(values = c(0,2,3)) 
       }
       
