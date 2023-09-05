@@ -336,7 +336,7 @@ shinyUI(fluidPage(
                           tabPanel('News',
                                    fluidPage(
                                      fluidRow(column(width = 8, offset = 1, h2('2023-09-02 | v2.12'))),
-                                     fluidRow(column(width = 8, offset = 1, 'URL updates for data downloads')),
+                                     fluidRow(column(width = 8, offset = 1, 'URL updates for data downloads, added new guides to Analysis and Extension')),
                                      fluidRow(column(width = 8, offset = 1, h2('2023-09-02 | v2.11'))),
                                      fluidRow(column(width = 8, offset = 1, 'Add two studies from Bharti and Stambolian')),
                                      fluidRow(column(width = 8, offset = 1, h2('2023-08-31 | v2.10'))),
