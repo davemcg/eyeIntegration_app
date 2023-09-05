@@ -1,13 +1,27 @@
 ---
 title: "Processing Your Internal RNAseq Data"
 author: "Prashit Parikh and David McGaughey"
-date: "2023-08-18"
-output:  
+date: "`r Sys.Date()`"
+output:
+  html_document:
+    theme: flatly
+    toc: yes
+    toc_float: yes
+    df_print: paged
   html_notebook:
     theme: flatly
-    toc: true
-    toc_float: true
+    toc: yes
+    toc_float: yes
 ---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  message = FALSE,  warning = FALSE,
+  collapse = TRUE,
+  fig.width = 6, fig.height = 4.5,
+  comment = "#>"
+)
+```
 
 # 1. Overview
 
@@ -40,8 +54,8 @@ Importing the EiaD gene counts will take some time, as this file is over 175 MB.
 
 ```{r, warning=FALSE, message=FALSE}
 # Retrieve metadata and gene counts for EiaD
-metadata <- read_csv("https://hpc.nih.gov/~mcgaugheyd/eyeIntegration/2023/eyeIntegration22_meta_2023_03_03.csv.gz")
-gene_counts <- read_csv("https://hpc.nih.gov/~mcgaugheyd/eyeIntegration/2023/gene_counts.csv.gz")
+metadata <- data.table::fread("https://hpc.nih.gov/~mcgaugheyd/eyeIntegration/2023/eyeIntegration23_meta_2023_09_01.built.csv.gz")
+gene_counts <- data.table::fread("https://hpc.nih.gov/~mcgaugheyd/eyeIntegration/2023/gene_counts.csv.gz")
 ```
 
 We will compare adult human retina tissue against iPSC neuron tissue. The table below shows that `ERP126780` (study_accession column) is a possibility for the retina sample. Note how we also save exactly which `sample_accessions` meet the criteria for our desired sample.
@@ -77,6 +91,8 @@ fasterq-dump SRR5177947
 ## Get pre-made reference
 
 This is not the one used in our pipeline, but it is substantially smaller (about 2GB instead of 17GB).
+
+If you still want ours, it is [here](https://hpc.nih.gov/~mcgaugheyd/eyeIntegration/2023/salmon_index_gencode.v44_salmon.tar)
 ```{bash refgenie, eval = FALSE}
 wget -O index.tgz http://refgenomes.databio.org/v3/assets/archive/2230c535660fb4774114bfa966a62f823fdb6d21acf138d4/salmon_partial_sa_index?tag=default
 tar -xzvf index.tgz
@@ -104,7 +120,7 @@ SRR5177947.fastq \
 
 Since we have counts at the transcript level, we will create a mapping between each transcript and its associated gene so that your locally processed data can be mapped to the gene level:
 ```{r}
-# This step may take a while as the file we are downloading from the web is about 44 MB in size
+
 exon_anno <- rtracklayer::readGFF('https://hpc.nih.gov/~mcgaugheyd/eyeIntegration/2023/2230c535660fb4774114bfa966a62f823fdb6d21acf138d4.gtf.gz')
 tx2gene <- exon_anno %>% filter(!is.na(transcript_id)) %>% 
   mutate(tx = paste0(transcript_id, '.', transcript_version),
@@ -144,11 +160,11 @@ The example above illustrates how to process your RNAseq data using Salmon and l
 
 ```{r}
 # match up row names
-EiaD_data <- data.frame(gene_counts[, c(EiaD_retina_samples)])
-row.names(EiaD_data) <- str_extract(gene_counts$Gene, "(?<=\\().+?(?=\\))")
+EiaD_data <- gene_counts[, ..EiaD_retina_samples] %>% as.matrix()
+row.names(EiaD_data) <- gene_counts$Gene
 # rows to keep
 EiaD_keep <- row.names(EiaD_data) %in% row.names(txi$counts)
-EiaD_data_subset <- EiaD_data[EiaD_keep, c(EiaD_retina_samples)]
+EiaD_data_subset <- EiaD_data[EiaD_keep, EiaD_retina_samples]
 
 # update txi$counts colnames to something informative
 txi$counts <- cbind(txi$counts[EiaD_data_subset %>% row.names,], EiaD_data_subset) %>% as.matrix()
@@ -199,15 +215,15 @@ We see how some of the top positive and negative log2FoldChange genes are associ
 
 You can click on the column fields to sort by that column.
 ```{r}
-#BiocManager::install('biomaRt')
-library(biomaRt)
-mart <- useEnsembl("ensembl", "hsapiens_gene_ensembl")
-conversion_table <- getBM(c("ensembl_gene_id","hgnc_symbol","description"), mart = mart)
+# library(org.Hs.eg.db)
+conv_table <- AnnotationDbi::select(org.Hs.eg.db::org.Hs.eg.db, 
+                                    keys=gsub('\\.\\d+','',top100$ensembl_gene_id),
+                                    columns=c("ENSEMBL", "SYMBOL", "MAP","GENENAME"), keytype="ENSEMBL") 
 top100 %>%
   # ugly code to remove the .digit ending to get aligment of ethe ensembl id
-  mutate(ensembl_gene_id = gsub('\\.\\d+','',ensembl_gene_id)) %>% 
-  left_join(conversion_table, by = join_by(ensembl_gene_id)) %>% 
-  relocate(hgnc_symbol) %>% 
+  mutate(ENSEMBL = gsub('\\.\\d+','',ensembl_gene_id)) %>% 
+  left_join(conv_table, by = 'ENSEMBL') %>% 
+  relocate(SYMBOL, GENENAME) %>% 
   arrange(-log2FoldChange) %>% 
   DT::datatable()
 ```
@@ -215,11 +231,11 @@ top100 %>%
 ## Diff results
 ```{r, warning=FALSE}
 results(DESeq2Table) %>% 
-  as_tibble(rownames = 'ensembl_gene_id') %>% 
+  as_tibble(rownames = 'ENSEMBL') %>% 
   arrange(padj) %>% head(10) %>% 
-  mutate(ensembl_gene_id = gsub('\\.\\d+','',ensembl_gene_id)) %>% 
-  left_join(conversion_table, by = join_by(ensembl_gene_id)) %>% 
-  relocate(hgnc_symbol) %>% 
+  mutate(ENSEMBL = gsub('\\.\\d+','',ENSEMBL)) %>% 
+  left_join(conv_table, by = 'ENSEMBL') %>% 
+  relocate(SYMBOL, GENENAME) %>% 
   arrange(log2FoldChange) %>% 
   DT::datatable()
 ```
