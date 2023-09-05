@@ -20,4 +20,5 @@ NOTE WHEN KNITTING/WHATEVER INTO HTML HAND DELETE EVERYTHING OUTSIDE OF <body> /
 
 | Analyses |  Web Guide |
 | --------- | -------- |
-| Custom Diff Testing   |  [Go](http://eyeIntegration.nei.nih.gov/DESeq2_eyeIntegration_Guide.freeze01.html) |
+| Custom Diff Testing   |  [Go](https://eyeintegration.nei.nih.gov/Processing_Your_RNAseq_Data_Guide.freeze02.html) |
+| Custom Gene Plotting |  [Go](https://eyeintegration.nei.nih.gov/query_custom_gene_list.freeze01.html) |
